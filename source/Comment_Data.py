@@ -5,6 +5,11 @@ from datetime import datetime
 
 @dataclass(order=True)
 class Comment_Data(JSONable):
+    """
+    Comment_Data is a dataclass which inherits from abstract base class
+    JSONable. It represents all of the data necessary to convert
+    a given comment from the database into a json object.
+    """
     sort_index: datetime = field(init=False, repr=False)
     author: User_Data
     comment: str

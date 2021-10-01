@@ -4,6 +4,11 @@ from json import dumps as __dumps
 
 @dataclass
 class Like_Data(JSONable):
+    """
+    Like_Data is a dataclass which inherits from abstract base class
+    JSONable. It represents all of the data necessary to convert
+    a given like from the database into a json object.
+    """
     context: str
     summary: str
     author: User_Data

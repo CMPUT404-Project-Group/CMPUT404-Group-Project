@@ -11,5 +11,9 @@ class JSONable(ABC):
     object_type: str
 
     @abstractmethod
-    def get_object_as_JSON():
+    def get_object_as_JSON(self):
+        """
+        Function which should take a given object which is JSONable
+        and turn it into a JSON object
+        """
         pass

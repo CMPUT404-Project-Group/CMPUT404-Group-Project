@@ -4,6 +4,11 @@ from json import dumps as __dumps
 
 @dataclass
 class User_Request_Data(JSONable):
+    """
+    User_Request_Data is a dataclass which inherits from abstract base class
+    JSONable. It represents all of the data necessary to convert
+    a given user request data object from the database into a json object.
+    """
     object_type: str
     summary: str
     actor: User_Data
