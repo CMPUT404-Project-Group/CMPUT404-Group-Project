@@ -1,21 +1,20 @@
+from dataclasses import dataclass
 from . import JSONable, User_Data
 from json import dumps as __dumps
 
+@dataclass
 class Like_Data(JSONable):
-    def __init__(
-            self, context: str, summary: str, object_type: str, 
-            author: User_Data, object_affected: str):
-        self.context = context
-        self.summary = summary
-        self.object_type = 'Like'
-        self.author = author.get_object_as_JSON()
-        self.object_affected = object_affected
+    context: str
+    summary: str
+    author: User_Data
+    object_affected: str
+    object_type: str = "Like"
     
     def get_object_as_JSON(self):
         return __dumps({
             '@context': self.context,
             'summary': self.summary,
             'type': self.object_type,
-            'author': self.author,
+            'author': self.author.get_object_as_JSON(),
             'object': self.object_affected
         })

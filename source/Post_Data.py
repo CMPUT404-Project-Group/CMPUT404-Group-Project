@@ -1,36 +1,46 @@
-from typing import Counter
+from dataclasses import dataclass
 from . import JSONable, User_Data
 from json import dumps as __dumps
 from datetime import datetime
 
+@dataclass
 class Post_Data(JSONable):
-    """
-    This class is already bloated and I haven't even finished. I don't know how it
-    could be improved at the moment.
-    """
-    def __init__(
-            self, title: str, id: str, source: str, origin: str,
-            description: str, content_type: str, author: User_Data,
-            categories: list, comment_count: int, page_size: int,
-            comment_page: str, comments: list, published: datetime,
-            visibility: enumerate, unlisted: bool):
-        self.object_type = 'post'
-        self.title = title
-        self.id = id
-        self.source = source
-        self.origin = origin
-        self.description = description
-        self.content_type = content_type
-        self.author = author
-        self.categories = categories
-        self.comment_count = comment_count
-        self.page_size = page_size
-        self.comment_page = comment_page
-        self.comments = comments
-        self.published = published
-        self.visibility = visibility
-        self.unlisted = unlisted
+    title: str
+    id: str
+    source: str
+    origin: str
+    description: str
+    content_type: str
+    content: str
+    author: User_Data
+    categories: list
+    comment_count: int
+    page_size: int
+    comment_page: str
+    comments: list
+    published: datetime
+    visibility: enumerate
+    unlisted: bool
+    object_type: str = 'post'
 
 
     def get_object_as_JSON(self):
-        pass
+        return __dumps({
+            'type': self.object_type,
+            'title': self.title,
+            'id': self.id,
+            'source': self.source,
+            'origin': self.origin,
+            'description': self.description,
+            'contentType': self.content_type,
+            'content': self.content,
+            'author': self.author.get_object_as_JSON(),
+            'categories': self.categories,
+            'count': self.comment_count,
+            'size': self.page_size,
+            'comments': self.comment_page,
+            'comments': self.comments,
+            'published': self.published,
+            'visibility': self.visibility,
+            'unlisted': self.unlisted
+        })

@@ -1,14 +1,14 @@
+from dataclasses import dataclass
 from . import JSONable
 from json import dumps as __dumps
 
+@dataclass
 class User_Data(JSONable):
-
-    def __init__(self, id: str, url: str, host: str, display_name: str):
-        self.object_type = "author"
-        self.id = id
-        self.url = url
-        self.host = host
-        self.display_name = display_name
+    id: str
+    url: str
+    host: str
+    display_name: str
+    object_type: str = 'author'
     
     def get_object_as_JSON(self):
         return __dumps({
