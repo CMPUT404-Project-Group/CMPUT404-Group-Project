@@ -9,6 +9,9 @@ class User_Request_Data(JSONable):
     actor: User_Data
     object_affected: User_Data
 
+    def __str__(self):
+        return f'{self.object_type}, {self.summary}, {self.actor}, {self.object_affected}'
+
     def get_object_as_JSON(self):
         return __dumps({
             'type': self.object_type,

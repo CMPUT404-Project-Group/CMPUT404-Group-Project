@@ -7,6 +7,9 @@ class Liked_Data(JSONable):
     object_affected: list
     object_type: str = "liked"
 
+    def __str__(self):
+        return f'{self.object_type}, {self.object_affected}'
+
     def get_object_as_JSON(self):
         return __dumps({
             'type': self.object_type,

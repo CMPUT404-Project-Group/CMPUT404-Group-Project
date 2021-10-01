@@ -9,6 +9,9 @@ class Like_Data(JSONable):
     author: User_Data
     object_affected: str
     object_type: str = "Like"
+
+    def __str__(self):
+        return f'{self.object_type}, {self.context}, {self.summary}, {self.author}, {self.object_affected}'
     
     def get_object_as_JSON(self):
         return __dumps({

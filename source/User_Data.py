@@ -9,6 +9,9 @@ class User_Data(JSONable):
     host: str
     display_name: str
     object_type: str = 'author'
+
+    def __str__(self):
+        return f'{self.object_type}, {self.id}, {self.display_name}, {self.url}, {self.host}'
     
     def get_object_as_JSON(self):
         return __dumps({
