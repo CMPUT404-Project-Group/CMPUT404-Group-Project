@@ -21,7 +21,8 @@ python -m pip install -r requirements.txt
 ```
 
 Now you can follow the usual Django steps to run the development server.
-=======
+
+
 CMPUT404-project-socialdistribution
 ===================================
 
