@@ -4,28 +4,36 @@
 
 {% block content %}
 
-<div class="container is-fulid pt-6">
+
+<div class="container pt-6">
   <div class="columns is-centered">
-    <form method="post" class="box">
+    <div class="column is-4">
+      <form method="post" action="{% url 'app:login' %}" class="box">
+        {% csrf_token %}
         <h3 class="title is-3 has-text-centered">Login</h3>
-      <div class="field">
-        <label class="label">Username</label>
-        <div class="control">
-          <input class="input" type="text" placeholder="e.g. username123">
+        <div class="field">
+          <label class="label">Username</label>
+          <div class="control">
+            <input class="input" type="text" placeholder="e.g. username123" name="username">
+          </div>
         </div>
-      </div>
-      <div class="field">
-        <label class="label">Password</label>
-        <div class="control">
-          <input class="input" type="password" placeholder="********">
+        <div class="field">
+          <label class="label">Password</label>
+          <div class="control">
+            <input class="input" type="password" placeholder="********" name="password">
+          </div>
         </div>
-      </div>
-      <button class="button is-primary is-fullwidth">Log In</button>
-    </form>
+          <button type="submit" class="button is-primary is-fullwidth">Log In</button>
+        {% if form.errors %}
+        <div>
+          <p class="help is-danger">Your username and password didn't match. Please try again.</p>
+        </div>
+        {% endif %}
+      </form>
+    </div>
   </div>
   <div class="columns is-centered pt-5">
     <p>Don't have an account? Ask to<a href="{% url 'app:register' %}"> register!</a></p>
-
   </div>
 </div>
 
