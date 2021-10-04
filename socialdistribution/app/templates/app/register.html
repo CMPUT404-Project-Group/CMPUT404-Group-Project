@@ -8,9 +8,9 @@
   <div class="columns is-centered">
     <div class="column is-4">
 
-      <form method="post" class="box">
+      <form method="post" action="{% url 'api:register' %}" class="box">
+        {% csrf_token %}
         <h3 class="title is-3 has-text-centered">Register</h3>
-        
         <div class="columns is-centered">
           <div class="column">
             <div class="field">
@@ -29,26 +29,26 @@
             </div>
           </div>
         </div>
-        <div class="field">
+        <!-- <div class="field">
           <label class="label">GitHub</label>
           <div class="control">
             <input class="input" type="text" placeholder="e.g. mygithub_account">
           </div>
-        </div>
+        </div> -->
         <div class="p-3"></div>
         <div class="field">
           <label class="label">Username</label>
           <div class="control">
-            <input class="input" type="text" placeholder="e.g. username123">
+            <input class="input" type="text" placeholder="e.g. username123" name="username">
           </div>
         </div>
         <div class="field">
           <label class="label">Password</label>
           <div class="control">
-            <input class="input" type="password" placeholder="********">
+            <input class="input" type="password" placeholder="********" name="password">
           </div>
         </div>
-        <button class="button is-primary is-fullwidth">Log In</button>
+        <button type="submit" class="button is-primary is-fullwidth">Register</button>
       </form>
     </div>
   </div>

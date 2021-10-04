@@ -21,4 +21,5 @@ admin.site.site_header = "SocialDistribution Administration"
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('app/', include('app.urls')),
+    path('api/', include('api.urls')),
 ]
