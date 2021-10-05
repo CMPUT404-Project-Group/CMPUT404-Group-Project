@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from api.models import Author
+from api.models import User
 from django.utils.translation import gettext_lazy as _
 
 
@@ -17,5 +17,5 @@ class RegisterForm(UserCreationForm):
     username = forms.CharField(max_length=30, required=True)
 
     class Meta:
-        model = Author
+        model = User
         fields = ('username', 'email', 'github_username', 'password1', 'password2')

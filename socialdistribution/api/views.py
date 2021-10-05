@@ -1,6 +1,5 @@
-from django.shortcuts import redirect
-from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import redirect, render
+from app.forms import RegisterForm
 
 def register(request):
-    print(UserCreationForm(request.POST))
-    return redirect('/app/')
+    pass

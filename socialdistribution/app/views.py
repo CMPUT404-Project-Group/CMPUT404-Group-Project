@@ -10,7 +10,8 @@ def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            return redirect('api:register')
+            form.save()
+            return redirect('app:index')
     else:
         form = RegisterForm()
     return render(request, 'app/register.html', {'form': form})

@@ -31,9 +31,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.admin',
     'app.apps.AppConfig',
     'api.apps.ApiConfig',
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -124,4 +124,6 @@ LOGIN_URL = '/app/accounts/login/'
 
 LOGIN_REDIRECT_URL = '/app/'
 
-AITH_USER_MODEL = 'api.User'
+LOGOUT_REDIRECT_URL = '/app/'
+
+AUTH_USER_MODEL = 'api.User'
