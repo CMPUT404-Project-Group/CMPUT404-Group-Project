@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+
+{% if form.errors %}
+
+{% endif %}
+
+<div class="container is-fulid pt-6">
+  <div class="columns is-centered">
+    <div class="column is-4">
+      <form method="post" action="{% url 'app:register' %}" class="box">
+        {% csrf_token %}
+        <h3 class="title is-3 has-text-centered">Register</h3>
+        {% for field in form %}
+        <div class="field">
+          <label class="label">{{field.label_tag}}</label>
+          <div class="control">
+            {{field}}
+          </div>
+        </div>
+        {% for error in field.errors %}
+        <p class="help is-danger">{{ error }}</p>
+        {% endfor %}
+        {% endfor %}
+        <button type="submit" class="button is-primary is-fullwidth">Register</button>
+      </form>
+      <div class="columns is-centered pt-5">
+        <p>Already have an account?<a href="{% url 'app:login' %}"> Login!</a></p>
+      </div>
+    </div>
+  </div>
+
+  {% endblock %}
