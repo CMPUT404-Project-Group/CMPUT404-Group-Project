@@ -71,7 +71,6 @@ class Post(models.Model):
     
     class Visibility(models.IntegerChoices):
         PUBLIC = 0
-        FRIEND = 1
 
     title = models.TextField()
     author_id = models.IntegerField(editable=False)
