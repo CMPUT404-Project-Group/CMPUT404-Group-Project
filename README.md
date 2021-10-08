@@ -2,7 +2,7 @@
 
 Group Project for CMPUT404; A distributed social networking webapp.
 
-Generally everything is LICENSE'D under the MIT license by Chase-Warwick, Dalton Ronan.
+LICENSE'D under the Apache license by Chase-Warwick, Dalton Ronan.
 
 ## Development
 
