@@ -4,35 +4,38 @@
 
 {% block content %}
 
-<div class="container pt-6">
-  <div class="columns is-centered">
-    <div class="column is-4">
-      <form method="post" action="{% url 'app:login' %}" class="box">
-        {% csrf_token %}
-        <h3 class="title is-3 has-text-centered">Login</h3>
-        <div class="field">
-          <label class="label">Username</label>
-          <div class="control">
-            <input class="input" type="text" name="username">
-          </div>
+<div class="container py-5 h-100">
+  <div class="row d-felx justify-content-center align-items-center h-100">
+    <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 35%">
+      <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
+        <div class="card-body text-center">
+          <form method="post" action="{% url 'app:login' %}" class="box">
+            {% csrf_token %}
+            <h3 class="mb-3">Login</h3>
+
+            <div class="form-outline mb-2 text-start">
+              <label class="form-label h6">Username</label>
+              <input class="form-control" type="text" name="username" />
+            </div>
+
+            <div class="form-outline text-start">
+              <label class="form-label h6">Password</label>
+              <input class="form-control" type="password" name="password" />
+            </div>
+
+            <button type="submit" class="btn btn-primary shadow mt-5 w-100">Log In</button>
+            {% if form.errors %}
+            <div>
+              <p class="form-text text-danger">Your username and password didn't match.<br>Please try again.</p>
+            </div>
+            {% endif %}
+          </form>
         </div>
-        <div class="field">
-          <label class="label">Password</label>
-          <div class="control">
-            <input class="input" type="password" name="password">
-          </div>
-        </div>
-          <button type="submit" class="button is-primary is-fullwidth">Log In</button>
-        {% if form.errors %}
-        <div>
-          <p class="help is-danger">Your username and password didn't match. Please try again.</p>
-        </div>
-        {% endif %}
-      </form>
+      </div>
+      <div class="row d-flex justify-content-center text-center pt-4">
+        <p>Don't have an account? Ask to<a href="{% url 'app:register' %}"> register!</a></p>
+      </div>
     </div>
-  </div>
-  <div class="columns is-centered pt-5">
-    <p>Don't have an account? Ask to<a href="{% url 'app:register' %}"> register!</a></p>
   </div>
 </div>
 
