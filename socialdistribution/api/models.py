@@ -66,3 +66,22 @@ class User(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+
+class Post(models.Model):
+    
+    class Visibility(models.IntegerChoices):
+        PUBLIC = 0
+        FRIEND = 1
+
+    title = models.TextField()
+    author_id = models.IntegerField(editable=False)
+    text_content = models.TextField(blank=True)
+    image_content = models.ImageField(blank=True)
+    date_published = models.DateTimeField(editable=False, auto_now_add=True)
+    public = models.IntegerField(choices=Visibility.choices, default='public')
+
+    def __str__(self):
+        return f"{self.author_id}, {self.title}, {self.text_content[:10]}..."
+    
+
+    

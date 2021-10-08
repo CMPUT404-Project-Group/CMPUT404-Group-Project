@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from api.models import User
+from api.models import Post, User
 from django.utils.translation import gettext_lazy as _
 
 
@@ -19,3 +19,8 @@ class RegisterForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('username', 'email', 'github_username', 'password1', 'password2')
+
+class Post_Creation_Form(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ('title', 'text_content', 'image_content', 'public')
