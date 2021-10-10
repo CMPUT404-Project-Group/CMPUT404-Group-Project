@@ -3,5 +3,5 @@ from . import views
 
 app_name="api"
 urlpatterns = [
-    # path('register/', views.register, name="register" )
+    path('author/<str:author_id>/', views.author, name="author" )
 ]

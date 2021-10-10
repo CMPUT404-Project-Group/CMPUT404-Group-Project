@@ -3,6 +3,11 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.base_user import BaseUserManager
 import os
 from uuid import uuid4
+from dotenv import load_dotenv
+
+load_dotenv()
+HOST_API_URL = os.getenv("HOST_API_URL")
+
 class UserManager(BaseUserManager):
     def create_user(self, email, username, github=None, password=None, type="author"):
         """
@@ -12,7 +17,7 @@ class UserManager(BaseUserManager):
             raise ValueError('Users must have an email address')
 
         uuid = uuid4()
-        host = "http://127.0.0.1:8000/" # replace with env
+        host = HOST_API_URL
 
         if github:
             github_url = 'http://github.com/%s' % github
@@ -53,10 +58,10 @@ class User(AbstractBaseUser):
     # required fields to be exposed by API
     type = models.CharField(max_length=255, unique=False, null=False, blank=False, default="author")
     id = models.CharField(auto_created=True, max_length=255, unique=True, null=False, blank=False, primary_key=True)
-    host = models.URLField(max_length=255, unique=False, null=False, blank=False, default="http://127.0.0.1:8000/")
+    host = models.URLField(max_length=255, unique=False, null=False, blank=False, default=HOST_API_URL)
     # this should be returned from the API as displayName; keep it as username in db for default django stuff
     username = models.CharField(max_length=255, unique=True)
-    url=models.CharField(max_length=255, unique=False, blank=False, null=False, default="http://127.0.0.1:8000/")
+    url=models.CharField(max_length=255, unique=False, blank=False, null=False, default=HOST_API_URL)
     github = models.CharField(max_length=50, unique=True, blank=True, null=True)
 
     # user metadata
