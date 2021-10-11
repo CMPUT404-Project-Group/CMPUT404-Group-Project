@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 HOST_API_URL = os.getenv("HOST_API_URL")
 
+
 class UserManager(BaseUserManager):
     def create_user(self, email, username, github=None, password=None, type="author"):
         """
@@ -23,14 +24,14 @@ class UserManager(BaseUserManager):
             github_url = 'http://github.com/%s' % github
         else:
             github_url = None
-            
+
         user = self.model(
             type=type,
             id=host+str(uuid),
             host=host,
-            username=username, #displayName
+            username=username,  # displayName
             url=host+str(uuid),
-            github=github_url,            
+            github=github_url,
             email=self.normalize_email(email),
         )
 
@@ -54,18 +55,25 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+
 class User(AbstractBaseUser):
     # required fields to be exposed by API
-    type = models.CharField(max_length=255, unique=False, null=False, blank=False, default="author")
-    id = models.CharField(auto_created=True, max_length=255, unique=True, null=False, blank=False, primary_key=True)
-    host = models.URLField(max_length=255, unique=False, null=False, blank=False, default=HOST_API_URL)
+    type = models.CharField(max_length=255, unique=False,
+                            null=False, blank=False, default="author")
+    id = models.CharField(auto_created=True, max_length=255,
+                          unique=True, null=False, blank=False, primary_key=True)
+    host = models.URLField(max_length=255, unique=False,
+                           null=False, blank=False, default=HOST_API_URL)
     # this should be returned from the API as displayName; keep it as username in db for default django stuff
     username = models.CharField(max_length=255, unique=True)
-    url=models.CharField(max_length=255, unique=False, blank=False, null=False, default=HOST_API_URL)
-    github = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    url = models.CharField(max_length=255, unique=False,
+                           blank=False, null=False, default=HOST_API_URL)
+    github = models.CharField(
+        max_length=50, unique=True, blank=True, null=True)
 
     # user metadata
-    email = models.EmailField(max_length=255, unique=True, verbose_name="email address")
+    email = models.EmailField(
+        max_length=255, unique=True, verbose_name="email address")
     is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
 
@@ -78,8 +86,8 @@ class User(AbstractBaseUser):
         return self.username
 
     def has_perm(self, perm, obj=None):
-        return True #temp
-    
+        return True  # temp
+
     def has_module_perms(self, app_label):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always

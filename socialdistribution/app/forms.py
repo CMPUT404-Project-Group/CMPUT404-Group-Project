@@ -3,6 +3,8 @@ from django.contrib.auth.forms import UserCreationForm
 from api.models import User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
+
+
 class RegisterForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super(RegisterForm, self).__init__(*args, **kwargs)
@@ -16,11 +18,11 @@ class RegisterForm(UserCreationForm):
     username = forms.CharField(max_length=30, required=True)
 
     def save(self, commit=True):
-            # user = super().save(commit=False)
-            # user.set_password(self.cleaned_data["password1"])
-            if commit:
-                user = get_user_model().objects.create_user(email=self.cleaned_data["email"], username=self.cleaned_data["username"], github=self.cleaned_data["github"], password=self.cleaned_data["password1"], type="author")
-            return user
+        if commit:
+            user = get_user_model().objects.create_user(email=self.cleaned_data["email"], username=self.cleaned_data[
+                "username"], github=self.cleaned_data["github"], password=self.cleaned_data["password1"], type="author")
+        return user
+
     class Meta:
         model = User
         fields = ('username', 'email', 'github', 'password1', 'password2')
