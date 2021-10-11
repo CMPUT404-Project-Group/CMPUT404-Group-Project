@@ -1,6 +1,7 @@
+from django.core import paginator
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, get_list_or_404
-from rest_framework import serializers
+from django.shortcuts import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import api_view
 from .models import User
 from .serializers import UserSerializer
@@ -26,9 +27,19 @@ def author(request, author_id):
 
 @api_view(["GET"])
 def authors(request):
-    authors = User.objects.all().filter(type="author")
-    serializer = UserSerializer(authors, many=True)
+    paginator = PageNumberPagination()
+    query_params = request.query_params
+    query_set = User.objects.all().filter(type="author")
 
+    if query_params:
+        size = query_params.get("size")
+        if size:
+            paginator.page_size = size
+        authors = paginator.paginate_queryset(query_set, request)
+    else:
+        authors = query_set
+
+    serializer = UserSerializer(authors, many=True)
     data = {"type": "authors", "items": serializer.data}
 
     return JsonResponse(data)
