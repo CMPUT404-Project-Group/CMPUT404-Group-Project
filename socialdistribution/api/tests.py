@@ -41,6 +41,19 @@ class AuthorTest(TestCase):
         # Assert
         self.assertEqual(response.status_code, 404)
 
+    # def test_post_author(self):
+    #     pass
+
+    # def test_post_author_404(self):
+    #     pass
+
+    def test_unauthorized_method(self):
+        # Act
+        response = self.client.put(reverse('api:author', args=('should405',)))
+
+        # Assert
+        self.assertEqual(response.status_code, 405)
+
 
 class AuthorsTest(TestCase):
     """
@@ -153,3 +166,10 @@ class AuthorsTest(TestCase):
             # assert the page is correct by checking ordering
             self.assertEquals(content["items"][i-20]
                               ["displayName"][0], chr(97+i-5))
+
+    def test_unauthorized_method(self):
+        # Act
+        response = self.client.delete(reverse('api:authors'))
+
+        # Assert
+        self.assertEqual(response.status_code, 405)
