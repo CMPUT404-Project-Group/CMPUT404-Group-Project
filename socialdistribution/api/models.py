@@ -61,7 +61,7 @@ class User(AbstractBaseUser):
     host = models.URLField(max_length=255, unique=False, null=False, blank=False, default=HOST_API_URL)
     # this should be returned from the API as displayName; keep it as username in db for default django stuff
     username = models.CharField(max_length=255, unique=True)
-    url=models.CharField(max_length=255, unique=False, blank=False, null=False, default=HOST_API_URL)
+    url = models.CharField(max_length=255, unique=False, blank=False, null=False, default=HOST_API_URL)
     github = models.CharField(max_length=50, unique=True, blank=True, null=True)
 
     # user metadata
