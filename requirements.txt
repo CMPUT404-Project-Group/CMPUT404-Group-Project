@@ -1,2 +1,4 @@
 Django
+djangorestframework
 Pillow
+python-dotenv

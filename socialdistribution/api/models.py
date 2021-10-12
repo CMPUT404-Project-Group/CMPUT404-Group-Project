@@ -1,37 +1,53 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.base_user import BaseUserManager
+import os
+from uuid import uuid4
+from dotenv import load_dotenv
 
+load_dotenv()
+HOST_API_URL = os.getenv("HOST_API_URL")
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, username, github=None, password=None):
+    def create_user(self, email, username, github=None, password=None, type="author"):
         """
-        Creates and saves a User with the given email, date of
-        birth and password.
+        Creates and saves a User.
         """
         if not email:
             raise ValueError('Users must have an email address')
 
+        uuid = uuid4()
+        host = HOST_API_URL
+
+        if github:
+            github_url = 'http://github.com/%s' % github
+        else:
+            github_url = None
+            
         user = self.model(
+            type=type,
+            id=host+str(uuid),
+            host=host,
+            username=username, #displayName
+            url=host+str(uuid),
+            github=github_url,            
             email=self.normalize_email(email),
-            github=github,
-            username=username
         )
 
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, username, github=None, password=None):
+    def create_superuser(self, email, username, github=None, password=None, type="server-admin"):
         """
-        Creates and saves a superuser with the given email, date of
-        birth and password.
+        Creates and saves a superuser.
         """
         user = self.create_user(
             email,
-            password=password,
+            username=username,
             github=github,
-            username=username
+            password=password,
+            type=type,
         )
         user.is_active = True
         user.is_admin = True
@@ -39,9 +55,17 @@ class UserManager(BaseUserManager):
         return user
 
 class User(AbstractBaseUser):
+    # required fields to be exposed by API
+    type = models.CharField(max_length=255, unique=False, null=False, blank=False, default="author")
+    id = models.CharField(auto_created=True, max_length=255, unique=True, null=False, blank=False, primary_key=True)
+    host = models.URLField(max_length=255, unique=False, null=False, blank=False, default=HOST_API_URL)
+    # this should be returned from the API as displayName; keep it as username in db for default django stuff
+    username = models.CharField(max_length=255, unique=True)
+    url = models.CharField(max_length=255, unique=False, blank=False, null=False, default=HOST_API_URL)
+    github = models.CharField(max_length=50, unique=True, blank=True, null=True)
+
+    # user metadata
     email = models.EmailField(max_length=255, unique=True, verbose_name="email address")
-    username = models.CharField(max_length=20, unique=True)
-    github = models.CharField(max_length=50, unique=True, null=True, blank=True)
     is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
 
@@ -68,7 +92,6 @@ class User(AbstractBaseUser):
         return self.is_admin
 
 class Post(models.Model):
-    
     class Visibility(models.IntegerChoices):
         PUBLIC = 0
 
