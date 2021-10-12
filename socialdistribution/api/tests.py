@@ -41,11 +41,11 @@ class AuthorTest(TestCase):
         # Assert
         self.assertEqual(response.status_code, 404)
 
-    # def test_post_author(self):
-    #     pass
+    def test_post_author(self):
+        pass
 
-    # def test_post_author_404(self):
-    #     pass
+    def test_post_author_404(self):
+        pass
 
     def test_unauthorized_method(self):
         # Act
