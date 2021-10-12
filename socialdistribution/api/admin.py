@@ -11,27 +11,32 @@ from .models import User
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password."""
+<<<<<<< HEAD
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
     password2 = forms.CharField(
         label='Password confirmation', widget=forms.PasswordInput)
+=======
+    set_password = forms.CharField(label='Password', widget=forms.PasswordInput)
+    confirm_password = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
+>>>>>>> 0b10ee226d748683b37c04d0b393b4c5bbd190e1
     github = forms.CharField(label="github", required=False)
 
     class Meta:
         model = User
         fields = ('email', 'github')
 
-    def clean_password2(self):
+    def clean_confirm_password(self):
         # Check that the two password entries match
-        password1 = self.cleaned_data.get("password1")
-        password2 = self.cleaned_data.get("password2")
-        if password1 and password2 and password1 != password2:
+        set_password = self.cleaned_data.get("set_password")
+        confirm_password = self.cleaned_data.get("confirm_password")
+        if set_password and confirm_password and set_password != confirm_password:
             raise ValidationError("Passwords don't match")
-        return password2
+        return confirm_password
 
     def save(self, commit=True):
         # Save the provided password in hashed format
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password1"])
+        user.set_password(self.cleaned_data["set_password"])
         if commit:
             user.save()
         return user
