@@ -20,12 +20,15 @@ def register(request):
 
 def create_post(request):
     if request.method == 'POST':
-        user_id = request.user.id
-        post = Post(author_id=user_id)
+        user = request.user
+        post = Post(author=user)
         form = PostCreationForm(request.POST, instance=post)
         if form.is_valid():
             form.save()
             return redirect('app:index')
+        else:
+            print("INVALID FORM")
     else:
         form = PostCreationForm()
+        
     return render(request, 'posts/create_post.html', {'form': form})
