@@ -91,24 +91,10 @@ class User(AbstractBaseUser):
         # Simplest possible answer: All admins are staff
         return self.is_admin
 
-#TODO: Change ID to be in line with spec
 #TODO: Specify uploadto field for image_content to post_imgs within project root
-#TODO: Add default to comment_page once ID's are UUID such that comment_page = HOST/author/author_UUID/post/post_UUID/comments
-#TODO: Upon adding comment functionality finish comment model
-#TODO: Add category to model
+#TODO: Upon adding comment model add comment as foreign key
 #TODO: Figure out page size
 class Post(models.Model):
-    # class Meta:
-    #     constraints = [
-    #         models.CheckConstraint(
-    #             check=models.Q(text_content__isnull=True) | models.Q(image_content__isnull=True),
-    #             name="Posts can have text or an image but not both"
-    #         ),
-    #         models.CheckConstraint(
-    #             check=models.Q(text_content__isnull=False) | models.Q(image_content__isnull=False),
-    #             name="Posts must have text or image content"
-    #         )
-    #     ]
 
     class Visibility(models.IntegerChoices):
         PUBLIC = 0
@@ -138,8 +124,10 @@ class Post(models.Model):
     categories = models.TextField(unique=False, blank=True, null=False)
     count = models.IntegerField(unique=False, null=False, blank=False, default=0)
     size = models.IntegerField(unique=False, null=False, blank=False)
-    #comment_page
-    #comments
+    comment_page = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    #comments could potentially be done at serialization to avoid data duplication 
+    #(get all comments which have this post_id within their comment_id)
+    #If we do this size may also have to be done at serialization although I think this may be easier anyways
     published = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
     visibility = models.IntegerField(choices=Visibility.choices, unique=False, blank=False, null=False, default=Visibility.PUBLIC)
     unlisted = models.BooleanField(unique=False, blank=False, null=False, default=False)
@@ -156,10 +144,13 @@ class Post(models.Model):
     
     def clean_urls(self):
         post_url = f"{HOST_API_URL}posts/{self.id}"
+        url_fields = [self.source, self.origin, self.comment_page]
         if not self.source:
             self.source = post_url
         if not self.origin:
             self.origin = post_url
+        if not self.comment_page:
+            self.comment_page = f"{post_url}/comments"
     
     def clean_content_type(self):
         if self.text_content:
@@ -190,6 +181,3 @@ class Post(models.Model):
         
     def __str__(self):
         return f"{self.title}"
-    
-
-    
