@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 
 from api.models import User, Post
-from .forms import RegisterForm, Post_Creation_Form
+from .forms import RegisterForm, PostCreationForm
 
 @login_required
 def index (request):
