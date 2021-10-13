@@ -95,15 +95,15 @@ class Post(models.Model):
     class Visibility(models.IntegerChoices):
         PUBLIC = 0
 
-    title = models.TextField()
-    author_id = models.IntegerField(editable=False)
+    title = models.CharField(max_length=300)
+    author_id = models.CharField(editable=False, max_length=255)
     text_content = models.TextField(blank=True)
     image_content = models.ImageField(blank=True)
     date_published = models.DateTimeField(editable=False, auto_now_add=True)
-    public = models.IntegerField(choices=Visibility.choices, default='public')
+    visibility = models.IntegerField(choices=Visibility.choices, default='public')
 
     def __str__(self):
-        return f"{self.author_id}, {self.title}, {self.text_content[:10]}..."
+        return f"{self.title}"
     
 
     

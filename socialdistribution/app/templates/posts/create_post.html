@@ -4,10 +4,40 @@
 
 {% block content%}
 
-<form action="{% url 'app:create-post' %}" method='post' class="box">
-    {% csrf_token %}
-    {{ form }}
-    <input type="submit" value="Submit">
-</form>
+<div class="container py-5 h-100">
+    <div class="row d-felx justify-content-center align-items-center h-100">
+        <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 45%">
+            <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
+                <div class="card-body text-center">
+                    <form action="{% url 'app:create-post' %}" method='post' class="box">
+                        {% csrf_token %}
+                        <h3 class="mb-3">Create a post</h3>
+                        <div class="form-outline mb-2 text-start">
+                            <label for="id_title" class="form-label h6">Title</label>
+                            <input id="id_title" class="form-control" type="text" name="title" maxlength="300" required=""></input>
+                        </div>
+                        <div class="form-outline mb-2 text-start">
+                            <label for="id_text_content" class="form-label h6">Body</label>
+                            <textarea id="id_text_content" class="form-control" cols="40" rows="10" name="text_content"></textarea>
+                        </div>
+                        <div class="form-outline mb-2">
+                            <label for="id_image_content" class="form-label h6">Image Attachment</label>
+                            <input id="id_image_content" class="form-control-file" type="file" name="image_content"></input>
+                        </div>
+                        <div class="form-outline mb-2">
+                            <label for="id_visibility" class="form-label h6">Post Visibility</label>
+                            <select id="id_visibility" class="form-select" name="visibility">
+                                <option value="0">Public</option>
+                            </select>
+                        </div>
+                        <div class="form-outline mb-2">
+                            <button class="btn btn-primary shadow mt-5 w-100" type="submit">Create Post</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
