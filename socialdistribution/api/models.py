@@ -122,32 +122,44 @@ class Post(models.Model):
 
     type = models.CharField(max_length=255, unique=False, null=False, blank=False, default="post")
     title = models.CharField(max_length=255, unique=False, null=False, blank=False)
-    id = models.CharField(auto_created=True, max_length=255, unique=True, null=False, blank=False, primary_key=True)
+    id = models.CharField(max_length=255, unique=True, null=False, primary_key=True)
     source = models.URLField(
-        max_length=255, unique=False, null=False, blank=False, default=f"{HOST_API_URL}/posts/{id}")
+        max_length=255, unique=False, null=False, blank=False)
     origin = models.URLField(
-        max_length=255, unique=False, null=False, blank=False, default=f"{HOST_API_URL}/posts/{id}")
+        max_length=255, unique=False, null=False, blank=False)
     description = models.URLField(max_length=255, unique=False, null=False, blank=False)
     content_type = models.CharField(max_length=255, choices=ContentType.choices)
-    text_content = models.TextField(blank=True)
-    image_content = models.ImageField(blank=True)
+    text_content = models.TextField(unique=False, blank=True)
+    image_content = models.ImageField(unique=False, blank=True)
     author = models.ForeignKey(
         "User",
         on_delete=models.CASCADE
         )
-    #categories
+    categories = models.TextField(unique=False, blank=True, null=False)
     count = models.IntegerField(unique=False, null=False, blank=False, default=0)
     size = models.IntegerField(unique=False, null=False, blank=False)
-    #comment_page = models.URLField(max_length=255, unique=False, null=False, blank=False)
+    #comment_page
     #comments
-    published = models.DateTimeField(editable=False, auto_now_add=True)
-    visibility = models.IntegerField(choices=Visibility.choices, default=Visibility.PUBLIC)
-    unlisted = models.BooleanField(default=False)
+    published = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
+    visibility = models.IntegerField(choices=Visibility.choices, unique=False, blank=False, null=False, default=Visibility.PUBLIC)
+    unlisted = models.BooleanField(unique=False, blank=False, null=False, default=False)
 
     def clean(self):
+        self.clean_id()
+        self.clean_urls()
         self.clean_content_type()
         self.clean_description()
         self.clean_size()
+    
+    def clean_id(self):
+        self.id = f"{HOST_API_URL}author/{self.author.id}/posts/{uuid4()}"
+    
+    def clean_urls(self):
+        post_url = f"{HOST_API_URL}posts/{self.id}"
+        if not self.source:
+            self.source = post_url
+        if not self.origin:
+            self.origin = post_url
     
     def clean_content_type(self):
         if self.text_content:
@@ -175,9 +187,7 @@ class Post(models.Model):
     #TODO: Figure out page size
     def get_size(self):
         return 30
-
         
-
     def __str__(self):
         return f"{self.title}"
     
