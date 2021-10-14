@@ -19,6 +19,7 @@ def register(request):
     return render(request, 'app/register.html', {'form': form})
 
 def create_post(request):
+    #https://stackoverflow.com/questions/43347566/how-to-pass-user-object-to-forms-in-django
     if request.method == 'POST':
         user = request.user
         form = PostCreationForm(data=request.POST, user=user)
