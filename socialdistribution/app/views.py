@@ -21,8 +21,7 @@ def register(request):
 def create_post(request):
     if request.method == 'POST':
         user = request.user
-        post = Post(author=user)
-        form = PostCreationForm(request.POST, instance=post)
+        form = PostCreationForm(data=request.POST, user=user)
         if form.is_valid():
             form.save()
             return redirect('app:index')

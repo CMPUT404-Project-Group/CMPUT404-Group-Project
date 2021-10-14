@@ -141,7 +141,7 @@ class PostBuilder():
         self.__set_size__()
     
     def get_post(self):
-        return Post.objects.create(
+        return Post(
             type=self.type,
             title=self.title,
             id=self.id,
@@ -154,7 +154,7 @@ class PostBuilder():
             author=self.author,
             categories=self.categories,
             count=self.count,
-            size=self.size(),
+            size=self.size,
             comment_page=self.comment_page,
             visibility=self.visibility,
             unlisted=self.unlisted
@@ -178,19 +178,21 @@ class PostBuilder():
 
 class PostManager(BaseManager):
 
-    def create_post(self, author, categories, image_content, text_content, title, visibility, unlisted):
+    def create(self, author, categories, image_content, text_content, title, visibility, unlisted):
         post_builder = PostBuilder()
         post_builder.set_post_content(title, categories, text_content, image_content)
         post_builder.set_post_metadata(author, visibility, unlisted)
         
-        return post_builder.get_post()
+        post = post_builder.get_post()
+        post.save(using=self._db)
+        return post
 
 #TODO: Specify uploadto field for image_content to post_imgs within project root
 #TODO: Upon adding comment model add comment as foreign key
 class Post(models.Model):
 
     class Visibility(models.TextChoices):
-        PUBLIC = "PUBLIC"
+        PUBLIC = "public"
     
     class ContentType(models.TextChoices):
         MARKDOWN = "text/markdown"
@@ -222,10 +224,11 @@ class Post(models.Model):
     #(get all comments which have this post_id within their comment_id)
     #If we do this size may also have to be done at serialization although I think this may be easier anyways
     published = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
-    visibility = models.IntegerField(choices=Visibility.choices, unique=False, blank=False, null=False, default=Visibility.PUBLIC)
+    visibility = models.CharField(
+        max_length=255, choices=Visibility.choices, unique=False, blank=False, null=False, default=Visibility.PUBLIC)
     unlisted = models.BooleanField(unique=False, blank=False, null=False, default=False)
 
-    objects = PostManager
+    objects = PostManager()
 
     def __str__(self):
         return f"{self.title}"
