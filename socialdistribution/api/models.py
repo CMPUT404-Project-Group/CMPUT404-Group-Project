@@ -1,11 +1,13 @@
+from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
-from django.contrib.auth.base_user import BaseUserManager
-import os
-from uuid import uuid4
 from django.db.models.manager import BaseManager
 from dotenv import load_dotenv
+import os
+from uuid import uuid4
+
+
 
 load_dotenv()
 HOST_API_URL = os.getenv("HOST_API_URL")
