@@ -42,7 +42,6 @@ class GetAuthorTest(TestCase):
         # Arrange
         author = User.objects.get(username="testuser")
         author_id = quote(author.id, safe="") # need to quote id url to correct format
-
         expected = {'type': author.type, 'id': author.id, 'host': author.host, 'displayName': author.username, 'url': author.url, 'github': author.github}
 
         # Act
@@ -89,3 +88,12 @@ class PostBuilderTest(TestCase):
         post = self.post_builder.get_post()
 
         self.assertIsInstance(post, Post)
+
+class PostModelTest(TestCase):
+    
+    def test_text_post_in_DB(self):
+        post = TestUtils.get_test_post(text_content="Body")
+
+        post_by_title = Post.objects.get(title="Test Title")
+
+        self.assertEqual(post, post_by_title)

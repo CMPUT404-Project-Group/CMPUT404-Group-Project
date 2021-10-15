@@ -40,7 +40,7 @@ class PostCreationForm(forms.ModelForm):
     #TODO: Unlisted always false
     def save(self, commit=True):
         assert self.user, "User is not defined"
-        post = Post.objects.create(
+        post = Post.objects.create_post(
             author=self.user,
             categories=self.cleaned_data['categories'],
             image_content=self.cleaned_data["image_content"],
