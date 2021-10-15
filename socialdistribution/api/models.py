@@ -120,7 +120,7 @@ class PostBuilder():
     
     def set_post_content(self, title, categories, text_content=None, image_content=None):
         if not image_content and not text_content:
-            raise ValidationError
+            raise ValidationError(message="post must have at least one form of content")
         
         self.title = title
         self.categories = categories
