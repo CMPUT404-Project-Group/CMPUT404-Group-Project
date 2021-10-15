@@ -35,6 +35,8 @@ class PostCreationForm(forms.ModelForm):
         self.user=None
         if "user" in kwargs:
             self.user = kwargs.pop("user")
+        if "image_content" in kwargs['data']:
+            self.image = kwargs['data']['image_content']
         super(PostCreationForm, self).__init__(*args, **kwargs)
     
     #TODO: Unlisted always false
@@ -43,7 +45,7 @@ class PostCreationForm(forms.ModelForm):
         post = Post.objects.create_post(
             author=self.user,
             categories=self.cleaned_data['categories'],
-            image_content=self.cleaned_data["image_content"],
+            image_content=self.image,
             text_content=self.cleaned_data["text_content"],
             title=self.cleaned_data["title"],
             visibility=self.cleaned_data["visibility"],
