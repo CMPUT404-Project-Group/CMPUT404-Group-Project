@@ -98,9 +98,8 @@ class User(AbstractBaseUser):
 class PostBuilder():
 
     def __init__(self):
-        self.uuid = uuid4()
-
-        post_url = f"{HOST_API_URL}posts/{self.uuid}"
+        self.id = uuid4()
+        post_url = f"{HOST_API_URL}posts/{self.id}"
 
         self.type = 'post'
         self.source = post_url
@@ -108,7 +107,6 @@ class PostBuilder():
         self.count = 0
         self.comment_page = f"{post_url}/comments"
 
-        self.id = None
         self.title = None
         self.description = None
         self.content_type = None
@@ -121,9 +119,6 @@ class PostBuilder():
         self.unlisted = None
     
     def set_post_content(self, title, categories, text_content=None, image_content=None):
-        if not image_content and not text_content:
-            raise ValidationError(message="post must have at least one form of content")
-        
         self.title = title
         self.categories = categories
         self.text_content = text_content
@@ -134,7 +129,6 @@ class PostBuilder():
         assert self.title, "set_post_content must be called before set_post_metadata"
 
         self.author = author
-        self.id = f"{HOST_API_URL}author/{self.author.id}/posts/{self.uuid}"
         self.visibility = visibility
         self.unlisted = unlisted
 

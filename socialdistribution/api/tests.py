@@ -64,14 +64,11 @@ class PostBuilderTest(TestCase):
     def setUp(self):
         self.post_builder = PostBuilder()
 
-    def test_initializes_with_uuid(self):
-        self.assertIsNotNone(self.post_builder.uuid)
+    def test_initializes_with_id(self):
+        self.assertIsNotNone(self.post_builder.id)
     
     def test_initializes_with_proper_type(self):
         self.assertEqual(self.post_builder.type, 'post')
-    
-    def test_set_post_content_validation_error_no_content(self):
-        self.assertRaises(ValidationError, self.post_builder.set_post_content, "title", "categories, are, neat")
     
     def test_set_post_metadata_first_assertion_error(self):
         author = TestUtils.get_test_user()
@@ -88,12 +85,3 @@ class PostBuilderTest(TestCase):
         post = self.post_builder.get_post()
 
         self.assertIsInstance(post, Post)
-
-class PostModelTest(TestCase):
-    
-    def test_text_post_in_DB(self):
-        post = TestUtils.get_test_post(text_content="Body")
-
-        post_by_title = Post.objects.get(title="Test Title")
-
-        self.assertEqual(post, post_by_title)
