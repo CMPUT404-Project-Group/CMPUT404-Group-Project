@@ -35,7 +35,7 @@ class PostCreationForm(forms.ModelForm):
         self.user=None
         if "user" in kwargs:
             self.user = kwargs.pop("user")
-        if "image_content" in kwargs['data']:
+        if "data" in kwargs:
             self.image = kwargs['data']['image_content']
         super(PostCreationForm, self).__init__(*args, **kwargs)
     
