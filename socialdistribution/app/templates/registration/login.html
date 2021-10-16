@@ -1,7 +1,15 @@
 {% extends "base.html" %}
 
 {% block title %}Login{% endblock %}
-
+<!-- https://www.youtube.com/watch?v=q4jPR-M0TAQ&list=PL-osiE80TeTtoQCKZ03TU5fNfx2UY6U4p&index=6 -->
+      <!-- Will give a notification when register successfully -->
+      {% if messages%}
+            {%for message in messages%}
+            <div class="alert alert-{{message.tags}}"> 
+                {{message}}
+            </div>
+            {%endfor%}
+            {%endif%}
 {% block content %}
 
 <div class="container py-5 h-100">
