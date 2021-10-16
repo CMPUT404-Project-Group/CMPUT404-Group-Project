@@ -1,3 +1,4 @@
+from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 
@@ -32,3 +33,8 @@ def create_post(request):
         form = PostCreationForm()
         
     return render(request, 'posts/create_post.html', {'form': form})
+
+def view_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    return HttpResponse(post)
+    

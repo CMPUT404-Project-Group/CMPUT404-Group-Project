@@ -207,7 +207,7 @@ class Post(models.Model):
         max_length=255, unique=False, null=False, blank=False)
     origin = models.URLField(
         max_length=255, unique=False, null=False, blank=False)
-    description = models.URLField(max_length=255, unique=False, null=False, blank=False)
+    description = models.CharField(max_length=255, unique=False, null=False, blank=False)
     content_type = models.CharField(max_length=255, choices=ContentType.choices)
     text_content = models.TextField(unique=False, blank=True)
     image_content = models.ImageField(unique=False, blank=True)
@@ -230,5 +230,5 @@ class Post(models.Model):
     objects = PostManager()
 
     def __str__(self):
-        return f"{self.title}"
+        return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
 
