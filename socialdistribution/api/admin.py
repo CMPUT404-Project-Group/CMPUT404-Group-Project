@@ -47,22 +47,23 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'github', 'password')
+        fields = ('displayName', 'email', 'github', 'password')
 
 
 class UserAdmin(BaseUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
 
-    list_display = ('email', 'username', 'github', 'is_admin', 'is_active')
+    list_display = ('email', 'displayName', 'github', 'is_admin', 'is_active')
     list_filter = ('is_admin', 'is_active')
     fieldsets = (
-        (None, {'fields': ('email', 'username', 'github', 'password', 'is_active')}),
+        (None, {'fields': ('email', 'displayName',
+         'github', 'password', 'is_active')}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'github', 'password1', 'password2'),
+            'fields': ('displayName', 'email', 'github', 'password1', 'password2'),
         }),
     )
     search_fields = ('email',)

@@ -2,16 +2,16 @@
 
 {% block title %}Login{% endblock %}
 <!-- https://www.youtube.com/watch?v=q4jPR-M0TAQ&list=PL-osiE80TeTtoQCKZ03TU5fNfx2UY6U4p&index=6 -->
-      <!-- Will give a notification when register successfully -->
-      
+<!-- Will give a notification when register successfully -->
+
 {% block content %}
 {% if messages%}
-            {%for message in messages%}
-            <div class="alert alert-{{message.tags}}"> 
-                {{message}}
-            </div>
-            {%endfor%}
-            {%endif%}
+{%for message in messages%}
+<div class="alert alert-{{message.tags}}">
+  {{message}}
+</div>
+{%endfor%}
+{%endif%}
 <div class="container py-5 h-100">
   <div class="row d-felx justify-content-center align-items-center h-100">
     <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 35%">

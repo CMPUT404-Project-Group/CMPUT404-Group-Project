@@ -15,14 +15,14 @@ class RegisterForm(UserCreationForm):
 
     github = forms.CharField(max_length=30, required=False)
     email = forms.EmailField(max_length=255, required=True)
-    username = forms.CharField(max_length=30, required=True)
+    displayName = forms.CharField(max_length=30, required=True)
 
     def save(self, commit=True):
         if commit:
-            user = get_user_model().objects.create_user(email=self.cleaned_data["email"], username=self.cleaned_data[
-                "username"], github=self.cleaned_data["github"], password=self.cleaned_data["password1"], type="author")
+            user = get_user_model().objects.create_user(email=self.cleaned_data["email"], displayName=self.cleaned_data[
+                "displayName"], github=self.cleaned_data["github"], password=self.cleaned_data["password1"], type="author")
         return user
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'github', 'password1', 'password2')
+        fields = ('displayName', 'email', 'github', 'password1', 'password2')

@@ -1,28 +1,32 @@
-from django.core import paginator
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.decorators import api_view
-from .models import User
-from .serializers import UserSerializer
 from urllib import parse
 
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.pagination import PageNumberPagination
+import rest_framework.status as status
+
+from .models import User
+from .serializers import UserSerializer
+
+
 # TODO: set up as protected endpoint
-
-
 @api_view(["GET", "POST"])
 def author(request, author_id):
     author_id = parse.unquote(author_id.replace('_', '%'))
+    authorModel = get_object_or_404(User, pk=author_id)
 
     if request.method == "GET":
-        authorModel = get_object_or_404(User, pk=author_id)
         serializer = UserSerializer(authorModel)
         return JsonResponse(serializer.data)
 
     elif request.method == "POST":
-        pass
-
-# TODO: set up as protected endpoint
+        serializer = UserSerializer(authorModel, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])

@@ -42,7 +42,20 @@ class AuthorTest(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_post_author(self):
-        pass
+        # Arrange
+        author = User.objects.get(username="testuser")
+        # need to quote id url to correct format
+        author_id = quote(author.id, safe="")
+
+        # Act
+        response = self.client.post(reverse('api:author', kwargs={'author_id': author_id}), {'id': author_id, 'email': 'test1@email.com',
+                                    'displayName': 'update'}, format='json')
+
+        # Assert
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(len(response.content), 0)
+        author = author = User.objects.get(username="testuser")
+        print(author)
 
     def test_post_author_404(self):
         pass
