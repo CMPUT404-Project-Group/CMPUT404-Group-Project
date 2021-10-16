@@ -11,14 +11,10 @@ from .models import User
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password."""
-<<<<<<< HEAD
-    password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
-    password2 = forms.CharField(
+    set_password = forms.CharField(
+        label='Password', widget=forms.PasswordInput)
+    confirm_password = forms.CharField(
         label='Password confirmation', widget=forms.PasswordInput)
-=======
-    set_password = forms.CharField(label='Password', widget=forms.PasswordInput)
-    confirm_password = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
->>>>>>> 0b10ee226d748683b37c04d0b393b4c5bbd190e1
     github = forms.CharField(label="github", required=False)
 
     class Meta:
