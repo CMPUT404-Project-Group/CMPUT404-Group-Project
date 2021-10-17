@@ -20,18 +20,13 @@ class UserManager(BaseUserManager):
         uuid = uuid4()
         host = HOST_API_URL
 
-        if github:
-            github_url = 'http://github.com/%s' % github
-        else:
-            github_url = None
-
         user = self.model(
             type=type,
             id=uuid,
             host=host,
-            displayName=displayName,  # displayName
+            displayName=displayName,
             url=host+str(uuid),
-            github=github_url,
+            github=github,
             email=self.normalize_email(email),
         )
 

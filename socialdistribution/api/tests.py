@@ -1,10 +1,19 @@
-from django.test import TestCase
-from rest_framework.test import APIClient
-from django.urls import reverse
-from .models import User
-from urllib.parse import quote
 import json
+import os
 import pprint
+from urllib.parse import quote
+from uuid import uuid4
+
+from django.test import TestCase
+from django.urls import reverse
+from dotenv import load_dotenv
+from rest_framework.test import APIClient
+
+from .models import User
+
+load_dotenv()
+HOST_API_URL = os.getenv("HOST_API_URL")
+GITHUB_URL = os.getenv("GITHUB_URL")
 
 
 class AuthorTest(TestCase):
@@ -15,16 +24,14 @@ class AuthorTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
-            email="test@email.com", username="testuser", github="testgit", password="testpassword1", type="author")
+            email="test@email.com", displayName="testuser", github="testgit", password="testpassword1", type="author")
 
     def test_get_author(self):
         # Arrange
-        author = User.objects.get(username="testuser")
-        # need to quote id url to correct format
-        author_id = quote(author.id, safe="")
-
-        expected = {'type': author.type, 'id': author.id, 'host': author.host,
-                    'displayName': author.username, 'url': author.url, 'github': author.github}
+        author = User.objects.get(displayName="testuser")
+        author_id = author.id
+        expected = {'type': author.type, 'id': HOST_API_URL+'author/'+str(author.id), 'host': author.host,
+                    'displayName': author.displayName, 'url': author.url, 'github': GITHUB_URL+author.github}
 
         # Act
         response = self.client.get(
@@ -36,33 +43,48 @@ class AuthorTest(TestCase):
 
     def test_get_author_404(self):
         # Act
-        response = self.client.get(reverse('api:author', args=('should404',)))
+        response = self.client.get(reverse('api:author', args=(uuid4(),)))
 
         # Assert
         self.assertEqual(response.status_code, 404)
 
     def test_post_author(self):
         # Arrange
-        author = User.objects.get(username="testuser")
-        # need to quote id url to correct format
-        author_id = quote(author.id, safe="")
+        author = User.objects.get(displayName="testuser")
+        author_id = author.id
 
         # Act
-        response = self.client.post(reverse('api:author', kwargs={'author_id': author_id}), {'id': author_id, 'email': 'test1@email.com',
-                                    'displayName': 'update'}, format='json')
+        response = self.client.post(reverse('api:author', kwargs={'author_id': author_id}), {'id': author_id,
+                                    'displayName': 'updated_name'}, format='json')
 
         # Assert
         self.assertEqual(response.status_code, 200)
         self.assertGreater(len(response.content), 0)
-        author = author = User.objects.get(username="testuser")
-        print(author)
+        author = User.objects.get(id=author_id)
+        self.assertEqual(author.displayName, 'updated_name')
 
     def test_post_author_404(self):
-        pass
+        # Arrange
+        author = User.objects.get(displayName="testuser")
+        author_id = author.id
+
+        # Act
+        response = self.client.post(reverse('api:author', kwargs={'author_id': uuid4()}), {'id': author_id,
+                                    'displayName': 'updated_name'}, format='json')
+
+        # Assert
+        self.assertEqual(response.status_code, 404)
+        author = User.objects.get(id=author_id)
+        self.assertEqual(author.displayName, 'testuser')
 
     def test_unauthorized_method(self):
+        # Arrange
+        author = User.objects.get(displayName="testuser")
+        author_id = author.id
+
         # Act
-        response = self.client.put(reverse('api:author', args=('should405',)))
+        response = self.client.put(
+            reverse('api:author', kwargs={'author_id': author_id}))
 
         # Assert
         self.assertEqual(response.status_code, 405)
@@ -79,7 +101,7 @@ class AuthorsTest(TestCase):
     def test_get_authors(self):
         # Arrange - create a set of authors
         for i in range(0, 5):
-            User.objects.create_user(email="test%s@email.com" % i, username="testuser%s" %
+            User.objects.create_user(email="test%s@email.com" % i, displayName="testuser%s" %
                                      i, github="testgit%s" % i, password="testpassword1", type="author")
 
         # Act
@@ -95,11 +117,11 @@ class AuthorsTest(TestCase):
     def test_get_authors_only(self):
         # Arrange - create a set of authors
         for i in range(0, 5):
-            User.objects.create_user(email="test%s@email.com" % i, username="testuser%s" %
+            User.objects.create_user(email="test%s@email.com" % i, displayName="testuser%s" %
                                      i, github="testgit%s" % i, password="testpassword1", type="author")
 
         # Arrange - add a server adimn that should not be returned
-        User.objects.create_user(email="admin@email.com", username="testadmin",
+        User.objects.create_user(email="admin@email.com", displayName="testadmin",
                                  password="testpassword1", type="server-admin")
         self.assertEqual(User.objects.count(), 6)
 
@@ -118,7 +140,7 @@ class AuthorsTest(TestCase):
     def test_get_authors_pagination(self):
         # Arrange - create a set of authors
         for i in range(0, 26):
-            User.objects.create_user(email="test%s@email.com" % i, username='%s_testuser' % chr(
+            User.objects.create_user(email="test%s@email.com" % i, displayName='%s_testuser' % chr(
                 97+i), github="testgit%s" % i, password="testpassword1", type="author")
         self.assertEqual(User.objects.count(), 26)
 

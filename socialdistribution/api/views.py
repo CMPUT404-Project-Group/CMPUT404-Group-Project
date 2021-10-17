@@ -14,7 +14,6 @@ from .serializers import UserSerializer
 # TODO: set up as protected endpoint
 @api_view(["GET", "POST"])
 def author(request, author_id):
-    author_id = parse.unquote(author_id.replace('_', '%'))
     authorModel = get_object_or_404(User, pk=author_id)
 
     if request.method == "GET":
