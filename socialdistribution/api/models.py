@@ -59,7 +59,6 @@ class User(AbstractBaseUser):
                           unique=True, null=False, blank=False, primary_key=True)
     host = models.URLField(max_length=255, unique=False,
                            null=False, blank=False, default=HOST_API_URL)
-    # this should be returned from the API as displayName; keep it as displayName in db for default django stuff
     displayName = models.CharField(max_length=255, unique=True)
     url = models.CharField(max_length=255, unique=False,
                            blank=False, null=False, default=HOST_API_URL)
