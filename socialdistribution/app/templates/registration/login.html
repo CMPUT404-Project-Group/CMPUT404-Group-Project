@@ -5,16 +5,17 @@
 <!-- Will give a notification when register successfully -->
 
 {% block content %}
-{% if messages%}
-{%for message in messages%}
-<div class="alert alert-{{message.tags}}">
-  {{message}}
-</div>
-{%endfor%}
-{%endif%}
+
 <div class="container py-5 h-100">
   <div class="row d-felx justify-content-center align-items-center h-100">
     <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 35%">
+      {% if messages%}
+      {%for message in messages%}
+      <div class="alert alert-{{message.tags}}">
+        {{message}}
+      </div>
+      {%endfor%}
+      {%endif%}
       <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
         <div class="card-body text-center">
           <form method="post" action="{% url 'app:login' %}" class="box">
