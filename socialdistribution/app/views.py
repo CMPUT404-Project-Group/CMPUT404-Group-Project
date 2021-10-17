@@ -1,9 +1,9 @@
+from .forms import RegisterForm
+from api.models import User, Post
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.auth.decorators import login_required
-
-from api.models import User, Post
-from .forms import RegisterForm, PostCreationForm
 
 @login_required
 def index (request):
@@ -13,6 +13,10 @@ def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
+            # https://www.youtube.com/watch?v=q4jPR-M0TAQ&list=PL-osiE80TeTtoQCKZ03TU5fNfx2UY6U4p&index=6 
+            # Will give a notification when register successfully 
+            username = form.cleaned_data.get('username')
+            messages.success(request,f'Request to register account {username} has been submitted!')
             form.save()
             return redirect('app:index')
     else:
