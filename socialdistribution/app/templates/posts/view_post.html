@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title%}View Post{% endblock %}
+
+{% block content%}
+    <div>
+
+        <h1>{{ post.title }}</h1>
+
+        {% if post.text_content %}
+            <p> {{ post.text_content }} </p>
+        {% endif %}
+
+        {% if post.image_content %}
+            <img alt="User uploaded image" src={{ post.image_content }}></img>
+        {% endif %}
+
+        <p> Tags: {{ post.categories }} </p>
+
+    </div>
+
+    {% if isAuthor %}
+        <p>Click here to <a href="{% url 'app:create-post' %}">edit your post</a>.</p>
+    {% endif %}
+
+    <div>
+        
+    </div>
+{% endblock %}

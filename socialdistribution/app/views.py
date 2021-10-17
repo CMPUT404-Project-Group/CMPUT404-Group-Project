@@ -1,4 +1,4 @@
-from .forms import RegisterForm
+from .forms import RegisterForm, PostCreationForm
 from api.models import User, Post
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -40,5 +40,20 @@ def create_post(request):
 
 def view_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    return HttpResponse(post)
+    user = request.user
+    context = {
+        'post': post,
+        'isAuthor': False}
+
+    if post.author == user:
+        context['isAuthor'] = True
+        print("At that price they can edit!")
     
+    if request.method == 'POST':
+        user = request.user
+        form = PostCreationForm(data=request.POST, user=user)
+        if form.is_valid():
+            form.save()
+            post = get_object_or_404(Post, pk=post_id)
+
+    return render(request, 'posts/view_post.html', context)
