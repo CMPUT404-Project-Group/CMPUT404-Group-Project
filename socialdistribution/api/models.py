@@ -229,6 +229,21 @@ class Post(models.Model):
     def __str__(self):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
 
+class CommentManager(models.Manager):
+    
+    def create_comment(self, author, comment):
+
+        comment = self.model(
+            type="comment",
+            author=author,
+            comment=comment,
+            id = uuid4()
+        )
+        comment.save()
+
+        return comment
+        
+
 class Comment(models.Model):
     type = models.CharField(max_length=255, unique=False, null=False, blank=False)
     author = models.ForeignKey("User", on_delete=models.CASCADE)
