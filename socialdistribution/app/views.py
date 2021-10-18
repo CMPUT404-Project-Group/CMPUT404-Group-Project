@@ -1,4 +1,4 @@
-from .forms import RegisterForm
+from .forms import RegisterForm, PostCreationForm
 from api.models import User, Post
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
