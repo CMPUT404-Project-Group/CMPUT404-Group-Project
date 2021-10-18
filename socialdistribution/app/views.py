@@ -1,9 +1,10 @@
-from .forms import RegisterForm
+from .forms import RegisterForm, PostCreationForm
 from api.models import User, Post
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+import logging
 
 @login_required
 def index (request):
@@ -27,7 +28,7 @@ def create_post(request):
     #https://stackoverflow.com/questions/43347566/how-to-pass-user-object-to-forms-in-django
     if request.method == 'POST':
         user = request.user
-        form = PostCreationForm(data=request.POST, user=user)
+        form = PostCreationForm(data=request.POST, files=request.FILES, user=user)
         if form.is_valid():
             form.save()
             return redirect('app:index')
@@ -39,6 +40,8 @@ def create_post(request):
     return render(request, 'posts/create_post.html', {'form': form})
 
 def view_post(request, post_id):
+    context = {}
     post = get_object_or_404(Post, pk=post_id)
-    return HttpResponse(post)
+    context['post'] = post
+    return render(request, 'posts/view_post.html', context)
     

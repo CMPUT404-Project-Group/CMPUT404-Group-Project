@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title%}View Post{% endblock %}
+
+{% block content%}
+<div class="container py-5 h-100">
+	<h1>{{ post.title }}</h1>
+    <p>{{ post.text_content }}</p>
+    {% if post.image_content %}
+        <img src="{{ post.image_content.url }}">
+    {% endif %}
+</div>
+
+{% endblock %}

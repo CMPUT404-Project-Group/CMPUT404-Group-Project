@@ -3,6 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from api.models import Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
+import logging
 class RegisterForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super(RegisterForm, self).__init__(*args, **kwargs)
@@ -36,16 +37,17 @@ class PostCreationForm(forms.ModelForm):
         if "user" in kwargs:
             self.user = kwargs.pop("user")
         if "data" in kwargs:
-            self.image = kwargs['data']['image_content']
+            self.image = 'ok'
         super(PostCreationForm, self).__init__(*args, **kwargs)
     
     #TODO: Unlisted always false
     def save(self, commit=True):
         assert self.user, "User is not defined"
+        logging.error(self.cleaned_data)
         post = Post.objects.create_post(
             author=self.user,
             categories=self.cleaned_data['categories'],
-            image_content=self.image,
+            image_content=self.cleaned_data['image_content'],
             text_content=self.cleaned_data["text_content"],
             title=self.cleaned_data["title"],
             visibility=self.cleaned_data["visibility"],
