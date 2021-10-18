@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from api.models import Post, User
+from api.models import Comment, Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 class RegisterForm(UserCreationForm):
@@ -32,10 +32,12 @@ class PostCreationForm(forms.ModelForm):
         fields = ('title', 'text_content', 'image_content', 'categories', 'visibility')
     
     def __init__(self, *args, **kwargs):
-        self.user=None
+        self.user = None
+        self.image = None
+
         if "user" in kwargs:
             self.user = kwargs.pop("user")
-        if "data" in kwargs:
+        if "data" in kwargs and 'image_content' in 'data':
             self.image = kwargs['data']['image_content']
         super(PostCreationForm, self).__init__(*args, **kwargs)
     
@@ -51,3 +53,35 @@ class PostCreationForm(forms.ModelForm):
             visibility=self.cleaned_data["visibility"],
             unlisted=False
         )
+        return post
+
+class CommentCreationForm(forms.ModelForm):
+
+    class Meta:
+        model = Comment
+        exclude = ('type', 'author', 'content_type', 'published', 'post_id', 'id')
+    
+    def __init__(self, *args, **kwargs):
+        self.user = None
+        self.post = None
+
+        if "user" in kwargs:
+            self.user = kwargs.pop("user")
+        
+        if "post" in kwargs:
+            self.post = kwargs.pop("post")
+    
+    def save(self, commit=True):
+        #Currently throws assertion error is user or post are not defined as I am unsure when you would comment on something
+        #that is not a post
+
+        assert self.user, "User is not defined"
+        assert self.post, "Post is not defined"
+
+        comment = Comment.objects.create(
+            author=self.user,
+            comment=self.cleaned_data['comment'],
+            post_id=self.post_id
+        )
+
+        return comment

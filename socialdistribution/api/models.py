@@ -229,14 +229,17 @@ class Post(models.Model):
     def __str__(self):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
 
+#TODO: Defaults to text/plain for contentType
 class CommentManager(models.Manager):
     
-    def create_comment(self, author, comment):
+    def create_comment(self, author, comment, post):
 
         comment = self.model(
             type="comment",
             author=author,
             comment=comment,
+            content_type="text/plain",
+            post=post,
             id = uuid4()
         )
         comment.save()
@@ -250,7 +253,10 @@ class Comment(models.Model):
     comment = models.TextField(unique=False, blank=False, null=False)
     content_type = models.CharField(max_length=255, unique=False, null=False, blank=False)
     published = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
+    post_id = models.ForeignKey("Post", on_delete=models.CASCADE)
     id = models.CharField(max_length=255, unique=False, null=False, blank=False, primary_key=True)
+
+    objects = CommentManager()
 
     
 
