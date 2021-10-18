@@ -235,7 +235,7 @@ class Comment(models.Model):
     comment = models.TextField(unique=False, blank=False, null=False)
     content_type = models.CharField(max_length=255, unique=False, null=False, blank=False)
     published = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
-    id = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    id = models.CharField(max_length=255, unique=False, null=False, blank=False, primary_key=True)
 
     
 
