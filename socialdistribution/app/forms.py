@@ -59,7 +59,7 @@ class CommentCreationForm(forms.ModelForm):
 
     class Meta:
         model = Comment
-        exclude = ('type', 'author', 'content_type', 'published', 'post_id', 'id')
+        fields = ('comment',)
     
     def __init__(self, *args, **kwargs):
         self.user = None
@@ -67,21 +67,18 @@ class CommentCreationForm(forms.ModelForm):
 
         if "user" in kwargs:
             self.user = kwargs.pop("user")
-        
         if "post" in kwargs:
             self.post = kwargs.pop("post")
+        super(CommentCreationForm, self).__init__(*args, **kwargs)
     
     def save(self, commit=True):
-        #Currently throws assertion error is user or post are not defined as I am unsure when you would comment on something
-        #that is not a post
-
         assert self.user, "User is not defined"
         assert self.post, "Post is not defined"
 
-        comment = Comment.objects.create(
+        comment = Comment.objects.create_comment(
             author=self.user,
             comment=self.cleaned_data['comment'],
-            post_id=self.post_id
+            post=self.post
         )
 
         return comment

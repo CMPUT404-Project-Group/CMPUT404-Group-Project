@@ -23,6 +23,7 @@ def register(request):
         form = RegisterForm()
     return render(request, 'app/register.html', {'form': form})
 
+@login_required
 def create_post(request):
     #https://stackoverflow.com/questions/43347566/how-to-pass-user-object-to-forms-in-django
     if request.method == 'POST':
@@ -42,10 +43,11 @@ def view_post(request, post_id):
 
     return render(request, 'posts/view_post.html', context)
 
+@login_required
 def create_comment(request, post_id):
     if request.method == 'POST':
         user = request.user
-        post = get_object_or_404(post_id)
+        post = get_object_or_404(Post, pk=post_id)
         form = CommentCreationForm(data=request.POST, user=user, post=post)
         if form.is_valid():
             form.save()

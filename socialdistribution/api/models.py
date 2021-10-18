@@ -2,6 +2,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.deletion import CASCADE
 from django.db.models.manager import BaseManager
 from dotenv import load_dotenv
 import os
@@ -230,11 +231,12 @@ class Post(models.Model):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
 
 #TODO: Defaults to text/plain for contentType
+#TODO: Add posts or post_id to comment model
 class CommentManager(models.Manager):
     
     def create_comment(self, author, comment, post):
 
-        comment = self.model(
+        comment = Comment(
             type="comment",
             author=author,
             comment=comment,
@@ -248,13 +250,14 @@ class CommentManager(models.Manager):
         
 
 class Comment(models.Model):
+    id = models.CharField(max_length=255, unique=True, null=False, blank=False, primary_key=True)
     type = models.CharField(max_length=255, unique=False, null=False, blank=False)
     author = models.ForeignKey("User", on_delete=models.CASCADE)
     comment = models.TextField(unique=False, blank=False, null=False)
     content_type = models.CharField(max_length=255, unique=False, null=False, blank=False)
     published = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
-    post_id = models.ForeignKey("Post", on_delete=models.CASCADE)
-    id = models.CharField(max_length=255, unique=False, null=False, blank=False, primary_key=True)
+    post = models.ForeignKey("Post", on_delete=CASCADE)
+    
 
     objects = CommentManager()
 
