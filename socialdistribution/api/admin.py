@@ -11,9 +11,12 @@ from .models import User, Post
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password."""
-    set_password = forms.CharField(label='Password', widget=forms.PasswordInput)
-    confirm_password = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
+    set_password = forms.CharField(
+        label='Password', widget=forms.PasswordInput)
+    confirm_password = forms.CharField(
+        label='Password confirmation', widget=forms.PasswordInput)
     github = forms.CharField(label="github", required=False)
+
     class Meta:
         model = User
         fields = ('email', 'github')
@@ -44,27 +47,29 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'github', 'password')
+        fields = ('displayName', 'email', 'github', 'password')
 
 
 class UserAdmin(BaseUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
 
-    list_display = ('email', 'username', 'github', 'is_admin', 'is_active')
+    list_display = ('email', 'displayName', 'github', 'is_admin', 'is_active')
     list_filter = ('is_admin', 'is_active')
     fieldsets = (
-        (None, {'fields': ('email', 'username', 'github', 'password', 'is_active')}),
+        (None, {'fields': ('email', 'displayName',
+         'github', 'password', 'is_active')}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'github', 'password1', 'password2'),
+            'fields': ('displayName', 'email', 'github', 'password1', 'password2'),
         }),
     )
     search_fields = ('email',)
     ordering = ('email',)
     filter_horizontal = ()
+
 
 admin.site.register(User, UserAdmin)
 admin.site.register(Post)

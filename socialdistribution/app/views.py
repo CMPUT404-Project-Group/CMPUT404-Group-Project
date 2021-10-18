@@ -5,10 +5,12 @@ from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+
 @login_required
-def index (request):
+def index(request):
     return render(request, 'app/index.html')
-    
+
+
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
