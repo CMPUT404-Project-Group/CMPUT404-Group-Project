@@ -229,3 +229,14 @@ class Post(models.Model):
     def __str__(self):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
 
+class Comment(models.Model):
+    type = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    author = models.ForeignKey("User", on_delete=models.CASCADE)
+    comment = models.TextField(unique=False, blank=False, null=False)
+    content_type = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    published = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
+    id = models.CharField(max_length=255, unique=False, null=False, blank=False)
+
+    
+
+
