@@ -131,3 +131,9 @@ dmypy.json
 #Visual Studio
 .DS_storie
 launch.json
+
+#Migrations
+socialdistribution/app/migrations
+socialdistribution/api/migrations
+#db
+
