@@ -40,5 +40,7 @@ def create_post(request):
 
 def view_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    return HttpResponse(post)
+    context = {'post': post}
+
+    return render(request, 'posts/view_post.html', context)
     

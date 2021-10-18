@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title%}Create Post{% endblock %}
+
+{% block content%}
+
+<div class="container py-5 h-100">
+    <div>
+        <h6 class="mb-3">{{post.visibility}}</h6>
+        <h1 class="mb-3">{{post.title}}</h1>
+    </div>
+
+    <p class="mb-3">{{post.text_content}}</p>
+
+    <p class="mb-3">Tags: {{post.categories}}</p>
+
+</div>
+
+{% endblock %}
