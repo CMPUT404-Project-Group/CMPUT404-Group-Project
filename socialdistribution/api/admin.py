@@ -1,11 +1,10 @@
+from .models import User, SiteSetting
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
-
-from .models import User
 
 
 class UserCreationForm(forms.ModelForm):
@@ -50,15 +49,25 @@ class UserChangeForm(forms.ModelForm):
         fields = ('displayName', 'email', 'github', 'password')
 
 
+@admin.action(description='Set selected users as active')
+def make_active(modeladmin, request, queryset):
+    queryset.update(is_active=True)
+
+
+@admin.action(description='Set selected users as inactive')
+def make_inactive(modeladmin, request, queryset):
+    queryset.update(is_active=False)
+
+
 class UserAdmin(BaseUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
-
+    actions = [make_active, make_inactive]
     list_display = ('email', 'displayName', 'github', 'is_admin', 'is_active')
     list_filter = ('is_admin', 'is_active')
     fieldsets = (
         (None, {'fields': ('email', 'displayName',
-         'github', 'password', 'is_active')}),
+                           'github', 'password', 'is_active')}),
     )
     add_fieldsets = (
         (None, {
@@ -71,6 +80,46 @@ class UserAdmin(BaseUserAdmin):
     filter_horizontal = ()
 
 
-admin.site.register(User, UserAdmin)
+class SettingCreationForm(forms.ModelForm):
+    """A form for creating new users. Includes all the required
+    fields, plus a repeated password."""
+    setting = forms.CharField(label='Setting Name')
+    on = forms.BooleanField(label='on')
 
+    class Meta:
+        model = SiteSetting
+        fields = ('setting', 'on')
+
+
+class SettingChangeForm(forms.ModelForm):
+    """
+    A form for updating site settings.
+    """
+    class Meta:
+        model = SiteSetting
+        fields = ('setting', 'on')
+
+
+class SettingsAdmin(admin.ModelAdmin):
+    form = SettingChangeForm
+    add_form = SettingCreationForm
+
+    fieldsets = (
+        (None, {'fields': ('setting', 'on',)}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('setting', 'on',),
+        }),
+    )
+
+    list_display = ('setting', 'on')
+    list_filter = ('on',)
+    ordering = ('setting',)
+    filter_horizontal = ()
+
+
+admin.site.register(User, UserAdmin)
+admin.site.register(SiteSetting, SettingsAdmin)
 admin.site.unregister(Group)

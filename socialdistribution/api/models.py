@@ -30,6 +30,7 @@ class UserManager(BaseUserManager):
             email=self.normalize_email(email),
         )
 
+        user.is_active = SiteSetting.objects.get(setting="allow_join").value()
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -95,3 +96,19 @@ class User(AbstractBaseUser):
 
     class Meta:
         ordering = ['displayName']
+
+
+class SettingManager(models.Manager):
+    def create_setting(self, setting, on):
+        setting = self.create(setting=setting, on=on)
+        return setting
+
+
+class SiteSetting(models.Model):
+    setting = models.CharField(max_length=255, unique=True)
+    on = models.BooleanField()
+
+    objects = SettingManager()
+
+    def value(self):
+        return self.on
