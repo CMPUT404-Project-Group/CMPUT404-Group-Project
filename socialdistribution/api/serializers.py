@@ -1,4 +1,3 @@
-
 from rest_framework import serializers
 from .models import HOST_API_URL, User
 from dotenv import load_dotenv
