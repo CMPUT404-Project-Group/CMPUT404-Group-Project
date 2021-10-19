@@ -4,6 +4,16 @@ from api.models import Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 import logging
+
+class TextProcessor():
+
+    def __init__(self, text):
+        self.text = text
+
+    def extractUrls(self):
+        urls = re.findall('https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+', text)
+        
+
 class RegisterForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super(RegisterForm, self).__init__(*args, **kwargs)
@@ -36,8 +46,6 @@ class PostCreationForm(forms.ModelForm):
         self.user=None
         if "user" in kwargs:
             self.user = kwargs.pop("user")
-        if "data" in kwargs:
-            self.image = 'ok'
         super(PostCreationForm, self).__init__(*args, **kwargs)
     
     #TODO: Unlisted always false
