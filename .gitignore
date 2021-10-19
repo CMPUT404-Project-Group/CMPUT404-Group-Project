@@ -132,8 +132,3 @@ dmypy.json
 .DS_storie
 launch.json
 
-#Migrations
-socialdistribution/app/migrations
-socialdistribution/api/migrations
-#db
-
