@@ -7,10 +7,24 @@ from dotenv import load_dotenv
 import os
 from uuid import uuid4
 
-
-
 load_dotenv()
 HOST_API_URL = os.getenv("HOST_API_URL")
+
+
+class SettingManager(models.Manager):
+    def create_setting(self, setting, on):
+        setting = self.create(setting=setting, on=on)
+        return setting
+
+
+class SiteSetting(models.Model):
+    setting = models.CharField(max_length=255, unique=True)
+    on = models.BooleanField()
+
+    objects = SettingManager()
+
+    def value(self):
+        return self.on
 
 
 class UserManager(BaseUserManager):
@@ -34,6 +48,7 @@ class UserManager(BaseUserManager):
             email=self.normalize_email(email),
         )
 
+        user.is_active = SiteSetting.objects.get(setting="allow_join").value()
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -96,9 +111,10 @@ class User(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
-      
+
     class Meta:
         ordering = ['displayName']
+
 
 class PostBuilder():
 
@@ -122,14 +138,14 @@ class PostBuilder():
         self.size = None
         self.visibility = None
         self.unlisted = None
-    
+
     def set_post_content(self, title, categories, text_content=None, image_content=None):
         self.title = title
         self.categories = categories
         self.text_content = text_content
         self.image_content = image_content
-    
-    #TODO: Description is not very descriptive
+
+    # TODO: Description is not very descriptive
     def set_post_metadata(self, author, visibility, unlisted):
         assert self.title, "set_post_content must be called before set_post_metadata"
 
@@ -140,7 +156,7 @@ class PostBuilder():
         self.__set_description__()
         self.__set_content_type__()
         self.__set_size__()
-    
+
     def get_post(self):
         return Post(
             type=self.type,
@@ -160,44 +176,45 @@ class PostBuilder():
             visibility=self.visibility,
             unlisted=self.unlisted
         )
-    
+
     def __set_description__(self):
         self.description = f"{self.title}"
         if self.text_content:
             self.description += f": {self.text_content[0:50]}..."
-    
-    #TODO: Content type just defaults to plain text at the moment
+
+    # TODO: Content type just defaults to plain text at the moment
     def __set_content_type__(self):
         self.content_type = Post.ContentType.PLAIN
-    
-    #TODO: Figure out size of post dynamically (possibly iterate through attributes adding size)
+
+    # TODO: Figure out size of post dynamically (possibly iterate through attributes adding size)
     def __set_size__(self):
         self.size = 0
 
-
-     
 
 class PostManager(models.Manager):
 
     def create_post(self, author, categories, image_content, text_content, title, visibility, unlisted):
         post_builder = PostBuilder()
-        post_builder.set_post_content(title, categories, text_content, image_content)
+        post_builder.set_post_content(
+            title, categories, text_content, image_content)
         post_builder.set_post_metadata(author, visibility, unlisted)
-        
+
         post = post_builder.get_post()
         post.save(using=self._db)
         return post
-    
+
     def get(self, *args, **kwargs):
         return super().get(*args, **kwargs)
 
-#TODO: Specify uploadto field for image_content to post_imgs within project root
-#TODO: Upon adding comment model add comment as foreign key
+# TODO: Specify uploadto field for image_content to post_imgs within project root
+# TODO: Upon adding comment model add comment as foreign key
+
+
 class Post(models.Model):
 
     class Visibility(models.TextChoices):
         PUBLIC = "public"
-    
+
     class ContentType(models.TextChoices):
         MARKDOWN = "text/markdown"
         PLAIN = "text/plain"
@@ -205,32 +222,41 @@ class Post(models.Model):
         PNG = "image/png;base64"
         JPG = "image/jpg;base64"
 
-    type = models.CharField(max_length=255, unique=False, null=False, blank=False, default="post")
-    title = models.CharField(max_length=255, unique=False, null=False, blank=False)
-    id = models.CharField(max_length=255, unique=True, null=False, primary_key=True)
+    type = models.CharField(max_length=255, unique=False,
+                            null=False, blank=False, default="post")
+    title = models.CharField(
+        max_length=255, unique=False, null=False, blank=False)
+    id = models.CharField(max_length=255, unique=True,
+                          null=False, primary_key=True)
     source = models.URLField(
         max_length=255, unique=False, null=False, blank=False)
     origin = models.URLField(
         max_length=255, unique=False, null=False, blank=False)
-    description = models.CharField(max_length=255, unique=False, null=False, blank=False)
-    content_type = models.CharField(max_length=255, choices=ContentType.choices)
+    description = models.CharField(
+        max_length=255, unique=False, null=False, blank=False)
+    content_type = models.CharField(
+        max_length=255, choices=ContentType.choices)
     text_content = models.TextField(unique=False, blank=True)
     image_content = models.ImageField(unique=False, blank=True)
     author = models.ForeignKey(
         "User",
         on_delete=models.CASCADE
-        )
+    )
     categories = models.TextField(unique=False, blank=True, null=False)
-    count = models.IntegerField(unique=False, null=False, blank=False, default=0)
+    count = models.IntegerField(
+        unique=False, null=False, blank=False, default=0)
     size = models.IntegerField(unique=False, null=False, blank=False)
-    comment_page = models.CharField(max_length=255, unique=False, null=False, blank=False)
-    #comments could potentially be done at serialization to avoid data duplication 
-    #(get all comments which have this post_id within their comment_id)
-    #If we do this size may also have to be done at serialization although I think this may be easier anyways
-    published = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
+    comment_page = models.CharField(
+        max_length=255, unique=False, null=False, blank=False)
+    # comments could potentially be done at serialization to avoid data duplication
+    # (get all comments which have this post_id within their comment_id)
+    # If we do this size may also have to be done at serialization although I think this may be easier anyways
+    published = models.DateTimeField(
+        unique=False, blank=False, null=False, auto_now_add=True)
     visibility = models.CharField(
         max_length=255, choices=Visibility.choices, unique=False, blank=False, null=False, default=Visibility.PUBLIC)
-    unlisted = models.BooleanField(unique=False, blank=False, null=False, default=False)
+    unlisted = models.BooleanField(
+        unique=False, blank=False, null=False, default=False)
 
     objects = PostManager()
 
