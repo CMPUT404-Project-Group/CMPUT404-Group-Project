@@ -66,8 +66,5 @@ def manage_profile(request):
 
         return render(request, 'profile/manage_profile.html', {'form': form})
 
-def change_password(request):
-    user = request.user
-    return render(request, 'profile/change_password.html', {'user': user})
 
 
