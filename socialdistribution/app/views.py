@@ -2,7 +2,7 @@ from .forms import RegisterForm, PostCreationForm
 from api.models import User, Post
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
 @login_required
@@ -38,22 +38,41 @@ def create_post(request):
         
     return render(request, 'posts/create_post.html', {'form': form})
 
-def view_post(request, post_id):
+def edit_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     user = request.user
-    context = {
-        'post': post,
-        'isAuthor': False}
+    is_author = False
+
+    context = {'post': post}
 
     if post.author == user:
-        context['isAuthor'] = True
-        print("At that price they can edit!")
-    
-    if request.method == 'POST':
-        user = request.user
-        form = PostCreationForm(data=request.POST, user=user)
-        if form.is_valid():
-            form.save()
-            post = get_object_or_404(Post, pk=post_id)
+        is_author == True
 
-    return render(request, 'posts/view_post.html', context)
+    if not is_author:
+        return HttpResponseForbidden()
+    else:
+        if request.method == 'POST':
+            return render(request, 'posts/edit_post.html',)
+
+def post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    user = request.user
+
+    context = {'post': post}
+
+    if request.method == 'GET':
+        return render(request, 'posts/view_post.html', context)
+
+    elif request.method == 'POST':
+        print("Edit Post Request Sent")
+        return
+    
+    elif request.method == 'DELETE':
+        #DELETE POST
+        return
+    
+    elif request.method == 'PUT':
+        print("Create Post Request Sent")
+        return
+
+    
