@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Profile{% endblock %}
+
+{% block content %}
+
+{% if form.errors %}
+
+{% endif %}
+
+<div class="container py-5 h-100">
+  <div class="row d-felx justify-content-center align-items-center h-100">
+    <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 35%">
+      <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
+        <div class="card-body text-center">
+
+
+          <form method="post" class="box">
+            {% csrf_token %}
+            <h3 class="mb-3">Manage Profile</h3>
+            {% for field in form %}
+            <div class="form-outline mb-2 text-start">
+              <label class="form-label h6">{{field.label_tag}}</label>
+              <!-- <input class="form-control" name={{field.name}} /> -->
+              {{field}}
+            </div>
+            {% for error in field.errors %}
+            <p class="form-text text-danger text-start">{{ error }}</p>
+            {% endfor %}
+            {% endfor %}
+            <button type="submit" class="btn btn-primary shadow mt-5 w-100">Save</button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

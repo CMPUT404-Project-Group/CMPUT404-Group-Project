@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from api.models import Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
@@ -53,3 +53,17 @@ class PostCreationForm(forms.ModelForm):
             visibility=self.cleaned_data["visibility"],
             unlisted=False
         )
+
+class ManageProfileForm(UserChangeForm):
+
+    password = None
+
+    class Meta:
+        model = User
+        fields = ('displayName', 'email', 'github')
+
+    # def save(self, commit=True):
+    #     if commit:
+    #         user = get_user_model().objects.manage_user(email=self.cleaned_data["email"], displayName=self.cleaned_data[
+    #             "displayName"], github=self.cleaned_data["github"], password=self.cleaned_data["password"], type="author")
+    #     return user

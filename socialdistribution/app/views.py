@@ -1,4 +1,5 @@
-from .forms import RegisterForm, PostCreationForm
+from .forms import RegisterForm, PostCreationForm, ManageProfileForm
+from django.contrib.auth.forms import UserChangeForm
 from api.models import User, Post
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -43,4 +44,30 @@ def create_post(request):
 def view_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     return HttpResponse(post)
+
+def view_profile(request):
+    user = request.user
+    return render(request, 'profile/view_profile.html', {'user': user})
     
+def manage_profile(request):
+
+    if request.method == 'POST':
+        form = ManageProfileForm(request.POST, instance=request.user)
+
+        if form.is_valid():
+            form.save()
+
+            # https://www.youtube.com/watch?v=q4jPR-M0TAQ&list=PL-osiE80TeTtoQCKZ03TU5fNfx2UY6U4p&index=6 
+            # Will give a notification when edit successfully 
+            messages.success(request,f'Request to edit profile has been submitted!')
+            return redirect('app:view-profile')
+    else:
+        form = ManageProfileForm(instance=request.user)
+
+        return render(request, 'profile/manage_profile.html', {'form': form})
+
+def change_password(request):
+    user = request.user
+    return render(request, 'profile/change_password.html', {'user': user})
+
+

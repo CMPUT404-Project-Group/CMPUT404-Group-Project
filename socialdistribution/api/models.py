@@ -54,6 +54,30 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+    def manage_user(self, email, displayName, github=None, password=None, type="author"):
+        """
+        Edits and saves a User.
+        """
+        if not email:
+            raise ValueError('Users must have an email address')
+
+        uuid = uuid4()
+        host = HOST_API_URL
+
+        user = self.model(
+            type=type,
+            id=uuid,
+            host=host,
+            displayName=displayName,
+            url=host+str(uuid),
+            github=github,
+            email=self.normalize_email(email),
+        )
+
+        # user.set_password(password)
+        user.save(using=self._db)
+        return user
+
 
 class User(AbstractBaseUser):
     # required fields to be exposed by API
@@ -99,6 +123,15 @@ class User(AbstractBaseUser):
       
     class Meta:
         ordering = ['displayName']
+
+
+class Profile(models.Model):
+    displayName = models.CharField(max_length=255, unique=True)
+    email = models.EmailField(
+        max_length=255, unique=True, verbose_name="email address")
+    github = models.CharField(
+        max_length=50, unique=True, blank=True, null=True)
+
 
 class PostBuilder():
 
@@ -236,3 +269,6 @@ class Post(models.Model):
 
     def __str__(self):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
+
+
+

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}View Profile{% endblock %}
+
+{% block content %}
+
+<div class="container py-5 h-100">
+  <div class="row d-felx justify-content-center align-items-center h-100">
+    <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 35%">
+      <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
+        <div class="card-body text-center">
+            <h3 style="margin-bottom: 30px">Profile</h3>
+            
+            <div style="font-size:12pt">
+                <p>Display Name: {{ user.displayName }} </p>
+                <p>Email: {{ user.email }} </p>
+                <p>Github: {{ user.github }} </p>
+            </div>
+
+            <a href="{% url 'app:manage-profile' %}"><button type="button" class="btn btn-primary shadow mt-5 w-100">Manage Profile</button></a>
+            <a href="{% url 'app:change-password' %}"><button type="button" class="btn btn-primary shadow mt-5 w-100">Change Password</button></a>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
