@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login
+from django.views import generic
 
 
 @login_required
@@ -52,3 +53,11 @@ def create_post(request):
 def view_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     return HttpResponse(post)
+
+
+class PostListView(generic.ListView):
+    model = Post
+    template_name = 'posts/post_list.html'
+
+    def get_queryset(self):
+        return Post.objects.filter(visibility="public", unlisted=0)
