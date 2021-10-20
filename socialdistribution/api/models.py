@@ -54,7 +54,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def manage_user(self, email, displayName, github=None, password=None, type="author"):
+    def manage_profile(self, email, displayName, github=None, password=None, type="author"):
         """
         Edits and saves a User.
         """
@@ -74,7 +74,7 @@ class UserManager(BaseUserManager):
             email=self.normalize_email(email),
         )
 
-        # user.set_password(password)
+        user.set_password(password)
         user.save(using=self._db)
         return user
 
@@ -123,15 +123,6 @@ class User(AbstractBaseUser):
       
     class Meta:
         ordering = ['displayName']
-
-
-class Profile(models.Model):
-    displayName = models.CharField(max_length=255, unique=True)
-    email = models.EmailField(
-        max_length=255, unique=True, verbose_name="email address")
-    github = models.CharField(
-        max_length=50, unique=True, blank=True, null=True)
-
 
 class PostBuilder():
 
@@ -269,6 +260,3 @@ class Post(models.Model):
 
     def __str__(self):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
-
-
-
