@@ -60,7 +60,7 @@ class User(AbstractBaseUser):
     type = models.CharField(max_length=255, unique=False,
                             null=False, blank=False, default="author")
     id = models.UUIDField(auto_created=True, max_length=255,
-                          unique=True, null=False, blank=False, primary_key=True)
+                          unique=True, null=False, blank=False, primary_key=True, default=uuid4)
     host = models.URLField(max_length=255, unique=False,
                            null=False, blank=False, default=HOST_API_URL)
     displayName = models.CharField(max_length=255, unique=True)
