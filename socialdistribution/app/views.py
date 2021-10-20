@@ -46,33 +46,32 @@ def edit_post(request, post_id):
     context = {'post': post}
 
     if post.author == user:
-        is_author == True
+        is_author = True
 
     if not is_author:
         return HttpResponseForbidden()
     else:
-        if request.method == 'POST':
-            return render(request, 'posts/edit_post.html',)
+        return render(request, 'posts/edit_post.html', context)  
 
 def post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     user = request.user
 
-    context = {'post': post}
+    is_author = False
+    if post.author == user:
+        is_author = True
+
+    context = {
+        'post': post,
+        'is_author': is_author}
 
     if request.method == 'GET':
         return render(request, 'posts/view_post.html', context)
 
     elif request.method == 'POST':
-        print("Edit Post Request Sent")
-        return
-    
-    elif request.method == 'DELETE':
-        #DELETE POST
-        return
-    
-    elif request.method == 'PUT':
-        print("Create Post Request Sent")
-        return
-
+        form = PostCreationForm(data=request.POST, user=user, id=post_id, published=post.published)
+        if form.is_valid():
+            form.save()
+            
+        return redirect('app:index')
     

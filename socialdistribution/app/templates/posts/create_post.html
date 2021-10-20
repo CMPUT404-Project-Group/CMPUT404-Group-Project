@@ -9,7 +9,7 @@
         <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 45%">
             <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
                 <div class="card-body text-center">
-                    <form action="{% url 'app:post' %}" method='put' class="box">
+                    <form action="{% url 'app:create-post' %}" method='post' class="box">
                         {% csrf_token %}
                         <h3 class="mb-3">Create a post</h3>
                         <div class="form-outline mb-2 text-start">

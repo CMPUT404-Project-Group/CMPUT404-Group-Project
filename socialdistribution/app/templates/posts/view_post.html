@@ -19,8 +19,8 @@
 
     </div>
 
-    {% if isAuthor %}
-        <p>Click here to <a href="{% url 'app:create-post' %}">edit your post</a>.</p>
+    {% if is_author %}
+        <p>Click here to <a href="{% url 'app:edit-post' post.id %}">edit your post</a>.</p>
     {% endif %}
 
     <div>
