@@ -27,21 +27,23 @@ class RegisterForm(UserCreationForm):
         model = User
         fields = ('displayName', 'email', 'github', 'password1', 'password2')
 
+
 class PostCreationForm(forms.ModelForm):
-    
+
     class Meta:
         model = Post
-        fields = ('title', 'text_content', 'image_content', 'categories', 'visibility')
-    
+        fields = ('title', 'text_content', 'image_content',
+                  'categories', 'visibility')
+
     def __init__(self, *args, **kwargs):
-        self.user=None
+        self.user = None
         if "user" in kwargs:
             self.user = kwargs.pop("user")
         if "data" in kwargs:
             self.image = kwargs['data']['image_content']
         super(PostCreationForm, self).__init__(*args, **kwargs)
-    
-    #TODO: Unlisted always false
+
+    # TODO: Unlisted always false
     def save(self, commit=True):
         assert self.user, "User is not defined"
         post = Post.objects.create_post(
