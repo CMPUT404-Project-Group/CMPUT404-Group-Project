@@ -269,13 +269,12 @@ class Post(models.Model):
 
 class Inbox(models.Model):
 
-    class InboxObject:
-        POST = "post"
-        FOLLLOW = "follow"
-        LIKE = "like"
+    # class InboxObject(models.TextChoices):
+    #     POST = "post"
+    #     FOLLLOW = "follow"
+    #     LIKE = "like"
 
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    content_type = models.ForeignKey(
-        ContentType, on_delete=models.CASCADE, choices=InboxObject.choices)
+    author_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
-    content_object = GenericForeignKey('contenty_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
