@@ -63,9 +63,3 @@ class ManageProfileForm(UserChangeForm):
     class Meta:
         model = User
         fields = ('displayName', 'email', 'github')
-
-    # def save(self, commit=True):
-    #     if commit:
-    #         user = get_user_model().objects.manage_user(email=self.cleaned_data["email"], displayName=self.cleaned_data[
-    #             "displayName"], github=self.cleaned_data["github"], password=self.cleaned_data["password"], type="author")
-    #     return user
