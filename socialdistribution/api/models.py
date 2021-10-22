@@ -229,6 +229,8 @@ class Post(models.Model):
 
     class Visibility(models.TextChoices):
         PUBLIC = "public"
+        PRIVATE_TO_AUTHOR = "private_to_author"
+        PRIVATE_TO_FRIEND = "private_to_friend"
 
     class ContentType(models.TextChoices):
         MARKDOWN = "text/markdown"
