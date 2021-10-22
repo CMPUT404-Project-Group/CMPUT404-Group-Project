@@ -1,5 +1,3 @@
-
-
 from .models import User, Post
 from .serializers import UserSerializer
 from django.http import JsonResponse
@@ -8,7 +6,6 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 import rest_framework.status as status
-from urllib import parse
 
 
 # TODO: set up as protected endpoint
