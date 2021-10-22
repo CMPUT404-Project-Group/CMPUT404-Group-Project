@@ -69,30 +69,6 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def manage_profile(self, email, displayName, github=None, password=None, type="author"):
-        """
-        Edits and saves a User.
-        """
-        if not email:
-            raise ValueError('Users must have an email address')
-
-        uuid = uuid4()
-        host = HOST_API_URL
-
-        user = self.model(
-            type=type,
-            id=uuid,
-            host=host,
-            displayName=displayName,
-            url=host+str(uuid),
-            github=github,
-            email=self.normalize_email(email),
-        )
-
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
 
 class User(AbstractBaseUser):
     # required fields to be exposed by API
