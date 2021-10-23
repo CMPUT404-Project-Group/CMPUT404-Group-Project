@@ -1,19 +1,29 @@
 {% extends "base.html" %}
 
-{% block title%}Create Post{% endblock %}
+{% block title%}View Post{% endblock %}
 
 {% block content%}
-
-<div class="container py-5 h-100">
     <div>
-        <h6 class="mb-3">{{post.visibility}}</h6>
-        <h1 class="mb-3">{{post.title}}</h1>
+
+        <h1>{{ post.title }}</h1>
+
+        {% if post.text_content %}
+            <p> {{ post.text_content }} </p>
+        {% endif %}
+
+        {% if post.image_content %}
+            <img alt="User uploaded image" src={{ post.image_content }}></img>
+        {% endif %}
+
+        <p> Tags: {{ post.categories }} </p>
+
     </div>
 
-    <p class="mb-3">{{post.text_content}}</p>
+    {% if is_author %}
+        <p>Click here to <a href="{% url 'app:edit-post' post.id %}">edit your post</a>.</p>
+    {% endif %}
 
-    <p class="mb-3">Tags: {{post.categories}}</p>
-
-</div>
-
+    <div>
+        
+    </div>
 {% endblock %}

@@ -1,8 +1,10 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from api.models import Comment, Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
+
+
 class RegisterForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super(RegisterForm, self).__init__(*args, **kwargs)
@@ -13,47 +15,74 @@ class RegisterForm(UserCreationForm):
 
     github = forms.CharField(max_length=30, required=False)
     email = forms.EmailField(max_length=255, required=True)
-    username = forms.CharField(max_length=30, required=True)
+    displayName = forms.CharField(max_length=30, required=True)
 
     def save(self, commit=True):
-            # user = super().save(commit=False)
-            # user.set_password(self.cleaned_data["password1"])
-            if commit:
-                user = get_user_model().objects.create_user(email=self.cleaned_data["email"], username=self.cleaned_data["username"], github=self.cleaned_data["github"], password=self.cleaned_data["password1"], type="author")
-            return user
+        if commit:
+            user = get_user_model().objects.create_user(email=self.cleaned_data["email"], displayName=self.cleaned_data[
+                "displayName"], github=self.cleaned_data["github"], password=self.cleaned_data["password1"], type="author")
+        return user
+
     class Meta:
         model = User
-        fields = ('username', 'email', 'github', 'password1', 'password2')
+        fields = ('displayName', 'email', 'github', 'password1', 'password2')
+
 
 class PostCreationForm(forms.ModelForm):
-    
+
     class Meta:
         model = Post
-        fields = ('title', 'text_content', 'image_content', 'categories', 'visibility')
-    
+        fields = ('title', 'text_content', 'image_content',
+                  'categories', 'visibility')
+
     def __init__(self, *args, **kwargs):
         self.user = None
-        self.image = None
-
         if "user" in kwargs:
             self.user = kwargs.pop("user")
-        if "data" in kwargs and 'image_content' in 'data':
+        if "id" in kwargs:
+            self.id = kwargs.pop("id")
+        if "published" in kwargs:
+            self.published = kwargs.pop("published")
+        if "data" in kwargs:
             self.image = kwargs['data']['image_content']
         super(PostCreationForm, self).__init__(*args, **kwargs)
-    
-    #TODO: Unlisted always false
+
+    # TODO: Unlisted always false
     def save(self, commit=True):
         assert self.user, "User is not defined"
-        post = Post.objects.create_post(
-            author=self.user,
-            categories=self.cleaned_data['categories'],
-            image_content=self.image,
-            text_content=self.cleaned_data["text_content"],
-            title=self.cleaned_data["title"],
-            visibility=self.cleaned_data["visibility"],
-            unlisted=False
-        )
-        return post
+        
+        creating_new_post = not self.id
+
+        if creating_new_post:
+            post = Post.objects.create_post(
+                author=self.user,
+                categories=self.cleaned_data['categories'],
+                image_content=self.image,
+                text_content=self.cleaned_data["text_content"],
+                title=self.cleaned_data["title"],
+                visibility=self.cleaned_data["visibility"],
+                unlisted=False
+            )
+        else:
+            post = Post.objects.edit_post(
+                author=self.user,
+                categories=self.cleaned_data['categories'],
+                image_content=self.image,
+                text_content=self.cleaned_data["text_content"],
+                title=self.cleaned_data["title"],
+                visibility=self.cleaned_data['visibility'],
+                unlisted=False,
+                id=self.id,
+                published=self.published
+            )
+
+class ManageProfileForm(UserChangeForm):
+
+    password = None
+
+    class Meta:
+        model = User
+        fields = ('displayName', 'email', 'github')
 
 class CommentCreationForm(forms.ModelForm):
 
