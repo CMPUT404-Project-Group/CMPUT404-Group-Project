@@ -228,6 +228,8 @@ class PostManager(models.Manager):
 
 # TODO: Specify uploadto field for image_content to post_imgs within project root
 # TODO: Upon adding comment model add comment as foreign key
+
+
 class Post(models.Model):
 
     class Visibility(models.TextChoices):
@@ -284,6 +286,16 @@ class Post(models.Model):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
 
 
+class InboxManager(models.Manager):
+    def create(self, author_id, content_object):
+        inbox = self.model(
+            author_id=author_id,
+            content_object=content_object,
+        )
+        inbox.save(using=self._db)
+        return inbox
+
+
 class Inbox(models.Model):
 
     # class InboxObject(models.TextChoices):
@@ -291,7 +303,9 @@ class Inbox(models.Model):
     #     FOLLLOW = "follow"
     #     LIKE = "like"
 
-    author_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
     content_object = GenericForeignKey('content_type', 'object_id')
+
+    objects = InboxManager()

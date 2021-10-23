@@ -1,5 +1,6 @@
+from django.db.models import fields
 from rest_framework import serializers
-from .models import HOST_API_URL, User
+from .models import User, Inbox
 from dotenv import load_dotenv
 import os
 
@@ -18,3 +19,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['type', 'id', 'host', 'displayName', 'url', 'github']
+
+
+class InboxSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Inbox
+        fields = ['author_id', 'content_object']
