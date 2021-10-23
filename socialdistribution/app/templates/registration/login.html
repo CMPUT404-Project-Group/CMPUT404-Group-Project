@@ -5,10 +5,10 @@
 <!-- Will give a notification when register successfully -->
 
 {% block content %}
-
+<section class="vh-100" style="background-color: #508cfc4b;">
 <div class="container py-5 h-100">
-  <div class="row d-felx justify-content-center align-items-center h-100">
-    <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 35%">
+  <div class="row d-flex justify-content-center align-items-center h-100">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
       {% if messages%}
       {%for message in messages%}
       <div class="alert alert-{{message.tags}}">
@@ -20,7 +20,7 @@
         <div class="card-body text-center">
           <form method="post" action="{% url 'app:login' %}" class="box">
             {% csrf_token %}
-            <h3 class="mb-3">Login</h3>
+            <h3 class="mb-3">Sign in</h3>
 
             <div class="form-outline mb-2 text-start">
               <label class="form-label h6">Username</label>
@@ -47,5 +47,5 @@
     </div>
   </div>
 </div>
-
+</section>
 {% endblock %}
