@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from api.models import Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
@@ -39,6 +39,10 @@ class PostCreationForm(forms.ModelForm):
         self.user = None
         if "user" in kwargs:
             self.user = kwargs.pop("user")
+        if "id" in kwargs:
+            self.id = kwargs.pop("id")
+        if "published" in kwargs:
+            self.published = kwargs.pop("published")
         if "data" in kwargs:
             self.image = kwargs['data']['image_content']
         super(PostCreationForm, self).__init__(*args, **kwargs)
@@ -46,12 +50,36 @@ class PostCreationForm(forms.ModelForm):
     # TODO: Unlisted always false
     def save(self, commit=True):
         assert self.user, "User is not defined"
-        post = Post.objects.create_post(
-            author=self.user,
-            categories=self.cleaned_data['categories'],
-            image_content=self.image,
-            text_content=self.cleaned_data["text_content"],
-            title=self.cleaned_data["title"],
-            visibility=self.cleaned_data["visibility"],
-            unlisted=False
-        )
+
+        creating_new_post = not self.id
+
+        if creating_new_post:
+            post = Post.objects.create_post(
+                author=self.user,
+                categories=self.cleaned_data['categories'],
+                image_content=self.image,
+                text_content=self.cleaned_data["text_content"],
+                title=self.cleaned_data["title"],
+                visibility=self.cleaned_data["visibility"],
+                unlisted=False
+            )
+        else:
+            post = Post.objects.edit_post(
+                author=self.user,
+                categories=self.cleaned_data['categories'],
+                image_content=self.image,
+                text_content=self.cleaned_data["text_content"],
+                title=self.cleaned_data["title"],
+                visibility=self.cleaned_data['visibility'],
+                unlisted=False,
+                id=self.id,
+                published=self.published
+            )
+
+class ManageProfileForm(UserChangeForm):
+
+    password = None
+
+    class Meta:
+        model = User
+        fields = ('displayName', 'email', 'github')
