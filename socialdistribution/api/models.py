@@ -118,8 +118,12 @@ class User(AbstractBaseUser):
 
 class PostBuilder():
 
-    def __init__(self):
-        self.id = uuid4()
+    def __init__(self, id=None, published=None):
+        self.id = id
+        self.published = published
+        if not id:
+            self.id = uuid4()
+
         post_url = f"{HOST_API_URL}posts/{self.id}"
 
         self.type = 'post'
@@ -158,7 +162,7 @@ class PostBuilder():
         self.__set_size__()
 
     def get_post(self):
-        return Post(
+        post = Post(
             type=self.type,
             title=self.title,
             id=self.id,
@@ -176,6 +180,12 @@ class PostBuilder():
             visibility=self.visibility,
             unlisted=self.unlisted
         )
+
+        if not self.published:
+            return post
+
+        post.published = self.published
+        return post
 
     def __set_description__(self):
         self.description = f"{self.title}"
@@ -203,17 +213,24 @@ class PostManager(models.Manager):
         post.save(using=self._db)
         return post
 
-    def get(self, *args, **kwargs):
-        return super().get(*args, **kwargs)
+    def edit_post(self, author, categories, image_content, text_content, title, visibility, unlisted, id, published):
+        post_builder = PostBuilder(id, published)
+        post_builder.set_post_content(
+            title, categories, text_content, image_content)
+        post_builder.set_post_metadata(author, visibility, unlisted)
+
+        post = post_builder.get_post()
+        post.save(using=self._db)
+        return post
 
 # TODO: Specify uploadto field for image_content to post_imgs within project root
 # TODO: Upon adding comment model add comment as foreign key
-
-
 class Post(models.Model):
 
     class Visibility(models.TextChoices):
         PUBLIC = "public"
+        PRIVATE_TO_AUTHOR = "private_to_author"
+        PRIVATE_TO_FRIEND = "private_to_friend"
 
     class ContentType(models.TextChoices):
         MARKDOWN = "text/markdown"
