@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from api.models import Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
@@ -75,3 +75,11 @@ class PostCreationForm(forms.ModelForm):
                 id=self.id,
                 published=self.published
             )
+
+class ManageProfileForm(UserChangeForm):
+
+    password = None
+
+    class Meta:
+        model = User
+        fields = ('displayName', 'email', 'github')
