@@ -5,7 +5,6 @@ from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login
-from django.views import generic
 
 
 @login_required
@@ -94,12 +93,10 @@ def view_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     return HttpResponse(post)
 
-
 def view_profile(request):
     user = request.user
     return render(request, 'profile/view_profile.html', {'user': user})
-
-
+    
 def manage_profile(request):
 
     if request.method == 'POST':
@@ -108,20 +105,11 @@ def manage_profile(request):
         if form.is_valid():
             form.save()
 
-            # https://www.youtube.com/watch?v=q4jPR-M0TAQ&list=PL-osiE80TeTtoQCKZ03TU5fNfx2UY6U4p&index=6
-            # Will give a notification when edit successfully
-            messages.success(
-                request, f'Request to edit profile has been submitted!')
+            # https://www.youtube.com/watch?v=q4jPR-M0TAQ&list=PL-osiE80TeTtoQCKZ03TU5fNfx2UY6U4p&index=6 
+            # Will give a notification when edit successfully 
+            messages.success(request,f'Request to edit profile has been submitted!')
             return redirect('app:view-profile')
     else:
         form = ManageProfileForm(instance=request.user)
 
         return render(request, 'profile/manage_profile.html', {'form': form})
-
-
-class PostListView(generic.ListView):
-    model = Post
-    template_name = 'posts/post_list.html'
-
-    def get_queryset(self):
-        return Post.objects.filter(visibility="public", unlisted=0)
