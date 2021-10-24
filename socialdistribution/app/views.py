@@ -1,4 +1,4 @@
-from .forms import RegisterForm, PostCreationForm, ManageProfileForm
+from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
 from api.models import User, Post
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -32,7 +32,7 @@ def register(request):
         form = RegisterForm()
     return render(request, 'app/register.html', {'form': form})
 
-
+@login_required
 def create_post(request):
     # https://stackoverflow.com/questions/43347566/how-to-pass-user-object-to-forms-in-django
     if request.method == 'POST':
@@ -41,8 +41,6 @@ def create_post(request):
         if form.is_valid():
             form.save()
             return redirect('app:index')
-        else:
-            print("INVALID FORM")
     else:
         form = PostCreationForm()
 
@@ -91,7 +89,9 @@ def post(request, post_id):
 
 def view_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    return HttpResponse(post)
+    context = {'post': post}
+
+    return render(request, 'posts/view_post.html', context)
 
 def view_profile(request):
     user = request.user
@@ -113,3 +113,17 @@ def manage_profile(request):
         form = ManageProfileForm(instance=request.user)
 
         return render(request, 'profile/manage_profile.html', {'form': form})
+
+@login_required
+def create_comment(request, post_id):
+    if request.method == 'POST':
+        user = request.user
+        post = get_object_or_404(Post, pk=post_id)
+        form = CommentCreationForm(data=request.POST, user=user, post=post)
+        if form.is_valid():
+            form.save()
+            return redirect('app:index')
+    else:
+        form = CommentCreationForm()
+
+    return render(request, 'comments/create_comment.html', {'form': form})
