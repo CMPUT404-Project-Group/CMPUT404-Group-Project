@@ -5,15 +5,18 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
 
-from .models import User, Post
+from .models import Post, SiteSetting, User
 
 
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password."""
-    set_password = forms.CharField(label='Password', widget=forms.PasswordInput)
-    confirm_password = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
+    set_password = forms.CharField(
+        label='Password', widget=forms.PasswordInput)
+    confirm_password = forms.CharField(
+        label='Password confirmation', widget=forms.PasswordInput)
     github = forms.CharField(label="github", required=False)
+
     class Meta:
         model = User
         fields = ('email', 'github')
@@ -44,29 +47,81 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'github', 'password')
+        fields = ('displayName', 'email', 'github', 'password')
+
+
+@admin.action(description='Set selected users as active')
+def make_active(modeladmin, request, queryset):
+    queryset.update(is_active=True)
+
+
+@admin.action(description='Set selected users as inactive')
+def make_inactive(modeladmin, request, queryset):
+    queryset.update(is_active=False)
 
 
 class UserAdmin(BaseUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
-
-    list_display = ('email', 'username', 'github', 'is_admin', 'is_active')
+    actions = [make_active, make_inactive]
+    list_display = ('email', 'displayName', 'github', 'is_admin', 'is_active')
     list_filter = ('is_admin', 'is_active')
     fieldsets = (
-        (None, {'fields': ('email', 'username', 'github', 'password', 'is_active')}),
+        (None, {'fields': ('email', 'displayName',
+         'github', 'password', 'is_active')}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'github', 'password1', 'password2'),
+            'fields': ('displayName', 'email', 'github', 'set_password', 'confirm_password'),
         }),
     )
     search_fields = ('email',)
     ordering = ('email',)
     filter_horizontal = ()
 
+
+class SettingCreationForm(forms.ModelForm):
+    """A form for creating new users. Includes all the required
+    fields, plus a repeated password."""
+    setting = forms.CharField(label='Setting Name')
+    on = forms.BooleanField(label='on')
+
+    class Meta:
+        model = SiteSetting
+        fields = ('setting', 'on')
+
+
+class SettingChangeForm(forms.ModelForm):
+    """
+    A form for updating site settings.
+    """
+    class Meta:
+        model = SiteSetting
+        fields = ('setting', 'on')
+
+
+class SettingsAdmin(admin.ModelAdmin):
+    form = SettingChangeForm
+    add_form = SettingCreationForm
+
+    fieldsets = (
+        (None, {'fields': ('setting', 'on',)}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('setting', 'on',),
+        }),
+    )
+
+    list_display = ('setting', 'on')
+    list_filter = ('on',)
+    ordering = ('setting',)
+    filter_horizontal = ()
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Post)
-
+admin.site.register(SiteSetting, SettingsAdmin)
 admin.site.unregister(Group)
