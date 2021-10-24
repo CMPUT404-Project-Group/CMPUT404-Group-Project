@@ -1,9 +1,11 @@
+from django.http.response import HttpResponse
+from rest_framework.views import APIView
 from .models import User, Post
 from .serializers import PostSerializer, UserSerializer
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 import rest_framework.status as status
 
@@ -44,9 +46,14 @@ def authors(request):
 
     return JsonResponse(data)
 
-@api_view(["GET"])
-def posts(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
+class PostAPI(APIView):
 
-    serializer = PostSerializer(post)
-    return JsonResponse(serializer.data)
+    def get(self, request, post_id):
+        post = get_object_or_404(Post, pk=post_id)
+        serializer = PostSerializer(post)
+        return JsonResponse(serializer.data)
+    
+    def delete(self, request, post_id):
+        post = get_object_or_404(Post, pk=post_id)
+        post.delete()
+        return HttpResponse("Successfully deleted")
