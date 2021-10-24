@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title%}Comment on the Post{% endblock %}
+
+{% block content%}
+
+<div class="container py-5 h-100">
+    <div class="row d-felx justify-content-center align-items-center h-100">
+        <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 45%">
+            <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
+                <div class="card-body text-center">
+                    <form method='post' class="box">
+                        {% csrf_token %}
+                        <h3 class="mb-3">Create a Comment</h3>
+                        <div class="form-outline mb-2 text-start">
+                            <label for="id_text_content" class="form-label h6">Comment</label>
+                            <textarea id="id_text_content" class="form-control" cols="40" rows="10" name="comment"></textarea>
+                        </div>
+                        <div class="form-outline mb-2">
+                            <button class="btn btn-primary shadow mt-5 w-100" type="submit">Create Comment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
