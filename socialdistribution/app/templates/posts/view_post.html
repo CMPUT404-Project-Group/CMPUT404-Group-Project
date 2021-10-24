@@ -12,7 +12,11 @@
         {% endif %}
 
         {% if post.image_content %}
-            <img alt="User uploaded image" src={{ post.image_content }}></img>
+            <img alt="User uploaded image" src={{ post.image_content.url }}></img>
+        {% endif %}
+
+        {% if post.image_link %}
+            <a href={{ post.image_link }}><img src={{ post.image_link }} alt="HTML tutorial" style="width:42px;height:42px;"></a>
         {% endif %}
 
         <p> Tags: {{ post.categories }} </p>
