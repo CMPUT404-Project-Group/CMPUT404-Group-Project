@@ -37,6 +37,8 @@ class PostCreationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = None
+        self.id = None
+        
         if "user" in kwargs:
             self.user = kwargs.pop("user")
         if "id" in kwargs:
@@ -51,10 +53,8 @@ class PostCreationForm(forms.ModelForm):
     def save(self, commit=True):
         assert self.user, "User is not defined"
 
-        creating_new_post = not self.id
-
-        if creating_new_post:
-            post = Post.objects.create_post(
+        if not self.id:
+            return Post.objects.create_post(
                 author=self.user,
                 categories=self.cleaned_data['categories'],
                 image_content=self.image,
@@ -64,7 +64,7 @@ class PostCreationForm(forms.ModelForm):
                 unlisted=False
             )
         else:
-            post = Post.objects.edit_post(
+            return Post.objects.edit_post(
                 author=self.user,
                 categories=self.cleaned_data['categories'],
                 image_content=self.image,
