@@ -48,7 +48,7 @@ class PostCreationForm(forms.ModelForm):
     def save(self, commit=True):
         assert self.user, "User is not defined"
         
-        creating_new_post = not self.id
+        creating_new_post = True
 
         if creating_new_post:
             post = Post.objects.create_post(
