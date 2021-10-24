@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<h1>Current User: {{user}}</h1>
 <h1>Public Posts</h1>
 {% if post_list %}
 <ul>
@@ -31,6 +32,10 @@
   </li>
   {% endfor %}
 </ul>
+<div class="col text-center">
+  <a href="{% url 'app:index' %}"><button type="button" class="btn btn-primary shadow mb-5">Back</button></a>
+</div>
+
 {% else %}
 <p>There are no posts on this server.</p>
 {% endif %}
