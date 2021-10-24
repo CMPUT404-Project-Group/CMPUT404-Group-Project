@@ -1,4 +1,4 @@
-from .forms import RegisterForm, PostCreationForm, ManageProfileForm
+from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
 from api.models import User, Post
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -32,7 +32,7 @@ def register(request):
         form = RegisterForm()
     return render(request, 'app/register.html', {'form': form})
 
-
+@login_required
 def create_post(request):
     # https://stackoverflow.com/questions/43347566/how-to-pass-user-object-to-forms-in-django
     if request.method == 'POST':
@@ -41,8 +41,6 @@ def create_post(request):
         if form.is_valid():
             form.save()
             return redirect('app:index')
-        else:
-            print("INVALID FORM")
     else:
         form = PostCreationForm()
 
@@ -92,7 +90,9 @@ def post(request, post_id):
 def view_post(request, post_id):
     context = {}
     post = get_object_or_404(Post, pk=post_id)
-    return HttpResponse(post)
+    context = {'post': post}
+
+    return render(request, 'posts/view_post.html', context)
 
 def view_profile(request):
     user = request.user

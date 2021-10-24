@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from api.models import Post, User
+from api.models import Comment, Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 
@@ -47,7 +47,7 @@ class PostCreationForm(forms.ModelForm):
     # TODO: Unlisted always false
     def save(self, commit=True):
         assert self.user, "User is not defined"
-
+        
         creating_new_post = not self.id
 
         if creating_new_post:
