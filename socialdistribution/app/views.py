@@ -114,3 +114,17 @@ def manage_profile(request):
         form = ManageProfileForm(instance=request.user)
 
         return render(request, 'profile/manage_profile.html', {'form': form})
+
+@login_required
+def create_comment(request, post_id):
+    if request.method == 'POST':
+        user = request.user
+        post = get_object_or_404(Post, pk=post_id)
+        form = CommentCreationForm(data=request.POST, user=user, post=post)
+        if form.is_valid():
+            form.save()
+            return redirect('app:index')
+    else:
+        form = CommentCreationForm()
+
+    return render(request, 'comments/create_comment.html', {'form': form})

@@ -80,3 +80,31 @@ class ManageProfileForm(UserChangeForm):
     class Meta:
         model = User
         fields = ('displayName', 'email', 'github')
+
+class CommentCreationForm(forms.ModelForm):
+
+    class Meta:
+        model = Comment
+        fields = ('comment',)
+    
+    def __init__(self, *args, **kwargs):
+        self.user = None
+        self.post = None
+
+        if "user" in kwargs:
+            self.user = kwargs.pop("user")
+        if "post" in kwargs:
+            self.post = kwargs.pop("post")
+        super(CommentCreationForm, self).__init__(*args, **kwargs)
+    
+    def save(self, commit=True):
+        assert self.user, "User is not defined"
+        assert self.post, "Post is not defined"
+
+        comment = Comment.objects.create_comment(
+            author=self.user,
+            comment=self.cleaned_data['comment'],
+            post=self.post
+        )
+
+        return comment
