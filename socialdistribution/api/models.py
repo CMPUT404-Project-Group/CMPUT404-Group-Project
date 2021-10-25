@@ -144,11 +144,12 @@ class PostBuilder():
         self.visibility = None
         self.unlisted = None
 
-    def set_post_content(self, title, categories, text_content=None, image_content=None):
+    def set_post_content(self, title, categories, text_content=None, image_content=None, image_link=None):
         self.title = title
         self.categories = categories
         self.text_content = text_content
         self.image_content = image_content
+        self.image_link = image_link
 
     # TODO: Description is not very descriptive
     def set_post_metadata(self, author, visibility, unlisted):
@@ -173,6 +174,7 @@ class PostBuilder():
             content_type=self.content_type,
             text_content=self.text_content,
             image_content=self.image_content,
+            image_link=self.image_link,
             author=self.author,
             categories=self.categories,
             count=self.count,
@@ -204,10 +206,10 @@ class PostBuilder():
 
 class PostManager(models.Manager):
 
-    def create_post(self, author, categories, image_content, text_content, title, visibility, unlisted):
+    def create_post(self, author, categories, image_content, image_link, text_content, title, visibility, unlisted):
         post_builder = PostBuilder()
         post_builder.set_post_content(
-            title, categories, text_content, image_content)
+            title, categories, text_content, image_content, image_link)
         post_builder.set_post_metadata(author, visibility, unlisted)
 
         post = post_builder.get_post()
