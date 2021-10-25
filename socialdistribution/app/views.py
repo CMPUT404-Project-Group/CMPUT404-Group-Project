@@ -1,5 +1,5 @@
-from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
-from api.models import User, Post
+from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharedpostCreationForm
+from api.models import User, Post, SharedPost
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse, HttpResponseForbidden
@@ -93,6 +93,15 @@ def view_post(request, post_id):
 
     return render(request, 'posts/view_post.html', context)
 
+def view_shared_post(request, shared_post_id):
+    shared_post = get_object_or_404(SharedPost, pk=shared_post_id)
+    original_post = get_object_or_404(Post, pk=shared_post.post.id)
+    context = {
+        'shared_post' : shared_post, 
+        'original_post': original_post}
+
+    return render(request, 'posts/view_shared_post.html', context)
+
 def view_profile(request):
     user = request.user
     return render(request, 'profile/view_profile.html', {'user': user})
@@ -127,3 +136,20 @@ def create_comment(request, post_id):
         form = CommentCreationForm()
 
     return render(request, 'comments/create_comment.html', {'form': form})
+
+@login_required
+def share_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    context = {
+        'post': post,
+        'user': request.user}
+    if request.method == 'POST':
+        user = request.user
+        form = SharedpostCreationForm(data=request.POST, user=user, post=post)
+        if form.is_valid():
+            form.save()
+            return redirect('app:index')
+    else:
+        form = SharedpostCreationForm()
+
+    return render(request, 'posts/share_post.html', context)

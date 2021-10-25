@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from api.models import Comment, Post, User
+from api.models import Comment, Post, User, SharedPost
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 
@@ -43,21 +43,19 @@ class PostCreationForm(forms.ModelForm):
             self.id = kwargs.pop("id")
         if "published" in kwargs:
             self.published = kwargs.pop("published")
-        if "data" in kwargs:
-            self.image = kwargs['data']['image_content']
         super(PostCreationForm, self).__init__(*args, **kwargs)
 
     # TODO: Unlisted always false
     def save(self, commit=True):
         assert self.user, "User is not defined"
         
-        creating_new_post = not self.id
+        creating_new_post = True
 
         if creating_new_post:
             post = Post.objects.create_post(
                 author=self.user,
                 categories=self.cleaned_data['categories'],
-                image_content=self.image,
+                image_content=self.cleaned_data["image_content"],
                 text_content=self.cleaned_data["text_content"],
                 title=self.cleaned_data["title"],
                 visibility=self.cleaned_data["visibility"],
@@ -67,7 +65,7 @@ class PostCreationForm(forms.ModelForm):
             post = Post.objects.edit_post(
                 author=self.user,
                 categories=self.cleaned_data['categories'],
-                image_content=self.image,
+                image_content=self.cleaned_data["image_content"],
                 text_content=self.cleaned_data["text_content"],
                 title=self.cleaned_data["title"],
                 visibility=self.cleaned_data['visibility'],
@@ -111,3 +109,32 @@ class CommentCreationForm(forms.ModelForm):
         )
 
         return comment
+
+class SharedpostCreationForm(forms.ModelForm):
+
+    class Meta:
+        model = SharedPost
+        fields = ('text_content',)
+    
+    def __init__(self, *args, **kwargs):
+        self.user = None
+        self.post = None
+
+        if "user" in kwargs:
+            self.user = kwargs.pop("user")
+        if "post" in kwargs:
+            self.post = kwargs.pop("post")
+        super(SharedpostCreationForm, self).__init__(*args, **kwargs)
+    
+    def save(self, commit=True):
+        assert self.user, "User is not defined"
+        assert self.post, "Post is not defined"
+
+        shared_post = SharedPost.objects.created_shared_post(
+            author=self.user,
+            text_content=self.cleaned_data['text_content'],
+            post=self.post
+        )
+
+        return shared_post
+

@@ -256,6 +256,7 @@ class Post(models.Model):
         max_length=255, choices=ContentType.choices)
     text_content = models.TextField(unique=False, blank=True)
     image_content = models.ImageField(unique=False, blank=True)
+    image_link = models.TextField(unique=False, blank=True, null=True)
     author = models.ForeignKey(
         "User",
         on_delete=models.CASCADE
@@ -298,6 +299,21 @@ class CommentManager(models.Manager):
         comment.save()
 
         return comment
+
+class SharedPostManager(models.Manager):
+    
+    def created_shared_post(self, author, text_content, post):
+
+        shared_post = SharedPost(
+            id = uuid4(),
+            type="shared_post",
+            author=author,
+            text_content=text_content,
+            post=post,
+        )
+        shared_post.save(using=self._db)
+
+        return shared_post
         
 
 class Comment(models.Model):
@@ -311,4 +327,14 @@ class Comment(models.Model):
     
 
     objects = CommentManager()
+
+class SharedPost(models.Model):
+    id = models.CharField(max_length=255, unique=True, null=False, blank=False, primary_key=True)
+    type = models.CharField(max_length=255, unique=False,
+                            null=False, blank=False, default="shared_post")
+    author = models.ForeignKey("User", on_delete=models.CASCADE)
+    text_content = models.TextField(unique=False, blank=True)
+    post = models.ForeignKey("Post", on_delete=CASCADE)
+
+    objects = SharedPostManager()
     
