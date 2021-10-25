@@ -1,5 +1,6 @@
 from django.http.response import HttpResponse
 from rest_framework.views import APIView
+from app.forms import PostCreationForm
 from .models import User, Post
 from .serializers import PostSerializer, UserSerializer
 from django.http import JsonResponse
@@ -53,7 +54,17 @@ class PostAPI(APIView):
         serializer = PostSerializer(post)
         return JsonResponse(serializer.data)
     
+    def post(self, request, post_id):
+        post = get_object_or_404(Post, pk=post_id)
+        form = PostCreationForm(
+            instance=post, data=request.POST, id=post_id, published=post.published, user=post.author)
+        if form.is_valid():
+            form.save()
+            return HttpResponse("Sucessfully edited post")
+        return HttpResponse("Failed to edit post")
+    
     def delete(self, request, post_id):
         post = get_object_or_404(Post, pk=post_id)
         post.delete()
         return HttpResponse("Successfully deleted")
+    
