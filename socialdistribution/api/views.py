@@ -1,14 +1,18 @@
+from rest_framework import generics
+import rest_framework.status as status
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.decorators import api_view
+from rest_framework import serializers, status
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from .serializers import PostSerializer, UserSerializer
+from .serializers import UserSerializer, InboxSerializer
+from .models import Inbox as InboxItem
 from rest_framework.response import Response
 from .models import User, Post
-from .models import Inbox as InboxItem
-from .serializers import UserSerializer, InboxSerializer
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from rest_framework import serializers, status
-from rest_framework.decorators import api_view
-from rest_framework.pagination import PageNumberPagination
-import rest_framework.status as status
-from rest_framework import generics
+<< << << < HEAD
+== == == =
+>>>>>> > feat/post_serialization
 
 
 # TODO: set up as protected endpoint
@@ -46,6 +50,14 @@ def authors(request):
     data = {"type": "authors", "items": serializer.data}
 
     return JsonResponse(data)
+
+
+@api_view(["GET"])
+def posts(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+
+    serializer = PostSerializer(post)
+    return JsonResponse(serializer.data)
 
 
 class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
