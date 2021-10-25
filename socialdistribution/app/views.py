@@ -123,6 +123,5 @@ class PostListView(generic.ListView):
     template_name = 'posts/post_list.html'
 
     def get_queryset(self):
-        current_user_id = self.request.user.id # Get the current user id
-        return Post.objects.filter(visibility="public", unlisted=0) |Post.objects.filter(author=current_user_id, unlisted=0) # If current user set the visibility to "private to other author", the posts still can be seen by current user
+        return Post.objects.filter(visibility="public", unlisted=0) 
 
