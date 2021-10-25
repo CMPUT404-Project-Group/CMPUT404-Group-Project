@@ -2,6 +2,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.deletion import CASCADE
 from django.db.models.manager import BaseManager
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -286,6 +287,41 @@ class Post(models.Model):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
 
 
+# TODO: Defaults to text/plain for contentType
+# TODO: Add posts or post_id to comment model
+class CommentManager(models.Manager):
+
+    def create_comment(self, author, comment, post):
+
+        comment = Comment(
+            type="comment",
+            author=author,
+            comment=comment,
+            content_type="text/plain",
+            post=post,
+            id=uuid4()
+        )
+        comment.save()
+
+        return comment
+
+
+class Comment(models.Model):
+    id = models.CharField(max_length=255, unique=True,
+                          null=False, blank=False, primary_key=True)
+    type = models.CharField(max_length=255, unique=False,
+                            null=False, blank=False)
+    author = models.ForeignKey("User", on_delete=models.CASCADE)
+    comment = models.TextField(unique=False, blank=False, null=False)
+    content_type = models.CharField(
+        max_length=255, unique=False, null=False, blank=False)
+    published = models.DateTimeField(
+        unique=False, blank=False, null=False, auto_now_add=True)
+    post = models.ForeignKey("Post", on_delete=CASCADE)
+
+    objects = CommentManager()
+
+
 class InboxManager(models.Manager):
     def create(self, author_id, content_object):
         inbox = self.model(
@@ -297,15 +333,8 @@ class InboxManager(models.Manager):
 
 
 class Inbox(models.Model):
-
-    # class InboxObject(models.TextChoices):
-    #     POST = "post"
-    #     FOLLLOW = "follow"
-    #     LIKE = "like"
-
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
     content_object = GenericForeignKey('content_type', 'object_id')
-
     objects = InboxManager()

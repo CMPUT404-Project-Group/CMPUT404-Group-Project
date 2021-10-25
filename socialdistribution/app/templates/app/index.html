@@ -3,10 +3,30 @@
 {% block title %}SocialDistribution{% endblock %}
 
 {% block content %}
-
-<h1>Hello World, Welcome To SocialDistribution</h1>
-<p>Click here to <a href="{% url 'app:logout' %}">logout</a>.</p>
-<p>Click here to <a href="{% url 'app:create-post' %}">create a post</a>.</p>
-<p>Click here to <a href="{% url 'app:view-profile' %}">view profile</a>.</p>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{%url 'app:index'%}">SocialDistribution</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page"  href="{%url 'app:index'%}">Home</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'app:create-post' %}">Create a post</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'app:view-profile' %}">Profile</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'app:logout' %}">logout</a>
+                </li>
+                </ul>
+            </div>
+            </div>
+        </nav>
+    <h1>Hello World, Welcome To SocialDistribution</h1>
 
 {% endblock %}
