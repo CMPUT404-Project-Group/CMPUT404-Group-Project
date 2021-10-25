@@ -286,9 +286,13 @@ class Post(models.Model):
     def __str__(self):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
 
+    class Meta:
+        ordering = ['published']
 
 # TODO: Defaults to text/plain for contentType
 # TODO: Add posts or post_id to comment model
+
+
 class CommentManager(models.Manager):
 
     def create_comment(self, author, comment, post):
@@ -337,4 +341,9 @@ class Inbox(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
     content_object = GenericForeignKey('content_type', 'object_id')
+    created_at = models.DateTimeField(
+        unique=False, blank=False, null=False, auto_now_add=True)
     objects = InboxManager()
+
+    class Meta:
+        ordering = ['created_at']

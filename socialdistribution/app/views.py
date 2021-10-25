@@ -146,8 +146,21 @@ def create_comment(request, post_id):
 
 @login_required
 def inbox(request, author_id):
-    req = requests.get(HOST_URL+reverse('api:inbox',
-                                        kwargs={'author_id': author_id}))
-    items = json.loads(req.content.decode('utf-8'))['items']
+    try:
+        page = request.GET.get('page')
+        size = request.GET.get('size')
+    except:
+        page = 1
+        size = None
 
-    return render(request, 'app/inbox.html', {'items': items})
+    url = HOST_URL+reverse('api:inbox', kwargs={'author_id': author_id})
+    if page:
+        url += '?page=%s' % page
+    if size:
+        url += '&size=%s' % size
+
+    req = requests.get(url)
+    res = json.loads(req.content.decode('utf-8'))
+    # items = res['items']
+    # print(res)
+    return render(request, 'app/inbox.html', {'res': res})

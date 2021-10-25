@@ -16,7 +16,7 @@
           <a class="nav-link active" aria-current="page" href="{%url 'app:index'%}">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" aria-current="page" href="{%url 'app:inbox' user.id%}">Inbox</a>
+          <a class="nav-link" aria-current="page" href="{%url 'app:inbox' user.id%}?page=1&size=5">Inbox</a>
         </li>
         <li class="nav-item active">
           <a class="nav-link" href="{% url 'app:create-post' %}">Create a Post</a>
