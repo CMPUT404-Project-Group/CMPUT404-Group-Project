@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Inbox{% endblock %}
+
+{% block content %}
+
+<h1>Inbox</h1>
+{%if items%}
+{% for item in items %}
+<li style="list-style: none;">
+  <div class="container py-2 h-100">
+    <div class="row d-felx justify-content-center align-items-center h-100">
+      <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 50%">
+        <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
+          <div class="card-body">
+            <h4 class="card-title">{{ item.title }}</h4>
+            <p class="card-text mt-4">{{ item.description }}</p>
+            <a href="{{ post.origin }}" class="btn btn-primary shadow mt-5">View Post</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</li>
+{% endfor %}
+{% else %}
+<p>You have no items in your inbox.</p>
+{% endif %}
+
+{% endblock %}

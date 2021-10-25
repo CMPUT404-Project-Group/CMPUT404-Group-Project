@@ -1,15 +1,21 @@
-from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
-from api.models import User, Post
+import json
+import os
+
+import requests
+from api.models import Post
 from django.contrib import messages
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.auth import authenticate, login
+from django.urls import reverse
+from dotenv import load_dotenv
 
+from .forms import (CommentCreationForm, ManageProfileForm, PostCreationForm,
+                    RegisterForm)
 
-@login_required
-def index(request):
-    return render(request, 'app/index.html')
+load_dotenv()
+HOST_URL = os.getenv("HOST_URL")
 
 
 def register(request):
@@ -31,6 +37,11 @@ def register(request):
     else:
         form = RegisterForm()
     return render(request, 'app/register.html', {'form': form})
+
+
+@login_required
+def index(request):
+    return render(request, 'app/index.html')
 
 
 @login_required
@@ -131,3 +142,12 @@ def create_comment(request, post_id):
         form = CommentCreationForm()
 
     return render(request, 'comments/create_comment.html', {'form': form})
+
+
+@login_required
+def inbox(request, author_id):
+    req = requests.get(HOST_URL+reverse('api:inbox',
+                                        kwargs={'author_id': author_id}))
+    items = json.loads(req.content.decode('utf-8'))['items']
+
+    return render(request, 'app/inbox.html', {'items': items})
