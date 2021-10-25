@@ -6,6 +6,8 @@ from django.http.response import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login
 
+from friendship.models import Friend, Follow
+
 
 @login_required
 def index(request):
@@ -97,6 +99,15 @@ def view_profile(request):
     user = request.user
     return render(request, 'profile/view_profile.html', {'user': user})
     
+def view_other_user(request, other_user_id):
+    other_user = User.objects.get(id=other_user_id)
+
+    if other_user in Follow.objects.following(request.user):   # following
+        return render(request, 'profile/view_following_user.html', {'other_user': other_user})
+    else:  # not following
+        return render(request, 'profile/view_other_user.html', {'other_user': other_user})
+
+
 def manage_profile(request):
 
     if request.method == 'POST':
@@ -104,12 +115,23 @@ def manage_profile(request):
 
         if form.is_valid():
             form.save()
-
-            # https://www.youtube.com/watch?v=q4jPR-M0TAQ&list=PL-osiE80TeTtoQCKZ03TU5fNfx2UY6U4p&index=6 
-            # Will give a notification when edit successfully 
-            messages.success(request,f'Request to edit profile has been submitted!')
             return redirect('app:view-profile')
     else:
         form = ManageProfileForm(instance=request.user)
 
         return render(request, 'profile/manage_profile.html', {'form': form})
+
+
+def follow(request, other_user_id):
+    if request.method == 'POST':
+        other_user = User.objects.get(id=other_user_id)
+        Follow.objects.add_follower(request.user, other_user)
+
+        return redirect('app:view-other-user', other_user_id=other_user_id)
+
+def unfollow(request, other_user_id):
+    if request.method == 'POST':
+        other_user = User.objects.get(id=other_user_id)
+        Follow.objects.remove_follower(request.user, other_user)
+
+        return redirect('app:view-other-user', other_user_id=other_user_id)
