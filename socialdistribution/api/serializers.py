@@ -24,12 +24,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['type', 'id', 'host', 'displayName', 'url', 'github']
 
 
-class InboxSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Inbox
-        fields = ['author_id', 'content_object']
-
-
 # TODO: images, author, comments, comments,
 class PostSerializer(serializers.ModelSerializer):
 
