@@ -82,4 +82,16 @@ class Migration(migrations.Migration):
                     on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
+        migrations.CreateModel(
+            name='Comment',
+            fields=[
+                ('id', models.CharField(max_length=255, primary_key=True, serialize=False, unique=True)),
+                ('type', models.CharField(max_length=255)),
+                ('comment', models.TextField()),
+                ('content_type', models.CharField(max_length=255)),
+                ('published', models.DateTimeField(auto_now_add=True)),
+                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.post')),
+            ],
+        ),
     ]

@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from api.models import Post, User
+from api.models import Comment, Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 
@@ -52,9 +52,11 @@ class PostCreationForm(forms.ModelForm):
     # TODO: Unlisted always false
     def save(self, commit=True):
         assert self.user, "User is not defined"
+        
+        creating_new_post = not self.id
 
-        if not self.id:
-            return Post.objects.create_post(
+        if creating_new_post:
+            post = Post.objects.create_post(
                 author=self.user,
                 categories=self.cleaned_data['categories'],
                 image_content=self.image,
@@ -77,9 +79,39 @@ class PostCreationForm(forms.ModelForm):
             )
 
 class ManageProfileForm(UserChangeForm):
-
+    github = forms.CharField(max_length=30, required=False)
+    email = forms.EmailField(max_length=255, required=True)
+    displayName = forms.CharField(max_length=30, required=True)
     password = None
-
     class Meta:
         model = User
         fields = ('displayName', 'email', 'github')
+
+
+class CommentCreationForm(forms.ModelForm):
+
+    class Meta:
+        model = Comment
+        fields = ('comment',)
+    
+    def __init__(self, *args, **kwargs):
+        self.user = None
+        self.post = None
+
+        if "user" in kwargs:
+            self.user = kwargs.pop("user")
+        if "post" in kwargs:
+            self.post = kwargs.pop("post")
+        super(CommentCreationForm, self).__init__(*args, **kwargs)
+    
+    def save(self, commit=True):
+        assert self.user, "User is not defined"
+        assert self.post, "Post is not defined"
+
+        comment = Comment.objects.create_comment(
+            author=self.user,
+            comment=self.cleaned_data['comment'],
+            post=self.post
+        )
+
+        return comment
