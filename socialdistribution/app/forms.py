@@ -77,12 +77,14 @@ class PostCreationForm(forms.ModelForm):
             )
 
 class ManageProfileForm(UserChangeForm):
-
+    github = forms.CharField(max_length=30, required=False)
+    email = forms.EmailField(max_length=255, required=True)
+    displayName = forms.CharField(max_length=30, required=True)
     password = None
-
     class Meta:
         model = User
         fields = ('displayName', 'email', 'github')
+
 
 class CommentCreationForm(forms.ModelForm):
 

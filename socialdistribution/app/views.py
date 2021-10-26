@@ -109,8 +109,7 @@ def manage_profile(request):
             # Will give a notification when edit successfully 
             messages.success(request,f'Request to edit profile has been submitted!')
             return redirect('app:view-profile')
-        else: #Will redirect to the manage_profile at this time. It will cause bug without this else condition as the email address xxxx@dd will not be identified successfully.
-            return redirect('app:manage-profile')
+       
     else:
         form = ManageProfileForm(instance=request.user)
 
