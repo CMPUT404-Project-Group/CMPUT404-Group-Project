@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Manage Profile{% endblock %}
-
+{% load crispy_forms_tags %}  
 {% block content %}
 
 {% if form.errors %}
@@ -15,19 +15,10 @@
         Manage Profile
       </div>
       <div class="card shadow p-3" style="border-bottom-left-radius: 0.5rem;border-bottom-right-radius: 0.5rem; border-top-left-radius: 0rem;border-top-right-radius: 0rem;border: 0;">
-        <div class="card-body text-center">
+        <div class="card-body">
           <form method="post" class="box" >
             {% csrf_token %}
-            {% for field in form %}
-            <div class="form-outline mb-2 text-start">
-              <label class="form-label h6">{{field.label_tag}}</label>
-              <!-- <input class="form-control" name={{field.name}} /> -->
-              {{field}}
-            </div>
-            {% for error in field.errors %}
-            <p class="form-text text-danger text-start">{{ error }}</p>
-            {% endfor %}
-            {% endfor %}
+            {{form|crispy}}
             <button type="submit" class="btn btn-primary shadow mt-5 w-100">Save</button>
             <a href="{% url 'app:view-profile' %}"><button type="button" class="btn btn-primary shadow mt-5 w-100">Discard</button></a>
           </form>
