@@ -1,13 +1,11 @@
 from .forms import RegisterForm, PostCreationForm, ManageProfileForm
-from api.models import User, Post
+from api.models import User, Post, Friendship
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login
-
-from friendship.models import Friend, Follow
-
+from friendship.models import Follow
 
 @login_required
 def index(request):
@@ -102,7 +100,14 @@ def view_profile(request):
 def view_other_user(request, other_user_id):
     other_user = User.objects.get(id=other_user_id)
 
-    if other_user in Follow.objects.following(request.user):   # following
+    if other_user==request.user: 
+        return redirect('app:view-profile')
+
+    if Friendship.are_friends(request.user, other_user):  
+        # friends (follow each other)
+        return render(request, 'profile/view_friend.html', {'other_user': other_user})
+    elif Follow.objects.follows(request.user, other_user):   
+        # following
         return render(request, 'profile/view_following_user.html', {'other_user': other_user})
     else:  # not following
         return render(request, 'profile/view_other_user.html', {'other_user': other_user})
@@ -126,6 +131,11 @@ def follow(request, other_user_id):
     if request.method == 'POST':
         other_user = User.objects.get(id=other_user_id)
         Follow.objects.add_follower(request.user, other_user)
+
+        # if other_user not following user
+        if not Follow.objects.follows(other_user, request.user):   
+            # TODO: send friend request to other_user
+            pass
 
         return redirect('app:view-other-user', other_user_id=other_user_id)
 

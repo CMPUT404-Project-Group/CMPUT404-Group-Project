@@ -13,11 +13,8 @@ urlpatterns = [
     path('profile/manage/', views.manage_profile, name='manage-profile'),
     path('profile/<str:other_user_id>', views.view_other_user, name='view-other-user'),
 
-    path('actionUrl/add_follower/<str:other_user_id>', views.follow, name='action-follow'),
-    path('actionUrl/remove_follower/<str:other_user_id>', views.unfollow, name='action-unfollow'),
-
-
-    path('friendship/', include('friendship.urls')),
+    path('follow/<str:other_user_id>', views.follow, name='action-follow'),
+    path('unfollow/<str:other_user_id>', views.unfollow, name='action-unfollow'),
 
 
 
