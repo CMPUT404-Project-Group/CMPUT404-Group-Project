@@ -1,10 +1,11 @@
-from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharedpostCreationForm
-from api.models import User, Post, SharedPost
+from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
+from api.models import User, Post
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login
+import logging
 
 
 @login_required
@@ -62,6 +63,22 @@ def edit_post(request, post_id):
     else:
         return render(request, 'posts/edit_post.html', context)
 
+@login_required
+def share_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    context = {
+        'post': post}
+    if request.method == 'POST':
+        user = request.user
+        form = SharePostForm(data=request.POST, user=user, post=post)
+        if form.is_valid():
+            form.save()
+            return redirect('app:index')
+    else:
+        form = SharePostForm()
+
+    return render(request, 'posts/share_post.html', context)
+
 
 def post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
@@ -76,8 +93,14 @@ def post(request, post_id):
         'is_author': is_author}
 
     if request.method == 'GET':
-        return render(request, 'posts/view_post.html', context)
-
+        if (hasattr(post, 'shared_post')):
+            original_post = get_object_or_404(Post, pk=post.shared_post.id)
+            context = {
+                'shared_post': post,
+                'original_post': original_post}
+            return render(request, 'posts/view_shared_post.html', context)
+        else:
+            return render(request, 'posts/view_post.html', context)
     elif request.method == 'POST':
         form = PostCreationForm(
             data=request.POST, user=user, id=post_id, published=post.published)
@@ -89,18 +112,18 @@ def post(request, post_id):
 
 def view_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    context = {'post': post}
 
-    return render(request, 'posts/view_post.html', context)
-
-def view_shared_post(request, shared_post_id):
-    shared_post = get_object_or_404(SharedPost, pk=shared_post_id)
-    original_post = get_object_or_404(Post, pk=shared_post.post.id)
-    context = {
-        'shared_post' : shared_post, 
-        'original_post': original_post}
-
-    return render(request, 'posts/view_shared_post.html', context)
+    if (post.shared_post != None):
+        logging.error(post.shared_post)
+        original_post = get_object_or_404(Post, pk=shared_post.post.id)
+        context = {
+            'shared_post': post,
+            'original_post': original_post}
+        return render(request, 'posts/view_shared_post.html', context)
+    else:
+        context = {'post': post}
+        logging.error(post.shared_post)
+        return render(request, 'posts/view_post.html', context)
 
 def view_profile(request):
     user = request.user
@@ -130,26 +153,9 @@ def create_comment(request, post_id):
         post = get_object_or_404(Post, pk=post_id)
         form = CommentCreationForm(data=request.POST, user=user, post=post)
         if form.is_valid():
-            form.save()
+            form.save(commit=True)
             return redirect('app:index')
     else:
         form = CommentCreationForm()
 
     return render(request, 'comments/create_comment.html', {'form': form})
-
-@login_required
-def share_post(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    context = {
-        'post': post,
-        'user': request.user}
-    if request.method == 'POST':
-        user = request.user
-        form = SharedpostCreationForm(data=request.POST, user=user, post=post)
-        if form.is_valid():
-            form.save()
-            return redirect('app:index')
-    else:
-        form = SharedpostCreationForm()
-
-    return render(request, 'posts/share_post.html', context)

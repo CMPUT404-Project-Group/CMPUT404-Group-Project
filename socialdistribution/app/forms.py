@@ -1,8 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from api.models import Comment, Post, User, SharedPost
+from api.models import Comment, Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
+import logging
 
 
 class RegisterForm(UserCreationForm):
@@ -74,6 +75,38 @@ class PostCreationForm(forms.ModelForm):
                 published=self.published
             )
 
+class SharePostForm(forms.ModelForm):
+
+    class Meta:
+        model = Post
+        fields = ('text_content', 'categories', 'visibility')
+    
+    def __init__(self, *args, **kwargs):
+        self.user = None
+        self.post = None
+
+        if "user" in kwargs:
+            self.user = kwargs.pop("user")
+        if "post" in kwargs:
+            self.post = kwargs.pop("post")
+        super(SharePostForm, self).__init__(*args, **kwargs)
+    
+    def save(self, commit=True):
+        assert self.user, "User is not defined"
+        assert self.post, "Post to be shared is not defined"
+
+        new_shared_post = Post.objects.share_post(
+                author=self.user,
+                text_content=self.cleaned_data["text_content"],
+                title="{} shared a post".format(self.user),
+                categories=self.cleaned_data['categories'],
+                visibility=self.cleaned_data["visibility"],
+                unlisted=False,
+                shared_post=self.post
+        )
+
+        return new_shared_post
+
 class ManageProfileForm(UserChangeForm):
 
     password = None
@@ -109,32 +142,4 @@ class CommentCreationForm(forms.ModelForm):
         )
 
         return comment
-
-class SharedpostCreationForm(forms.ModelForm):
-
-    class Meta:
-        model = SharedPost
-        fields = ('text_content',)
-    
-    def __init__(self, *args, **kwargs):
-        self.user = None
-        self.post = None
-
-        if "user" in kwargs:
-            self.user = kwargs.pop("user")
-        if "post" in kwargs:
-            self.post = kwargs.pop("post")
-        super(SharedpostCreationForm, self).__init__(*args, **kwargs)
-    
-    def save(self, commit=True):
-        assert self.user, "User is not defined"
-        assert self.post, "Post is not defined"
-
-        shared_post = SharedPost.objects.created_shared_post(
-            author=self.user,
-            text_content=self.cleaned_data['text_content'],
-            post=self.post
-        )
-
-        return shared_post
 

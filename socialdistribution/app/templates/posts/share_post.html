@@ -32,6 +32,18 @@
                             <label for="id_text_content" class="form-label h6">Body</label>
                             <textarea id="id_text_content" class="form-control" cols="40" rows="10" name="text_content"></textarea>
                         </div>
+                        <div class="form-outline mb-2 text-start">
+                            <label for="id_categories" class="form-label h6">Tags (Comma Seperated)</label>
+                            <textarea id="id_categories" class="form-control" cols="40" rows="10" name="categories"></textarea>
+                        </div>
+                        <div class="form-outline mb-2">
+                            <label for="id_visibility" class="form-label h6">Post Visibility</label>
+                            <select id="id_visibility" class="form-select" name="visibility">
+                                <option value="public">Public</option>
+                                <option value="private_to_author">Private to Author</option>
+                                <option value="private_to_friend">Private to Friend</option>
+                            </select>
+                        </div>
                         <div class="form-outline mb-2">
                             <button class="btn btn-primary shadow mt-5 w-100" type="submit">Share Post</button>
                         </div>

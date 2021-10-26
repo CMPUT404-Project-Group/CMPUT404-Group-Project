@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
 
-from .models import Post, SiteSetting, User, SharedPost
+from .models import Post, SiteSetting, User
 
 
 class UserCreationForm(forms.ModelForm):
@@ -123,6 +123,5 @@ class SettingsAdmin(admin.ModelAdmin):
 
 admin.site.register(User, UserAdmin)
 admin.site.register(Post)
-admin.site.register(SharedPost)
 admin.site.register(SiteSetting, SettingsAdmin)
 admin.site.unregister(Group)
