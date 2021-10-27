@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title%}Comment on the Post{% endblock %}
+
+{% block content%}
+
+    {% for comment in comments%}
+        <div>
+            {{ comment.author }}
+            {{ comment.published }}
+            {{ comment.comment }}
+            <form action="#" method="get">
+                <button type="submit" id='like-button' name='like-button' value='{{ comment.id }}'>
+                    Like
+                </button>
+            </form>
+        </div>
+        <br>
+    {% endfor %}
+
+{% endblock %}

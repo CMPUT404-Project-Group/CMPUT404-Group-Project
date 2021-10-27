@@ -4,6 +4,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.constraints import UniqueConstraint
 from django.db.models.deletion import CASCADE
 from django.db.models.manager import BaseManager
 from dotenv import load_dotenv
@@ -51,7 +52,7 @@ class UserManager(BaseUserManager):
             email=self.normalize_email(email),
         )
 
-        user.is_active = SiteSetting.objects.get(setting="allow_join").value()
+        #user.is_active = SiteSetting.objects.get(setting="allow_join").value()
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -314,11 +315,37 @@ class Comment(models.Model):
     
 
     objects = CommentManager()
-    
+
+#TODO: context is currently a placeholder
+class LikeManager(models.Manager):
+
+    def create_like(self, author, content_object):
+        summary = f"{author} liked {content_object}"
+
+        like = Like(
+            id=uuid4(),
+            context=HOST_API_URL,
+            summary=summary,
+            type='like',
+            author=author,
+            content_object=content_object
+        )
+
+        like.save()
+        return like
+
 class Like(models.Model):
+    id = models.CharField(max_length=255, unique=True, null=False, blank=False, primary_key=True)
     context = models.URLField(max_length=255, unique=False, null=False, blank=False)
     summary = models.CharField(max_length=255, unique=False, null=False, blank=False)
     type = models.CharField(max_length=255, unique=False, null=False, blank=False)
     author = models.ForeignKey("User", on_delete=CASCADE)
-    object = GenericForeignKey('content_type', 'object_id') #https://bhrigu.medium.com/django-how-to-add-foreignkey-to-multiple-models-394596f06e84
+    content_type = models.ForeignKey(ContentType, on_delete=CASCADE)
+    object_id = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    objects = LikeManager()
+
+    class Meta:
+        unique_together = (('content_type', 'object_id', 'author'))
     
