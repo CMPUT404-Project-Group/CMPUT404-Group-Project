@@ -1,5 +1,5 @@
 from .models import User, Post
-from .serializers import UserSerializer
+from .serializers import PostSerializer, UserSerializer
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -43,3 +43,10 @@ def authors(request):
     data = {"type": "authors", "items": serializer.data}
 
     return JsonResponse(data)
+
+@api_view(["GET"])
+def posts(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+
+    serializer = PostSerializer(post)
+    return JsonResponse(serializer.data)

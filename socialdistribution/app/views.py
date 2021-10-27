@@ -62,6 +62,17 @@ def edit_post(request, post_id):
     else:
         return render(request, 'posts/edit_post.html', context)
 
+def delete_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    user = request.user
+
+    is_author = post.author == user
+
+    if not is_author:
+        return HttpResponseForbidden()
+    else:
+        post.delete()
+        return render(request, 'app/index.html')
 
 def post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
@@ -110,6 +121,7 @@ def manage_profile(request):
             # Will give a notification when edit successfully 
             messages.success(request,f'Request to edit profile has been submitted!')
             return redirect('app:view-profile')
+       
     else:
         form = ManageProfileForm(instance=request.user)
 
