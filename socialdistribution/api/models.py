@@ -1,5 +1,7 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.deletion import CASCADE
@@ -226,6 +228,7 @@ class PostManager(models.Manager):
 
 # TODO: Specify uploadto field for image_content to post_imgs within project root
 # TODO: Upon adding comment model add comment as foreign key
+# TODO: Increment count upon commenting
 class Post(models.Model):
 
     class Visibility(models.TextChoices):
@@ -311,4 +314,11 @@ class Comment(models.Model):
     
 
     objects = CommentManager()
+    
+class Like(models.Model):
+    context = models.URLField(max_length=255, unique=False, null=False, blank=False)
+    summary = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    type = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    author = models.ForeignKey("User", on_delete=CASCADE)
+    object = GenericForeignKey('content_type', 'object_id') #https://bhrigu.medium.com/django-how-to-add-foreignkey-to-multiple-models-394596f06e84
     
