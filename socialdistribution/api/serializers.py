@@ -1,8 +1,11 @@
-from django.shortcuts import get_object_or_404
-from rest_framework import serializers
-from .models import HOST_API_URL, Post, User
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+from .models import HOST_API_URL, Post, User
+from django.shortcuts import get_object_or_404
+from .models import User, Inbox
+from rest_framework import serializers
+from django.db.models import fields
+
 
 load_dotenv()
 HOST_API_URL = os.getenv("HOST_API_URL")
@@ -20,7 +23,8 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['type', 'id', 'host', 'displayName', 'url', 'github']
 
-#TODO: images, author, comments, comments,
+
+# TODO: images, author, comments, comments,
 class PostSerializer(serializers.ModelSerializer):
 
     contentType = serializers.CharField(source='content_type')
@@ -46,7 +50,7 @@ class PostSerializer(serializers.ModelSerializer):
             'visibility',
             'unlisted'
         ]
-    
+
     def to_representation(self, instance):
         post = super().to_representation(instance)
         post['categories'] = post['categories'].split(',')
