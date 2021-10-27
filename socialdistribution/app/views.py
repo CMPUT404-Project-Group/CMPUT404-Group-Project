@@ -131,12 +131,13 @@ def manage_profile(request):
 
         if form.is_valid():
             form.save()
+            # Will give a notification when edit successfully
+            messages.success(request,f'Request to edit profile has been submitted!')
             return redirect('app:view-profile')
        
     else:
         form = ManageProfileForm(instance=request.user)
-
-        return render(request, 'profile/manage_profile.html', {'form': form})
+    return render(request, 'profile/manage_profile.html', {'form': form})
 
 
 def follow(request, other_user_id):
