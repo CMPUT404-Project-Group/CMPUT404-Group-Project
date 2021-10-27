@@ -1,33 +1,24 @@
 {% extends "base.html" %}
 
 {% block title %}Manage Profile{% endblock %}
-
+{% load crispy_forms_tags %}  
 {% block content %}
 
 {% if form.errors %}
 
 {% endif %}
-
+<section class="vh-100" style="background-color: #9cb1d627;">
 <div class="container py-5 h-100">
   <div class="row d-felx justify-content-center align-items-center h-100">
-    <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 35%">
-      <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
-        <div class="card-body text-center">
-
-
-          <form method="post" class="box">
+    <div class="col-8 col-md-8 col-lg-6 col-xl-5" >
+      <div class="card-header shadow p-3">
+        Manage Profile
+      </div>
+      <div class="card shadow p-3" style="border-bottom-left-radius: 0.5rem;border-bottom-right-radius: 0.5rem; border-top-left-radius: 0rem;border-top-right-radius: 0rem;border: 0;">
+        <div class="card-body">
+          <form method="post" class="box" >
             {% csrf_token %}
-            <h3 class="mb-3">Manage Profile</h3>
-            {% for field in form %}
-            <div class="form-outline mb-2 text-start">
-              <label class="form-label h6">{{field.label_tag}}</label>
-              <!-- <input class="form-control" name={{field.name}} /> -->
-              {{field}}
-            </div>
-            {% for error in field.errors %}
-            <p class="form-text text-danger text-start">{{ error }}</p>
-            {% endfor %}
-            {% endfor %}
+            {{form|crispy}}
             <button type="submit" class="btn btn-primary shadow mt-5 w-100">Save</button>
             <a href="{% url 'app:view-profile' %}"><button type="button" class="btn btn-primary shadow mt-5 w-100">Discard</button></a>
           </form>
@@ -37,6 +28,6 @@
     </div>
   </div>
 </div>
-
+</section>
 
 {% endblock %}
