@@ -11,8 +11,9 @@ urlpatterns = [
     path('posts/delete-post/<str:post_id>', views.delete_post, name="delete-post"),
     path('posts/<str:post_id>', views.post, name="posts"),
     path('posts/<str:post_id>/create-comment', views.create_comment, name='create-comment'),
-    path('profile/<str:other_user_id>', views.view_other_user, name='view-other-user'),
+    path('profile/', views.view_profile, name="view-profile"),
     path('profile/manage/', views.manage_profile, name="manage-profile"),
+    path('profile/<str:other_user_id>', views.view_other_user, name='view-other-user'),
     path('follow/<str:other_user_id>', views.follow, name='action-follow'),
     path('unfollow/<str:other_user_id>', views.unfollow, name='action-unfollow'),
 ]
