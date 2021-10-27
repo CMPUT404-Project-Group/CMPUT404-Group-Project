@@ -14,17 +14,8 @@ from django.urls import reverse
 from dotenv import load_dotenv
 from .forms import (CommentCreationForm, ManageProfileForm, PostCreationForm,
                     RegisterForm)
+import logging
 
-@login_required
-def index(request):
-    stream_posts = Post.objects.all().order_by('-published').filter(author=request.user)
-
-    context = {
-        "stream_posts" : stream_posts
-    }
-
-
-    return render(request, 'app/index.html', context)
 load_dotenv()
 HOST_URL = os.getenv("HOST_URL")
 
@@ -48,11 +39,18 @@ def register(request):
         form = RegisterForm()
     return render(request, 'app/register.html', {'form': form})
 
-
 @login_required
 def index(request):
-    return render(request, 'app/index.html')
+    
+    stream_posts = Post.objects.all().order_by('-published').filter(author=request.user)
 
+    context = {
+        "stream_posts" : stream_posts
+    }
+
+    logging.error('hello')
+
+    return render(request, 'app/index.html', context)
 
 @login_required
 def create_post(request):

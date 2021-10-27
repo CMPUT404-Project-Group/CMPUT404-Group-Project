@@ -31,25 +31,29 @@
 		</div>
 	</div>
 </nav>
+<section>
     <h1>Posts</h1>
     <ul>
-    {% for post in stream_posts %}
-        <div><a href="{% url 'app:posts' post.id %}">{{ post.title }}</a> 
-            <br>
-                <small>
-                posted by {{ post.author }} on {{ post.published }}
-                </small> 
-            <br/>
-                {{ post.text_content }}
-            <br>
-                <small>
-                    <a href="{% url 'app:edit-post' post.id %}">edit</a>
-                </small>
-            <br/>
-        </div>
-        <br><br/>
-    {% endfor %}
+        {% for post in stream_posts %}
+            <div><a href="{% url 'app:posts' post.id %}">{{ post.title }}</a> 
+                <br>
+                    <small>
+                    posted by {{ post.author }} on {{ post.published }}
+                    </small> 
+                <br/>
+                    {{ post.text_content }}
+                <br>
+                {% if post.text_content %}
+                    <p> {{ post.text_content }} </p>
+                {% endif %}
+    
+                {% if post.image_content %}
+                    <img alt="User uploaded image" src={{ post.image_content.url }}></img>
+                {% endif %}
+                <br/>
+            </div>
+            <br><br/>
+        {% endfor %}
     </ul>
-<section>
 </section>
 {% endblock %}
