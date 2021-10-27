@@ -1,11 +1,11 @@
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
-from api.models import User, Post, Friendship
+from api.models import User, Post
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login
-from friendship.models import Follow
+from friendship.models import Follow, Friend, FriendshipRequest
 
 @login_required
 def index(request):
@@ -103,7 +103,7 @@ def view_other_user(request, other_user_id):
     if other_user==request.user: 
         return redirect('app:view-profile')
 
-    if Friendship.are_friends(request.user, other_user):  
+    if Friend.objects.are_friends(request.user, other_user):  
         # friends (follow each other)
         return render(request, 'profile/view_friend.html', {'other_user': other_user})
     elif Follow.objects.follows(request.user, other_user):   
@@ -131,19 +131,30 @@ def manage_profile(request):
 def follow(request, other_user_id):
     if request.method == 'POST':
         other_user = User.objects.get(id=other_user_id)
-        Follow.objects.add_follower(request.user, other_user)
+        Follow.objects.add_follower(request.user, other_user)  # follow
 
-        # if other_user not following user
-        if not Follow.objects.follows(other_user, request.user):   
-            # TODO: send friend request to other_user
-            pass
+        # if other_user is following user  ( there's a request received from other_user)
+        if Follow.objects.follows(other_user, request.user): 
+            # accept friend reqeust from other_user
+            friend_request = FriendshipRequest.objects.get(from_user=other_user, to_user=request.user)
+            friend_request.accept()
 
+        else: # other_user is not following user
+            # send a friend request
+            Friend.objects.add_friend(
+            request.user,                              # The sender
+            other_user)                                # The recipient
+        
         return redirect('app:view-other-user', other_user_id=other_user_id)
 
 def unfollow(request, other_user_id):
     if request.method == 'POST':
         other_user = User.objects.get(id=other_user_id)
-        Follow.objects.remove_follower(request.user, other_user)
+        Follow.objects.remove_follower(request.user, other_user)  # unfollow 
+
+        # remove friend if user & other_user are friends
+        if Friend.objects.are_friends(request.user, other_user):
+            Friend.objects.remove_friend(request.user, other_user )
 
         return redirect('app:view-other-user', other_user_id=other_user_id)
 
@@ -161,3 +172,4 @@ def create_comment(request, post_id):
         form = CommentCreationForm()
 
     return render(request, 'comments/create_comment.html', {'form': form})
+

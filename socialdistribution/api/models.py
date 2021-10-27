@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.deletion import CASCADE
 from django.db.models.manager import BaseManager
-from friendship.models import Follow
 from dotenv import load_dotenv
 import os
 from uuid import uuid4
@@ -282,14 +281,6 @@ class Post(models.Model):
     def __str__(self):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
 
-        
-class Friendship():
-    def are_friends(user1, user2):
-        """ Return True if user1 and user2 are friends (follow each other) """
-        if Follow.objects.follows(user1, user2) and Follow.objects.follows(user2, user1):
-            return True
-        else: 
-            return False
 
 #TODO: Defaults to text/plain for contentType
 #TODO: Add posts or post_id to comment model

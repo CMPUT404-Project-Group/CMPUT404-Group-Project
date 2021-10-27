@@ -17,10 +17,9 @@
                 <p>Github: {{ other_user.github }} </p>
             </div>
 
-            <!-- TODO: connect with inbox to send request -->
             <form action="{% url 'app:action-follow' other_user.id %}" method='POST'>
               {% csrf_token %}
-              <a href="{% url 'app:view-other-user' other_user.id %}"><button type="submit" class="btn btn-primary shadow mt-5 w-100">Follow</button></a>
+              <a href="{% url 'app:view-other-user' other_user.id %}"><button type="submit" class="btn btn-primary shadow mt-5 w-100">Send friend request</button></a>
             </form>
             <a href="{% url 'app:index' %}"><button type="button" class="btn btn-primary shadow mt-5 w-100">Back</button></a>
 

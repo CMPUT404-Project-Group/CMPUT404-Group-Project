@@ -17,6 +17,4 @@ urlpatterns = [
     path('follow/<str:other_user_id>', views.follow, name='action-follow'),
     path('unfollow/<str:other_user_id>', views.unfollow, name='action-unfollow'),
 
-
-
 ]
