@@ -124,6 +124,7 @@ def manage_profile(request):
             messages.success(
                 request, f'Request to edit profile has been submitted!')
             return redirect('app:view-profile')
+       
     else:
         form = ManageProfileForm(instance=request.user)
 
