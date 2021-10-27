@@ -1,15 +1,23 @@
-from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
-from api.models import User, Post
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.http.response import HttpResponse, HttpResponseForbidden
-from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.auth import authenticate, login
-from friendship.models import Follow, Friend, FriendshipRequest
+import json
+import os
 
-@login_required
-def index(request):
-    return render(request, 'app/index.html')
+import requests
+from requests.models import Response
+from api.models import Post
+from django.contrib import messages
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+from django.http.response import HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed
+from django.shortcuts import get_object_or_404, redirect, render
+from friendship.models import Follow, Friend, FriendshipRequest
+from django.urls import reverse
+from dotenv import load_dotenv
+
+from .forms import (CommentCreationForm, ManageProfileForm, PostCreationForm,
+                    RegisterForm)
+
+load_dotenv()
+HOST_URL = os.getenv("HOST_URL")
 
 
 def register(request):
@@ -31,6 +39,12 @@ def register(request):
     else:
         form = RegisterForm()
     return render(request, 'app/register.html', {'form': form})
+
+
+@login_required
+def index(request):
+    return render(request, 'app/index.html')
+
 
 @login_required
 def create_post(request):
@@ -104,6 +118,7 @@ def view_post(request, post_id):
 
     return render(request, 'posts/view_post.html', context)
 
+
 def view_profile(request):
     user = request.user
     return render(request, 'profile/view_profile.html', {'user': user})
@@ -124,8 +139,8 @@ def view_other_user(request, other_user_id):
         return render(request, 'profile/view_other_user.html', {'other_user': other_user})
 
 
-def manage_profile(request):
 
+def manage_profile(request):
     if request.method == 'POST':
         form = ManageProfileForm(request.POST, instance=request.user)
 
@@ -133,6 +148,7 @@ def manage_profile(request):
             form.save()
             # Will give a notification when edit successfully
             messages.success(request,f'Request to edit profile has been submitted!')
+
             return redirect('app:view-profile')
        
     else:
@@ -170,7 +186,7 @@ def unfollow(request, other_user_id):
 
         return redirect('app:view-other-user', other_user_id=other_user_id)
 
-      
+
 @login_required
 def create_comment(request, post_id):
     if request.method == 'POST':
@@ -185,3 +201,29 @@ def create_comment(request, post_id):
 
     return render(request, 'comments/create_comment.html', {'form': form})
 
+
+@login_required
+def inbox(request, author_id):
+    url = HOST_URL+reverse('api:inbox', kwargs={'author_id': author_id})
+    if request.method == 'GET':
+        try:
+            page = request.GET.get('page')
+            size = request.GET.get('size')
+        except:
+            page = 1
+            size = None
+
+        if page:
+            url += '?page=%s' % page
+        if size:
+            url += '&size=%s' % size
+
+        req = requests.get(url)
+        res = json.loads(req.content.decode('utf-8'))
+        res['author'] = request.path.split('/')[3]
+        return render(request, 'app/inbox.html', {'res': res})
+    elif request.method == "DELETE":
+        req = requests.delete(url)
+        return HttpResponse(status=req.status_code)
+    else:
+        return HttpResponseNotAllowed
