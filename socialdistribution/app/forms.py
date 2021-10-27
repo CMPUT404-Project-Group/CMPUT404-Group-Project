@@ -3,6 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from api.models import Comment, Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
+import datetime
 
 
 class RegisterForm(UserCreationForm):
@@ -41,17 +42,16 @@ class PostCreationForm(forms.ModelForm):
             self.user = kwargs.pop("user")
         if "id" in kwargs:
             self.id = kwargs.pop("id")
-        if "published" in kwargs:
-            self.published = kwargs.pop("published")
         if "data" in kwargs:
             self.image = kwargs['data']['image_content']
+        self.published = datetime.datetime.now()
         super(PostCreationForm, self).__init__(*args, **kwargs)
 
     # TODO: Unlisted always false
     def save(self, commit=True):
         assert self.user, "User is not defined"
         
-        creating_new_post = not self.id
+        creating_new_post = True
 
         if creating_new_post:
             post = Post.objects.create_post(

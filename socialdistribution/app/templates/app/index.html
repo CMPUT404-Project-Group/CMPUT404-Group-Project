@@ -29,4 +29,24 @@
         </nav>
     <h1>Hello World, Welcome To SocialDistribution</h1>
 
+    <h1>Posts</h1>
+    <ul>
+    {% for post in stream_posts %}
+        <div><a href="{% url 'app:posts' post.id %}">{{ post.title }}</a> 
+            <br>
+                <small>
+                posted by {{ post.author }} on {{ post.published }}
+                </small> 
+            <br/>
+                {{ post.text_content }}
+            <br>
+                <small>
+                    <a href="{% url 'app:edit-post' post.id %}">edit</a>
+                </small>
+            <br/>
+        </div>
+        <br><br/>
+    {% endfor %}
+    </ul>
+
 {% endblock %}
