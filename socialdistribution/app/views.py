@@ -2,11 +2,12 @@ import json
 import os
 
 import requests
+from requests.models import Response
 from api.models import Post
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.http.response import HttpResponse, HttpResponseForbidden
+from django.http.response import HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from dotenv import load_dotenv
@@ -146,21 +147,26 @@ def create_comment(request, post_id):
 
 @login_required
 def inbox(request, author_id):
-    try:
-        page = request.GET.get('page')
-        size = request.GET.get('size')
-    except:
-        page = 1
-        size = None
-
     url = HOST_URL+reverse('api:inbox', kwargs={'author_id': author_id})
-    if page:
-        url += '?page=%s' % page
-    if size:
-        url += '&size=%s' % size
+    if request.method == 'GET':
+        try:
+            page = request.GET.get('page')
+            size = request.GET.get('size')
+        except:
+            page = 1
+            size = None
 
-    req = requests.get(url)
-    res = json.loads(req.content.decode('utf-8'))
-    # items = res['items']
-    # print(res)
-    return render(request, 'app/inbox.html', {'res': res})
+        if page:
+            url += '?page=%s' % page
+        if size:
+            url += '&size=%s' % size
+
+        req = requests.get(url)
+        res = json.loads(req.content.decode('utf-8'))
+        res['author'] = request.path.split('/')[3]
+        return render(request, 'app/inbox.html', {'res': res})
+    elif request.method == "DELETE":
+        req = requests.delete(url)
+        return HttpResponse(status=req.status_code)
+    else:
+        return HttpResponseNotAllowed
