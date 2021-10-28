@@ -48,8 +48,6 @@ def index(request):
         "stream_posts" : stream_posts
     }
 
-    logging.error('hello')
-
     return render(request, 'app/index.html', context)
 
 @login_required
