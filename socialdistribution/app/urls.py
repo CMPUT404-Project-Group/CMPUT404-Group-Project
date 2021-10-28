@@ -13,6 +13,5 @@ urlpatterns = [
     path('posts/<str:post_id>/create-comment', views.create_comment, name='create-comment'),
     path('profile/', views.view_profile, name="view-profile"),
     path('profile/manage/', views.manage_profile, name="manage-profile"),
-    path('author/<str:author_id>/inbox/', views.inbox, name='inbox')
-
+    path('author/<str:author_id>/inbox/', views.inbox, name='inbox'),
 ]

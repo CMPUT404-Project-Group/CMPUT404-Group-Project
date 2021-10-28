@@ -1,13 +1,14 @@
 import os
-import json
-from dotenv import load_dotenv
+
 import rest_framework.status as status
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, serializers, status
+from dotenv import load_dotenv
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Inbox as InboxItem
 from .models import Post, User
@@ -17,16 +18,39 @@ load_dotenv()
 HOST_API_URL = os.getenv("HOST_API_URL")
 
 
-@api_view(["GET", "POST"])
-def author(request, author_id):
-    authorModel = get_object_or_404(User, pk=author_id)
+# @api_view(["GET", "POST"])
+# def author(request, author_id):
+#     """Returns an Author object."""
+#     authorModel = get_object_or_404(User, pk=author_id)
 
-    if request.method == "GET":
-        serializer = UserSerializer(authorModel)
+#     if request.method == "GET":
+#         serializer = UserSerializer(authorModel)
+#         return Response(serializer.data)
+
+#     elif request.method == "POST":
+#         serializer = UserSerializer(authorModel, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class Author(APIView):
+    """
+    Endpoint for getting and updating author's on the server.
+    """
+
+    def get_author(self, author_id):
+        return get_object_or_404(User, pk=author_id)
+
+    def get(self, request, author_id):
+        author_model = self.get_author(author_id)
+        serializer = UserSerializer(author_model)
         return Response(serializer.data)
 
-    elif request.method == "POST":
-        serializer = UserSerializer(authorModel, data=request.data)
+    def post(self, request, author_id):
+        author_model = self.get_author(author_id)
+        serializer = UserSerializer(author_model, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
