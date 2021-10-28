@@ -18,13 +18,15 @@
         <p> Tags: {{ post.categories }} </p>
 
     </div>
-
-    {% if is_author %}
-        <p>Click here to <a href="{% url 'app:edit-post' post.id %}">edit your post</a>.</p>
-        <p>Click here to <a href="{% url 'app:delete-post' post.id %}">delete your post</a>.</p>
-    {% endif %}
-
+    
     <div>
-        
+        <form action="#" method="get">
+        <button type="submit" id="like-button" name='like-button' value="pressed">Like Post</button>
+        </form>
+        {% if is_author %}
+            <p>Click here to <a href="{% url 'app:edit-post' post.id %}">edit your post</a>.</p>
+            <p>Click here to <a href="{% url 'app:delete-post' post.id %}">delete your post</a>.</p>
+        {% endif %}
+
     </div>
 {% endblock %}

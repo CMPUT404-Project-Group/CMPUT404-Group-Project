@@ -1,9 +1,9 @@
 import json
 import os
-
 import requests
 from requests.models import Response
-from api.models import Post
+from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
+from api.models import User, Post, Comment, Like
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -59,7 +59,7 @@ def create_post(request):
 
     return render(request, 'posts/create_post.html', {'form': form})
 
-
+@login_required
 def edit_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     user = request.user
@@ -75,6 +75,7 @@ def edit_post(request, post_id):
     else:
         return render(request, 'posts/edit_post.html', context)
 
+@login_required
 def delete_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     user = request.user
@@ -87,6 +88,7 @@ def delete_post(request, post_id):
         post.delete()
         return render(request, 'app/index.html')
 
+@login_required
 def post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     user = request.user
@@ -100,6 +102,8 @@ def post(request, post_id):
         'is_author': is_author}
 
     if request.method == 'GET':
+        if (request.GET.get('like-button')):
+            like_post(request, post_id)
         return render(request, 'posts/view_post.html', context)
 
     elif request.method == 'POST':
@@ -109,14 +113,6 @@ def post(request, post_id):
             form.save()
 
         return redirect('app:index')
-
-
-def view_post(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    context = {'post': post}
-
-    return render(request, 'posts/view_post.html', context)
-
 
 def view_profile(request):
     user = request.user
@@ -141,7 +137,6 @@ def manage_profile(request):
 
         return render(request, 'profile/manage_profile.html', {'form': form})
 
-
 @login_required
 def create_comment(request, post_id):
     if request.method == 'POST':
@@ -156,6 +151,38 @@ def create_comment(request, post_id):
 
     return render(request, 'comments/create_comment.html', {'form': form})
 
+def comments(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    comments = Comment.objects.all().filter(post=post)
+
+    context = {
+        'comments': comments,
+    }
+
+    if (request.GET.get('like-button')):
+        like_comment(request, request.GET.get('like-button'))
+
+    return render(request, "comments/comments.html", context)
+
+@login_required
+def like_post(request, post_id):
+    user = request.user
+    post = get_object_or_404(Post, pk=post_id)
+
+    like = Like.objects.create_like(
+        author=user,
+        content_object=post
+    )
+
+@login_required
+def like_comment(request, comment_id):
+    user = request.user
+    comment = get_object_or_404(Comment, pk=comment_id)
+
+    like = Like.objects.create_like(
+        author=user,
+        content_object=comment
+    )
 
 @login_required
 def inbox(request, author_id):
