@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, IntegrityError
 from django.db.models.constraints import UniqueConstraint
 from django.db.models.deletion import CASCADE
 from django.db.models.manager import BaseManager
@@ -331,7 +331,11 @@ class LikeManager(models.Manager):
             content_object=content_object
         )
 
-        like.save()
+        try:
+            like.save()
+        except IntegrityError:
+            return None
+
         return like
 
 class Like(models.Model):
