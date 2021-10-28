@@ -12,13 +12,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from friendship.models import Follow, Friend, FriendshipRequest
 from django.urls import reverse
 from dotenv import load_dotenv
-
 from .forms import (CommentCreationForm, ManageProfileForm, PostCreationForm,
                     RegisterForm)
+import logging
 
 load_dotenv()
 HOST_URL = os.getenv("HOST_URL")
-
 
 def register(request):
     if request.method == 'POST':
@@ -40,11 +39,16 @@ def register(request):
         form = RegisterForm()
     return render(request, 'app/register.html', {'form': form})
 
-
 @login_required
 def index(request):
-    return render(request, 'app/index.html')
+    
+    stream_posts = Post.objects.all().order_by('-published').filter(author=request.user)
 
+    context = {
+        "stream_posts" : stream_posts
+    }
+
+    return render(request, 'app/index.html', context)
 
 @login_required
 def create_post(request):
@@ -200,7 +204,6 @@ def create_comment(request, post_id):
         form = CommentCreationForm()
 
     return render(request, 'comments/create_comment.html', {'form': form})
-
 
 @login_required
 def inbox(request, author_id):
