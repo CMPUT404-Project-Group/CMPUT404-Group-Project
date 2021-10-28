@@ -88,7 +88,6 @@ def post(request, post_id):
 
 
 def view_post(request, post_id):
-    context = {}
     post = get_object_or_404(Post, pk=post_id)
     context = {'post': post}
 
