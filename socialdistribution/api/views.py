@@ -76,7 +76,30 @@ class Author(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@swagger_auto_schema(method='get', responses={200: UserSerializer(many=True)}, tags=['author'])
+@swagger_auto_schema(
+    method='get',
+    responses={
+        200: openapi.Response(description="Author Updated Succesfully",
+                              examples={"application/json": [{
+                                  "type": "author",
+                                  "id": "http://127.0.0.1:8000/api/author/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                                  "host": "http://127.0.0.1:8000/api/",
+                                  "displayName": "Bill",
+                                  "url": "http://127.0.0.1:8000/api/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                                  "github": "http://github.com/bill123"
+                              },
+                                  {
+                                  "type": "author",
+                                  "id": "http://127.0.0.1:8000/api/author/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                                  "host": "http://127.0.0.1:8000/api/",
+                                  "displayName": "Frank",
+                                  "url": "http://127.0.0.1:8000/api/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                                  "github": "http://github.com/FrankFrank"
+                              }
+                              ]}),
+        400: openapi.Response(description="Method Not Allowed", examples={"application/json": {'detail': "Method \"POST\" not allowed."}})
+    },
+    tags=['author'])
 @ api_view(["GET"])
 def authors(request):
     """
