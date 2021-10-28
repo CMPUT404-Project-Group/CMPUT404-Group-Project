@@ -1,7 +1,5 @@
 import json
 import os
-import requests
-from requests.models import Response
 from api.models import Post
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
 from api.models import User, Post, Comment, Like
@@ -205,12 +203,12 @@ def inbox(request, author_id):
         if size:
             url += '&size=%s' % size
 
-        req = requests.get(url)
+        #req = requests.get(url)
         res = json.loads(req.content.decode('utf-8'))
         res['author'] = request.path.split('/')[3]
         return render(request, 'app/inbox.html', {'res': res})
     elif request.method == "DELETE":
-        req = requests.delete(url)
-        return HttpResponse(status=req.status_code)
+        #req = requests.delete(url)
+        return #HttpResponse(status=req.status_code)
     else:
         return HttpResponseNotAllowed
