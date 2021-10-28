@@ -1,4 +1,5 @@
 import os
+from drf_yasg import openapi
 
 import rest_framework.status as status
 from django.shortcuts import get_object_or_404
@@ -18,23 +19,6 @@ load_dotenv()
 HOST_API_URL = os.getenv("HOST_API_URL")
 
 
-# @api_view(["GET", "POST"])
-# def author(request, author_id):
-#     """Returns an Author object."""
-#     authorModel = get_object_or_404(User, pk=author_id)
-
-#     if request.method == "GET":
-#         serializer = UserSerializer(authorModel)
-#         return Response(serializer.data)
-
-#     elif request.method == "POST":
-#         serializer = UserSerializer(authorModel, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class Author(APIView):
     """
     Endpoint for getting and updating author's on the server.
@@ -43,12 +27,47 @@ class Author(APIView):
     def get_author(self, author_id):
         return get_object_or_404(User, pk=author_id)
 
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="Author Found", examples={"application/json": {
+                "type": "author",
+                "id": "http://127.0.0.1:8000/api/author/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                "host": "http://127.0.0.1:8000/api/",
+                "displayName": "exampleAuthor",
+                "url": "http://127.0.0.1:8000/api/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                "github": "http://github.com/exampleAuthor"
+            }}),
+            404: openapi.Response(description="Author Not Found", examples={"application/json": {'detail': 'Not Found.'}}),
+            400: openapi.Response(description="Method Not Allowed", examples={"application/json": {'detail': "Method \"PUT\" not allowed."}})
+        }
+    )
     def get(self, request, author_id):
+        """
+        GETs and returns an Author object with id {author_id}.
+        """
         author_model = self.get_author(author_id)
         serializer = UserSerializer(author_model)
         return Response(serializer.data)
 
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="Author Updated Succesfully", examples={"application/json": {
+                "type": "author",
+                "id": "http://127.0.0.1:8000/api/author/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                "host": "http://127.0.0.1:8000/api/",
+                "displayName": "exampleAuthor",
+                "url": "http://127.0.0.1:8000/api/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                "github": "http://github.com/exampleAuthor"
+            }}),
+            404: openapi.Response(description="Author Not Found", examples={"application/json": {'detail': 'Not Found.'}}),
+            400: openapi.Response(description="Method Not Allowed", examples={"application/json": {'detail': "Method \"PUT\" not allowed."}})
+        },
+        request_body=UserSerializer
+    )
     def post(self, request, author_id):
+        """
+        Updates and returns the updated Author object with id {author_id}.
+        """
         author_model = self.get_author(author_id)
         serializer = UserSerializer(author_model, data=request.data)
         if serializer.is_valid():
@@ -57,8 +76,12 @@ class Author(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["GET"])
+@swagger_auto_schema(method='get', responses={200: UserSerializer(many=True)}, tags=['author'])
+@ api_view(["GET"])
 def authors(request):
+    """
+    GETs and returns a paginated list of all Authors on the server.
+    """
     paginator = PageNumberPaginationWithCount()
     query_params = request.query_params
     query_set = User.objects.all().filter(type="author")
@@ -77,7 +100,7 @@ def authors(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
-@api_view(["GET"])
+@ api_view(["GET"])
 def posts(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
 
@@ -108,6 +131,7 @@ class PageNumberPaginationWithCount(PageNumberPagination):
 class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = PostSerializer
 
+    @swagger_auto_schema(tags=['inbox'])
     def get(self, request, *args, **kwargs):
         paginator = PageNumberPaginationWithCount()
         author_id = self.kwargs.get('author_id')
@@ -139,6 +163,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
 
         return Response(data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(tags=['inbox'])
     def post(self, request, author_id, *args, **kwargs):
         try:
             content_type = request.data["content_type"]
@@ -152,6 +177,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(tags=['inbox'])
     def delete(self, request, *args, **kwargs):
         try:
             author_id = self.kwargs.get('author_id')
