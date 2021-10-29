@@ -17,7 +17,8 @@ class UserSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         user = super().to_representation(instance)
         user['id'] = HOST_API_URL+'author/'+user['id']
-        user['github'] = GITHUB_URL + user['github']
+        if user['github']:
+            user['github'] = GITHUB_URL + user['github']
         return user
 
     class Meta:
@@ -55,6 +56,12 @@ class PostSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         post = super().to_representation(instance)
         post['categories'] = post['categories'].split(',')
+
+        author_id = post['author']
+        author = User.objects.get(id=author_id)
+        author_serializer = UserSerializer(author)
+
+        post['author'] = author_serializer.data
         return post
 
 
@@ -83,6 +90,12 @@ class LikeSerializer(serializers.ModelSerializer):
         like['@context'] = like.pop('context')
         like['object'] = like.pop('content_object').id
 
+        author_id = like['author']
+        author = User.objects.get(id=author_id)
+        author_serializer = UserSerializer(author)
+
+        like['author'] = author_serializer.data
+
         return like
 
 class LikedSerializer(LikeSerializer):
@@ -109,4 +122,15 @@ class CommentSerializer(serializers.ModelSerializer):
             'published',
             'id'
         ]
+    
+    def to_representation(self, instance):
+        comment = super().to_representation(instance)
+
+        author_id = comment['author']
+        author = User.objects.get(id=author_id)
+        author_serializer = UserSerializer(author)
+
+        comment['author'] = author_serializer.data
+        return comment
+
         

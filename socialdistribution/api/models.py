@@ -132,13 +132,11 @@ class PostBuilder():
         if not id:
             self.id = uuid4()
 
-        post_url = f"{HOST_API_URL}posts/{self.id}"
-
         self.type = 'post'
-        self.source = post_url
-        self.origin = post_url
+        self.source = None
+        self.origin = None
         self.count = 0
-        self.comment_page = f"{post_url}/comments"
+        self.comment_page = None
 
         self.title = None
         self.description = None
@@ -170,6 +168,7 @@ class PostBuilder():
 
         self.__set_description__()
         self.__set_content_type__()
+        self.__set_urls__()
         self.__set_size__()
 
     def get_post(self):
@@ -209,6 +208,14 @@ class PostBuilder():
     # TODO: Content type just defaults to plain text at the moment
     def __set_content_type__(self):
         self.content_type = Post.ContentType.PLAIN
+    
+    def __set_urls__(self):
+        post_url = f"{HOST_API_URL}author/{self.author.id}/posts/{self.id}"
+        
+        self.origin = post_url
+        self.source = post_url
+        self.comment_page = f"{post_url}/comments"
+
 
     # TODO: Figure out size of post dynamically (possibly iterate through attributes adding size)
     def __set_size__(self):

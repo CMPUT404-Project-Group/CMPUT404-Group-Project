@@ -149,14 +149,11 @@ def authors(request):
     return Response(data, status=status.HTTP_200_OK)
 
 class PostAPI(APIView):
-    """
-    Endpoint for getting, updating, creating or deleting posts on the server
-    """
-
-    def get(self, request, post_id):
+    def get(self, request, *args, **kwargs):
         """
         GETs and returns a serialized post object which matches with the post_id provided
         """
+        post_id = kwargs.get('post_id')
         post = get_object_or_404(Post, pk=post_id)
         serializer = PostSerializer(post)
         return JsonResponse(serializer.data)
@@ -176,10 +173,11 @@ class PostAPI(APIView):
 
         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def post(self, request, post_id):
+    def post(self, request, *args, **kwargs):
         """
         Updates a post on the server which matches the given post id
         """
+        post_id = kwargs.get('post_id')
         post = get_object_or_404(Post, pk=post_id)
         form = PostCreationForm(
             instance=post, data=request.POST, id=post_id, published=post.published, user=post.author)
@@ -188,10 +186,11 @@ class PostAPI(APIView):
             return HttpResponse("Sucessfully edited post")
         return HttpResponse("Failed to edit post")
     
-    def delete(self, request, post_id):
+    def delete(self, request, *args, **kwargs):
         """
         DELETEs a post on the server which matches the given post id
         """
+        post_id = kwargs.get('post_id')
         post = get_object_or_404(Post, pk=post_id)
         post.delete()
         return HttpResponse("Successfully deleted")

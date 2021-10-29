@@ -31,8 +31,7 @@ def register(request):
             # Will give a notification when register successfully
             displayName = form.cleaned_data.get('displayName')
             password = form.cleaned_data.get('password1')
-            messages.success(
-                request, f'Request to register account {displayName} has been submitted!')
+            # messages.success(request, f'Request to register account {displayName} has been submitted!')
             form.save()
             user = authenticate(
                 request, displayName=displayName, password=password)
