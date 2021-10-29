@@ -289,7 +289,7 @@ class Post(models.Model):
         max_length=255, choices=Visibility.choices, unique=False, blank=False, null=False, default=Visibility.PUBLIC)
     unlisted = models.BooleanField(
         unique=False, blank=False, null=False, default=False)
-    shared_post = models.ForeignKey("api.Post", on_delete=CASCADE)
+    shared_post = models.ForeignKey("api.Post", null=True, on_delete=CASCADE)
 
     objects = PostManager()
 
