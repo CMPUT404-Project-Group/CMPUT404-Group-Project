@@ -152,12 +152,13 @@ class PostBuilder():
         self.unlisted = None
         self.shared_post = None
 
-    def set_post_content(self, title, categories, text_content=None, image_content=None, shared_post=None):
+    def set_post_content(self, title, categories, text_content=None, image_content=None, shared_post=None, image_link=None):
         self.title = title
         self.categories = categories
         self.text_content = text_content
         self.image_content = image_content
         self.shared_post = shared_post
+        self.image_link = image_link
 
     # TODO: Description is not very descriptive
     def set_post_metadata(self, author, visibility, unlisted):
@@ -182,6 +183,7 @@ class PostBuilder():
             content_type=self.content_type,
             text_content=self.text_content,
             image_content=self.image_content,
+            image_link=self.image_link,
             author=self.author,
             categories=self.categories,
             count=self.count,
@@ -215,10 +217,10 @@ class PostBuilder():
 
 class PostManager(models.Manager):
 
-    def create_post(self, author, categories, image_content, text_content, title, visibility, unlisted):
+    def create_post(self, author, categories, image_content, image_link, text_content, title, visibility, unlisted):
         post_builder = PostBuilder()
         post_builder.set_post_content(
-            title, categories, text_content, image_content)
+            title, categories, text_content, image_content, None, image_link)
         post_builder.set_post_metadata(author, visibility, unlisted)
 
         post = post_builder.get_post()
@@ -267,6 +269,7 @@ class Post(models.Model):
         max_length=255, choices=ContentType.choices)
     text_content = models.TextField(unique=False, blank=True)
     image_content = models.ImageField(unique=False, blank=True, upload_to="images/")
+    image_link = models.TextField(unique=False, blank=True)
     author = models.ForeignKey(
         "User",
         on_delete=models.CASCADE
