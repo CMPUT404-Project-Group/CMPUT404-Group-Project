@@ -10,9 +10,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from dotenv import load_dotenv
 
-from .forms import (CommentCreationForm, ManageProfileForm, PostCreationForm,
-                    RegisterForm)
-
 load_dotenv()
 HOST_URL = os.getenv("HOST_URL")
 
@@ -201,9 +198,9 @@ def inbox(request, author_id):
             url += '&size=%s' % size
 
         #req = requests.get(url)
-        res = json.loads(req.content.decode('utf-8'))
-        res['author'] = request.path.split('/')[3]
-        return render(request, 'app/inbox.html', {'res': res})
+        #res = json.loads(req.content.decode('utf-8'))
+        #res['author'] = request.path.split('/')[3]
+        return render(request, 'app/inbox.html')#, {'res': res})
     elif request.method == "DELETE":
         #req = requests.delete(url)
         return #HttpResponse(status=req.status_code)
