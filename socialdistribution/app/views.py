@@ -7,7 +7,7 @@ from api.models import Post
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.http.response import HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed
+from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from friendship.models import Follow, Friend, FriendshipRequest
 from django.urls import reverse
@@ -108,10 +108,13 @@ def post(request, post_id):
         return render(request, 'posts/view_post.html', context)
 
     elif request.method == 'POST':
-        form = PostCreationForm(
-            data=request.POST, user=user, id=post_id, published=post.published)
-        if form.is_valid():
-            form.save()
+        data = request.POST.dict()
+        cookie = data.pop('csrfmiddlewaretoken')
+        query_set = Post.objects.filter(id=post_id)
+
+        posts_updated = query_set.update(**data)
+        if posts_updated == 0:
+            return HttpResponseBadRequest("Something unexpected has occured!")
 
         return redirect('app:index')
 
