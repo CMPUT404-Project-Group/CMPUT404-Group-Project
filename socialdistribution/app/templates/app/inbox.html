@@ -35,35 +35,35 @@
 {% endblock %}
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-	<div class="container-fluid">
-		<a class="navbar-brand" href="{%url 'app:index'%}">SocialDistribution</a>
-		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-			aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-			<span class="navbar-toggler-icon"></span>
-		</button>
-		<div class="collapse navbar-collapse" id="navbarNav">
-			<ul class="navbar-nav">
-				<li class="nav-item">
-					<a class="nav-link" href="{%url 'app:index'%}">Home</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link active" aria-current="page" href="{%url 'app:inbox' user.id%}?page=1&size=5">Inbox</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link" href="{% url 'app:post-list' %}">Public posts</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link" href="{% url 'app:create-post' %}">Create a Post</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link" href="{% url 'app:view-profile' %}">Profile</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link" href="{% url 'app:logout' %}">Logout</a>
-				</li>
-			</ul>
-		</div>
-	</div>
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{%url 'app:index'%}">SocialDistribution</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="{%url 'app:index'%}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="{%url 'app:inbox' user.id%}?page=1&size=5">Inbox</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'app:post-list' %}">Public posts</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'app:create-post' %}">Create a Post</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'app:view-profile' %}">Profile</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'app:logout' %}">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </div>
 </nav>
 
 <!-- clearModal for clearing inbox -->
@@ -100,7 +100,7 @@
             <div class="card-header d-inline-flex justify-content-between"
               style="border-radius: 0.5rem; border: 0; background-color: #9cb1d627;">
               <h5>
-                {{item.id}} sent you a post.
+                {{item.author.displayName}} sent you a post.
               </h5>
               <input class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#postData{{item.id}}"
                 aria-expanded="false" aria-controls="postData{{item.id}}" value="Show" id="#postData{{item.id}}"
@@ -185,7 +185,8 @@
           <p>Items like posts, follows, and likes will be sent to your inbox by your friends and
             authors you follow.</p>
           <button class="btn btn-outline-secondary" type="button">Find Authors</button>
-          <a href="{% url 'app:index' %}"><button type="button" class="btn btn-primary shadow mt-5 w-100">Back</button></a>
+          <a href="{% url 'app:index' %}"><button type="button"
+              class="btn btn-primary shadow mt-5 w-100">Back</button></a>
         </div>
       </div>
     </div>
