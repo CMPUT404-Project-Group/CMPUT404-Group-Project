@@ -298,7 +298,7 @@ class Post(models.Model):
 class CommentManager(models.Manager):
 
     def create_comment(self, author, comment, post):
-
+        
         comment = Comment(
             type="comment",
             author=author,
@@ -310,7 +310,6 @@ class CommentManager(models.Manager):
         comment.save()
 
         return comment
-
 
 class Comment(models.Model):
     id = models.CharField(max_length=255, unique=True,
@@ -335,6 +334,7 @@ class InboxManager(models.Manager):
         )
         inbox.save(using=self._db)
         return inbox
+
 #TODO: context is currently a placeholder
 class LikeManager(models.Manager):
 

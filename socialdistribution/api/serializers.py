@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from .models import HOST_API_URL, Post, User
 from django.shortcuts import get_object_or_404
-from .models import User, Inbox
+from .models import User, Inbox, Comment
 from rest_framework import serializers
 from django.db.models import fields
 
@@ -55,3 +55,19 @@ class PostSerializer(serializers.ModelSerializer):
         post = super().to_representation(instance)
         post['categories'] = post['categories'].split(',')
         return post
+
+class CommentSerializer(serializers.ModelSerializer):
+
+    contentType = serializers.CharField(source='content_type')
+
+    class Meta:
+        model = Comment
+        fields = [
+            'type',
+            'author',
+            'post',
+            'comment',
+            'contentType',
+            'published',
+            'id'
+        ]

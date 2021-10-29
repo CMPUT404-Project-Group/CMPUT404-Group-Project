@@ -38,7 +38,7 @@ class CommentTest(TestCase):
             'post_id': self.post.id
         }
 
-        result = self.client.get(reverse('api:comments', context))
+        result = self.client.get(reverse('api:comments', kwargs=context))
 
         self.assertEqual(result.status_code, 200)
     
@@ -56,8 +56,8 @@ class CommentTest(TestCase):
             'post_id': self.post.id
         }
 
-        result_page_one = self.client.get(reverse('api:comments', context) + "?page=1&size=5")
-        result_last_page = self.client.get(reverse('api:comments', context) + "?page=5&size=5")
+        result_page_one = self.client.get(reverse('api:comments', kwargs=context) + "?page=1&size=5")
+        result_last_page = self.client.get(reverse('api:comments', kwargs=context) + "?page=5&size=5")
 
         self.assertEqual(result_page_one.status_code, 200)
         self.assertEqual(result_last_page.status_code, 200)
@@ -66,11 +66,10 @@ class CommentTest(TestCase):
     def test_comment_api_post(self):
         comment_json = {
             'type': 'comment',
-            'author': self.user,
             'comment': 'TEST_TEXT',
             'content_type': "text/plain",
-            'post': self.post,
-            'id': uuid4()
+            'id': str(uuid4()),
+            'published': "2015-03-09T13:07:04+00:00"
         }
 
         context = {
@@ -78,10 +77,10 @@ class CommentTest(TestCase):
             'post_id': self.post.id
         }
 
-        result = self.client.get(
-            reverse('api:comments', context),
+        result = self.client.post(
+            reverse('api:comments', kwargs=context),
             comment_json,
             format='json'
             )
 
-        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.status_code, 204)
