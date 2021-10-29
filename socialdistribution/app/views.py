@@ -9,7 +9,7 @@ from api.serializers import PostSerializer
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.http.response import HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed, JsonResponse
+from django.http.response import HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from friendship.models import Follow, Friend, FriendshipRequest
 from django.urls import reverse
