@@ -23,22 +23,17 @@
 
     </div>
 
-    {% if is_author %}
-        <p>Click here to <a href="{% url 'app:edit-post' post.id %}">edit your post</a>.</p>
-        <p>Click here to <a href="{% url 'app:delete-post' post.id %}">delete your post</a>.</p>
-    {% endif %}
-
-    <p>Click here to <a href="{% url 'app:share-post' post.id %}">share this post</a>.</p>
-
     <div>
         <form action="#" method="get">
-        <button type="submit" id="like-button" name='like-button' value="pressed">Like Post</button>
+            <button type="submit" id="like-button" name='like-button' value="pressed">Like Post</button>
         </form>
             <p>Click here to <a href="{% url 'app:create-comment' post.id %}">comment on the post</a>.</p>
+            <p>Click here to <a href="{% url 'app:share-post' post.id %}">share this post</a>.</p>
         {% if is_author %}
             <p>Click here to <a href="{% url 'app:edit-post' post.id %}">edit your post</a>.</p>
             <p>Click here to <a href="{% url 'app:delete-post' post.id %}">delete your post</a>.</p>
         {% endif %}
+      
 
     </div>
 {% endblock %}

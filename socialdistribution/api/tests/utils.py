@@ -11,7 +11,7 @@ class TestUtils():
             type=type
         )
 
-    def get_test_post(author=None, categories="test, categories, are, fun", image_content=None, text_content="BODY", title="Test Title", visibility=Post.Visibility.PUBLIC, unlisted=False):
+    def get_test_post(author=None, categories="test, categories, are, fun", image_content=None, text_content="TEST", title="Test Title", visibility=Post.Visibility.PUBLIC, unlisted=False):
 
         if not author:
             author = TestUtils.get_test_user()

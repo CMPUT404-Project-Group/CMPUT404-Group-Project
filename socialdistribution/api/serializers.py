@@ -93,6 +93,7 @@ class LikedSerializer(LikeSerializer):
         liked['type'] = 'liked'
 
         return liked
+
 class CommentSerializer(serializers.ModelSerializer):
 
     contentType = serializers.CharField(source='content_type')
@@ -108,3 +109,4 @@ class CommentSerializer(serializers.ModelSerializer):
             'published',
             'id'
         ]
+        
