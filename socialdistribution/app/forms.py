@@ -39,6 +39,7 @@ class PostCreationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = None
         self.id = None
+        self.image = None
 
         if "user" in kwargs:
             self.user = kwargs.pop("user")

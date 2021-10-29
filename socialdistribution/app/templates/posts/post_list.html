@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+      <a class="navbar-brand" href="{%url 'app:index'%}">SocialDistribution</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+          <li class="nav-item">
+              <a class="nav-link" href="{%url 'app:index'%}">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{%url 'app:inbox' user.id%}?page=1&size=5">Inbox</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{% url 'app:post-list' %}">Public posts</a>
+          </li>
+          <li class="nav-item">
+              <a class="nav-link" href="{% url 'app:create-post' %}">Create a Post</a>
+          </li>
+          <li class="nav-item">
+              <a class="nav-link" href="{% url 'app:view-profile' %}">Profile</a>
+          </li>
+          <li class="nav-item">
+              <a class="nav-link" href="{% url 'app:logout' %}">Logout</a>
+          </li>
+          </ul>
+      </div>
+      </div>
+  </nav>
+{% if post_list %}
+<ul>
+  {% for post in post_list %}
+  <li style="list-style: none;">
+    <div class="container py-2 h-100">
+      <div class="row d-felx justify-content-center align-items-center h-100">
+        <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 50%">
+          <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
+            <div class="card-body">
+              <h4 class="card-title">{{ post.title }}</h4>
+              <span class="text-muted">
+                {{ post.author }} <br>
+                <span style="font-style: italic;">{{ post.published }}</span>
+              </span>
+              <p class="card-text mt-4">{{ post.text_content }}</p>
+              <div class="category">
+                {% for c in post.categories %}
+                <span class="badge bg-dark">{{ c }}</span>
+                {% endfor %}
+              </div>
+              <a href="{{ post.origin }}" class="btn btn-primary shadow mt-5">View Post</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+
+{% else %}
+<p>There are no posts on this server.</p>
+{% endif %}
+{% endblock %}
