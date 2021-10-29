@@ -48,7 +48,6 @@ class PostCreationForm(forms.ModelForm):
 
     # TODO: Unlisted always false
     def save(self, commit=True):
-        logging.error(self.cleaned_data)
         return Post.objects.create_post(
                 author=self.user,
                 categories=self.cleaned_data['categories'],

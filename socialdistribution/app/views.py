@@ -135,8 +135,6 @@ def post(request, post_id):
         cookie = data.pop('csrfmiddlewaretoken')
         query_set = Post.objects.filter(id=post_id)
 
-        logging.error(data)
-
         posts_updated = query_set.update(**data)
         if posts_updated == 0:
             return HttpResponseBadRequest("Something unexpected has occured!")
@@ -147,7 +145,6 @@ def view_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
 
     if (post.shared_post != None):
-        logging.error(post.shared_post)
         original_post = get_object_or_404(Post, pk=post.shared_post.post.id)
         context = {
             'shared_post': post,
@@ -155,7 +152,6 @@ def view_post(request, post_id):
         return render(request, 'posts/view_shared_post.html', context)
     else:
         context = {'post': post}
-        logging.error(post.shared_post)
         return render(request, 'posts/view_post.html', context)
 
       
