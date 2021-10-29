@@ -24,7 +24,7 @@ from rest_framework.views import APIView
 
 from .models import Inbox as InboxItem
 from .models import Post, User, Like, Comment
-from .serializers import LikeSerializer, LikedSerializer, PostSerializer, UserSerializer, CommentSerializer
+from .serializers import LikeSerializer, LikedSerializer, InboxSerializer, PostSerializer, UserSerializer, CommentSerializer
 
 load_dotenv()
 HOST_API_URL = os.getenv("HOST_API_URL")
