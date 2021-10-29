@@ -123,5 +123,5 @@ class PostListView(generic.ListView):
     template_name = 'posts/post_list.html'
 
     def get_queryset(self):
-        return Post.objects.filter(visibility="public", unlisted=0)
+        return Post.objects.filter(visibility="public", unlisted=0) 
 

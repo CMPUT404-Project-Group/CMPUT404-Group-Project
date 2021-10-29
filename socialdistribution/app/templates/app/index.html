@@ -18,6 +18,9 @@
                     <a class="nav-link" href="{% url 'app:create-post' %}">Create a post</a>
                 </li>
                 <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'app:posts' %}">Public posts</a>
+                </li>
+                <li class="nav-item active">
                     <a class="nav-link" href="{% url 'app:view-profile' %}">Profile</a>
                 </li>
                 <li class="nav-item active">
@@ -27,6 +30,6 @@
             </div>
             </div>
         </nav>
-    <h1>Hello World, Welcome To SocialDistribution</h1>
+    <h1>Hello {{user}}, Welcome To SocialDistribution</h1>
 
 {% endblock %}
