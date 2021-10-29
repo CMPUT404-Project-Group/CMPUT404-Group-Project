@@ -93,6 +93,17 @@ class Like_Post_API(APIView):
 
         return Response(data, status.HTTP_200_OK)
 
+class Like_Comment_API(APIView):
+
+    def get(self, request, *args, **kwargs):
+        comment_id = self.kwargs.get('comment_id')
+        query_set = Like.objects.filter(object_id=comment_id)
+
+        serializer = LikeSerializer(query_set, many=True)
+        data = serializer.data
+
+        return Response(data, status.HTTP_200_OK)
+
 class Liked_API(APIView):
 
     def get(self, request, *args, **kwargs):
@@ -103,6 +114,7 @@ class Liked_API(APIView):
         data = serializer.data
 
         return Response(data, status.HTTP_200_OK)
+
 class Comment_API(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
 

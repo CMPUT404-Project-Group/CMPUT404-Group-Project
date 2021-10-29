@@ -12,22 +12,32 @@ class LikeTest(TestCase):
         self.client = APIClient()
         self.user = TestUtils.get_test_user()
         self.post = TestUtils.get_test_post(author=self.user)
-        self.like = TestUtils.get_test_like(author=self.user, content_object=self.post)
+        self.comment = TestUtils.get_test_comment(author=self.user, post=self.post)
 
     def test_GET_api_post_likes(self):
+        like = TestUtils.get_test_like(author=self.user, content_object=self.post)
+
         context = {
             'author_id': self.user.id,
             'post_id': self.post.id
         }
 
-        response = self.client.get(
-            reverse('api:like-post', kwargs=context)
-        )
+        response = self.client.get(reverse('api:like-post', kwargs=context))
 
         self.assertEqual(response.status_code, 200)
     
     def test_GET_api_comment_likes(self):
-        self.assertTrue(False)
+        like = TestUtils.get_test_like(author=self.user, content_object=self.comment)
+
+        context = {
+            'author_id': self.user.id,
+            'post_id': self.post.id,
+            'comment_id': self.comment.id
+        }
+
+        response = self.client.get(reverse('api:like-comment', kwargs=context))
+
+        self.assertEqual(response.status_code, 200)
     
     def test_GET_api_author_liked(self):
 
