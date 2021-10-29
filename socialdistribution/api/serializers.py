@@ -57,6 +57,13 @@ class PostSerializer(serializers.ModelSerializer):
         post['categories'] = post['categories'].split(',')
         return post
 
+
+class InboxSerializer(serializers.ModelSerializer):
+    content_type = serializers.CharField()
+
+    class Meta:
+        model = Inbox
+        fields = ['content_type', 'object_id']
 class LikeSerializer(serializers.ModelSerializer):
 
     class Meta:

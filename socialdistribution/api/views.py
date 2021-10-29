@@ -1,11 +1,13 @@
 import os
-import json
+from drf_yasg import openapi
+
 from django.db.models import aggregates, query
 from dotenv import load_dotenv
 import rest_framework.status as status
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, serializers, status
+from dotenv import load_dotenv
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from django.http.response import HttpResponse
 from rest_framework.views import APIView
@@ -22,30 +24,111 @@ from rest_framework.views import APIView
 
 from .models import Inbox as InboxItem
 from .models import Post, User, Like, Comment
-from .serializers import LikeSerializer, LikedSerializer, PostSerializer, UserSerializer, CommentSerializer
+from .serializers import LikeSerializer, LikedSerializer, InboxSerializer, PostSerializer, UserSerializer, CommentSerializer
 
 load_dotenv()
 HOST_API_URL = os.getenv("HOST_API_URL")
 
 
-@api_view(["GET", "POST"])
-def author(request, author_id):
-    authorModel = get_object_or_404(User, pk=author_id)
+class Author(APIView):
+    """
+    Endpoint for getting and updating author's on the server.
+    """
 
-    if request.method == "GET":
-        serializer = UserSerializer(authorModel)
+    def get_author(self, author_id):
+        return get_object_or_404(User, pk=author_id)
+
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="Author Found.", examples={"application/json": {
+                "type": "author",
+                "id": "http://127.0.0.1:8000/api/author/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                "host": "http://127.0.0.1:8000/api/",
+                "displayName": "exampleAuthor",
+                "url": "http://127.0.0.1:8000/api/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                "github": "http://github.com/exampleAuthor"
+            }}),
+            404: openapi.Response(description="Author Not Found.", examples={"application/json": {'detail': 'Not Found.'}}),
+            400: openapi.Response(description="Method Not Allowed.", examples={"application/json": {'detail': "Method \"PUT\" not allowed."}})
+        }
+    )
+    def get(self, request, author_id):
+        """
+        GETs and returns an Author object with id {author_id}, if one exists.
+
+        GETs and returns an Author object with id {author_id}, if one exists.
+        """
+        author_model = self.get_author(author_id)
+        serializer = UserSerializer(author_model)
         return Response(serializer.data)
 
-    elif request.method == "POST":
-        serializer = UserSerializer(authorModel, data=request.data)
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(description="Author Updated Succesfully.", examples={"application/json": {
+                "type": "author",
+                "id": "http://127.0.0.1:8000/api/author/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                "host": "http://127.0.0.1:8000/api/",
+                "displayName": "exampleAuthor",
+                "url": "http://127.0.0.1:8000/api/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                "github": "http://github.com/exampleAuthor"
+            }}),
+            404: openapi.Response(description="Author Not Found.", examples={"application/json": {'detail': 'Not Found.'}}),
+            400: openapi.Response(description="Method Not Allowed.", examples={"application/json": {'detail': "Method \"PUT\" not allowed."}})
+        },
+        request_body=UserSerializer
+    )
+    def post(self, request, author_id):
+        """
+        Updates and returns the updated Author object with id {author_id}, if the Author exists.
+
+        Not all fields need to be sent in the request body.
+        """
+        author_model = self.get_author(author_id)
+        serializer = UserSerializer(author_model, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["GET"])
+@swagger_auto_schema(
+    method='get',
+    responses={
+        200: openapi.Response(description="Success",
+                              examples={"application/json": [{
+                                  "type": "author",
+                                  "id": "http://127.0.0.1:8000/api/author/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                                  "host": "http://127.0.0.1:8000/api/",
+                                  "displayName": "Bill",
+                                  "url": "http://127.0.0.1:8000/api/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                                  "github": "http://github.com/bill123"
+                              },
+                                  {
+                                  "type": "author",
+                                  "id": "http://127.0.0.1:8000/api/author/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                                  "host": "http://127.0.0.1:8000/api/",
+                                  "displayName": "Frank",
+                                  "url": "http://127.0.0.1:8000/api/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                                  "github": "http://github.com/FrankFrank"
+                              }
+                              ]}),
+        400: openapi.Response(description="Method Not Allowed.", examples={"application/json": {'detail': "Method \"POST\" not allowed."}})
+    },
+    paginator_inspectors='d',
+    tags=['author'],
+    manual_parameters=[
+        openapi.Parameter(
+            'page', openapi.IN_QUERY, description='A page number within the paginated result set.', type=openapi.TYPE_INTEGER),
+        openapi.Parameter(
+            'size', openapi.IN_QUERY, description='The size of the page to be returned', type=openapi.TYPE_INTEGER)
+    ])
+@ api_view(["GET"])
 def authors(request):
+    """
+    GETs and returns a paginated list of all Authors on the server. 
+
+    Pagination settings are passed as url parameters: ~/inbox/?page=1&size=5
+    """
     paginator = PageNumberPaginationWithCount()
     query_params = request.query_params
     query_set = User.objects.all().filter(type="author")
@@ -187,9 +270,59 @@ class Comment_API(generics.ListCreateAPIView):
         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
-    serializer_class = PostSerializer
+    serializer_class = InboxSerializer
 
+    @swagger_auto_schema(
+        responses={200: openapi.Response(description='Successfully get inbox items.',
+                                         examples={"application/json":
+                                                   {
+                                                       "type": "inbox",
+                                                       "author": "http://127.0.0.1:8000/api/author/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                                                       "next": "http://127.0.0.1:8000/app/author/077d7a7e-304c-4f34-9d8f-d3c61e214b35/inbox/?page=2&size=5",
+                                                       "prev": 'null',
+                                                       "size": "5",
+                                                       "page": "1",
+                                                       "total_pages": [
+                                                           1, 2
+                                                       ],
+                                                       "items": [
+                                                           {
+                                                               "type": "post",
+                                                               "title": "Test",
+                                                               "id": "5836ca64-16d5-4b69-872a-41ca3ec25bf9",
+                                                               "source": "http://127.0.0.1:8000/api/posts/5836ca64-16d5-4b69-872a-41ca3ec25bf9",
+                                                               "origin": "http://127.0.0.1:8000/api/posts/5836ca64-16d5-4b69-872a-41ca3ec25bf9",
+                                                               "description": "Test: This is my post....",
+                                                               "contentType": "text/plain",
+                                                               "content": "This is my post.",
+                                                               "author": "077d7a7e-304c-4f34-9d8f-d3c61e214b35",
+                                                               "categories": [
+                                                                   "New",
+                                                                   " Post",
+                                                                   " Test"
+                                                               ],
+                                                               "count": 0,
+                                                               "size": 0,
+                                                               "comment_page": "http://127.0.0.1:8000/api/posts/5836ca64-16d5-4b69-872a-41ca3ec25bf9/comments",
+                                                               "published": "2021-10-20T14:06:58.121854-06:00",
+                                                               "visibility": "public",
+                                                               "unlisted": 'true'
+                                                           }, '...'
+                                                       ]
+                                                   }
+                                                   })},
+        tags=['inbox'],
+        manual_parameters=[
+            openapi.Parameter(
+                'size', openapi.IN_QUERY, description='The size of the page to be returned', type=openapi.TYPE_INTEGER)
+        ]
+    )
     def get(self, request, *args, **kwargs):
+        """
+        Retrieve a paginated list of {authord_id}'s inbox.
+
+        Pagination settings are passed as url parameters: ~/author/{author_id}/inbox/?page=1&size=5
+        """
         paginator = PageNumberPaginationWithCount()
         author_id = self.kwargs.get('author_id')
         query_set = InboxItem.objects.filter(author_id=author_id)
@@ -220,7 +353,17 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
 
         return Response(data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        responses={
+            204: openapi.Response(description="Succesffuly POST an item to an author's inbox."),
+        },
+        tags=['inbox'])
     def post(self, request, author_id, *args, **kwargs):
+        """
+        Send an item to {author_id}'s inbox. For now, posts are the only accepted objects.
+
+        'post' is the only content_type that is supported at this time.
+        """
         try:
             content_type = request.data["content_type"]
             object_id = request.data["object_id"]
@@ -233,7 +376,15 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    @ swagger_auto_schema(
+        responses={
+            204: openapi.Response(description="Inbox successfully deleted."),
+        },
+        tags=['inbox'])
     def delete(self, request, *args, **kwargs):
+        """
+        Delete all items in {author_id}'s Inbox.
+        """
         try:
             author_id = self.kwargs.get('author_id')
             inbox = InboxItem.objects.filter(author_id=author_id)

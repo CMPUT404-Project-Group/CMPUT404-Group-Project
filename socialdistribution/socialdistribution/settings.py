@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'friendship',
     'crispy_forms',
+    'drf_yasg'
 ]
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
