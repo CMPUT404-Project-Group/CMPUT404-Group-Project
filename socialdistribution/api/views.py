@@ -147,12 +147,37 @@ def authors(request):
     return Response(data, status=status.HTTP_200_OK)
 
 class PostAPI(APIView):
+    """
+    Endpoint for getting, updating, creating or deleting posts on the server
+    """
+
     def get(self, request, post_id):
+        """
+        GETs and returns a serialized post object which matches with the post_id provided
+        """
         post = get_object_or_404(Post, pk=post_id)
         serializer = PostSerializer(post)
         return JsonResponse(serializer.data)
     
+    def put(self, request, *args, **kwargs):
+        """
+        PUTs a post creating an entry on the server at
+        the specified post id
+        """
+        post_id = kwargs.get('post_id')
+        request.data['id'] = post_id
+        serializer = PostSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return HttpResponse("Sucessfully created post\n")
+
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     def post(self, request, post_id):
+        """
+        Updates a post on the server which matches the given post id
+        """
         post = get_object_or_404(Post, pk=post_id)
         form = PostCreationForm(
             instance=post, data=request.POST, id=post_id, published=post.published, user=post.author)
@@ -162,6 +187,9 @@ class PostAPI(APIView):
         return HttpResponse("Failed to edit post")
     
     def delete(self, request, post_id):
+        """
+        DELETEs a post on the server which matches the given post id
+        """
         post = get_object_or_404(Post, pk=post_id)
         post.delete()
         return HttpResponse("Successfully deleted")
@@ -188,6 +216,9 @@ class PageNumberPaginationWithCount(PageNumberPagination):
 class Like_Post_API(APIView):
 
     def get(self, request, *args, **kwargs):
+        """
+        GETs and returns a list of likes on a post within the server which matches the given post id
+        """
         post_id = self.kwargs.get('post_id')
         query_set = Like.objects.filter(object_id=post_id)
 
@@ -199,6 +230,9 @@ class Like_Post_API(APIView):
 class Like_Comment_API(APIView):
 
     def get(self, request, *args, **kwargs):
+        """
+        GETs and returns a list of likes on a comment within the server which matches the given comment id
+        """
         comment_id = self.kwargs.get('comment_id')
         query_set = Like.objects.filter(object_id=comment_id)
 
@@ -208,8 +242,11 @@ class Like_Comment_API(APIView):
         return Response(data, status.HTTP_200_OK)
 
 class Liked_API(APIView):
-
+    
     def get(self, request, *args, **kwargs):
+        """
+        GETs and returns a list of every like object corresponding to a user on the server who matches the given author id
+        """
         author_id = self.kwargs.get('author_id')
         query_set = Like.objects.filter(author_id=author_id)
 
@@ -222,6 +259,9 @@ class Comment_API(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
 
     def get(self, request, *args, **kwargs):
+        """
+        GETs and returns a paginated list of comments which correspond to the post which matches the given post id
+        """
         paginator = PageNumberPaginationWithCount()
         author_id = self.kwargs.get('author_id')
         post_id = self.kwargs.get('post_id')
@@ -252,6 +292,9 @@ class Comment_API(generics.ListCreateAPIView):
         return Response(data, status=status.HTTP_200_OK)
     
     def post(self, request, *args, **kwargs):
+        """
+        Creates a comment on a post which is on the server and whose id matches the given post id. Authors the comment with the given author id
+        """
         author_id = self.kwargs.get('author_id')
         post_id = self.kwargs.get('post_id')
 
