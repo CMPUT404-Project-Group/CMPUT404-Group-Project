@@ -1,14 +1,11 @@
-<<<<<<< HEAD
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post
-=======
 import json
 import os
 
 import requests
 from requests.models import Response
 from api.models import Post
->>>>>>> integration
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -16,6 +13,7 @@ from django.http.response import HttpResponse, HttpResponseForbidden, HttpRespon
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login
 import logging
+from dotenv import load_dotenv
 
 load_dotenv()
 HOST_URL = os.getenv("HOST_URL")
@@ -81,7 +79,6 @@ def edit_post(request, post_id):
     else:
         return render(request, 'posts/edit_post.html', context)
 
-<<<<<<< HEAD
 @login_required
 def share_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
@@ -98,7 +95,6 @@ def share_post(request, post_id):
 
     return render(request, 'posts/share_post.html', context)
 
-=======
 def delete_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     user = request.user
@@ -110,7 +106,6 @@ def delete_post(request, post_id):
     else:
         post.delete()
         return render(request, 'app/index.html')
->>>>>>> integration
 
 def post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
@@ -239,8 +234,6 @@ def create_comment(request, post_id):
         form = CommentCreationForm()
 
     return render(request, 'comments/create_comment.html', {'form': form})
-<<<<<<< HEAD
-=======
 
 @login_required
 def inbox(request, author_id):
@@ -267,4 +260,3 @@ def inbox(request, author_id):
         return HttpResponse(status=req.status_code)
     else:
         return HttpResponseNotAllowed
->>>>>>> integration

@@ -3,12 +3,8 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from api.models import Comment, Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-<<<<<<< HEAD
 import logging
 
-=======
-import datetime
->>>>>>> integration
 
 class RegisterForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
