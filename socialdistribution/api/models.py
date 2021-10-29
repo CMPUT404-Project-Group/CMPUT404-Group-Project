@@ -1,7 +1,10 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, IntegrityError
+from django.db.models.constraints import UniqueConstraint
 from django.db.models.deletion import CASCADE
 from django.db.models.manager import BaseManager
 from django.contrib.contenttypes.models import ContentType
@@ -10,6 +13,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from dotenv import load_dotenv
 import os
 from uuid import uuid4
+import logging 
 
 load_dotenv()
 HOST_API_URL = os.getenv("HOST_API_URL")
@@ -52,7 +56,7 @@ class UserManager(BaseUserManager):
             email=self.normalize_email(email),
         )
 
-        user.is_active = SiteSetting.objects.get(setting="allow_join").value()
+        #user.is_active = SiteSetting.objects.get(setting="allow_join").value()
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -146,12 +150,15 @@ class PostBuilder():
         self.size = None
         self.visibility = None
         self.unlisted = None
+        self.shared_post = None
 
-    def set_post_content(self, title, categories, text_content=None, image_content=None):
+    def set_post_content(self, title, categories, text_content=None, image_content=None, shared_post=None, image_link=None):
         self.title = title
         self.categories = categories
         self.text_content = text_content
         self.image_content = image_content
+        self.shared_post = shared_post
+        self.image_link = image_link
 
     # TODO: Description is not very descriptive
     def set_post_metadata(self, author, visibility, unlisted):
@@ -176,13 +183,16 @@ class PostBuilder():
             content_type=self.content_type,
             text_content=self.text_content,
             image_content=self.image_content,
+            image_link=self.image_link,
             author=self.author,
             categories=self.categories,
             count=self.count,
             size=self.size,
             comment_page=self.comment_page,
             visibility=self.visibility,
-            unlisted=self.unlisted
+            unlisted=self.unlisted,
+            shared_post = self.shared_post
+
         )
 
         if not self.published:
@@ -207,20 +217,19 @@ class PostBuilder():
 
 class PostManager(models.Manager):
 
-    def create_post(self, author, categories, image_content, text_content, title, visibility, unlisted):
+    def create_post(self, author, categories, image_content, text_content, title, visibility, unlisted, image_link=None):
         post_builder = PostBuilder()
         post_builder.set_post_content(
-            title, categories, text_content, image_content)
+            title, categories, text_content, image_content, None, image_link)
         post_builder.set_post_metadata(author, visibility, unlisted)
 
         post = post_builder.get_post()
         post.save(using=self._db)
         return post
 
-    def edit_post(self, author, categories, image_content, text_content, title, visibility, unlisted, id, published):
-        post_builder = PostBuilder(id, published)
-        post_builder.set_post_content(
-            title, categories, text_content, image_content)
+    def share_post(self, author, text_content, title, categories, visibility, unlisted, shared_post):
+        post_builder = PostBuilder()
+        post_builder.set_post_content(title, categories, text_content, None, shared_post)
         post_builder.set_post_metadata(author, visibility, unlisted)
 
         post = post_builder.get_post()
@@ -229,8 +238,7 @@ class PostManager(models.Manager):
 
 # TODO: Specify uploadto field for image_content to post_imgs within project root
 # TODO: Upon adding comment model add comment as foreign key
-
-
+# TODO: Increment count upon commenting
 class Post(models.Model):
 
     class Visibility(models.TextChoices):
@@ -260,7 +268,8 @@ class Post(models.Model):
     content_type = models.CharField(
         max_length=255, choices=ContentType.choices)
     text_content = models.TextField(unique=False, blank=True)
-    image_content = models.ImageField(unique=False, blank=True)
+    image_content = models.ImageField(unique=False, blank=True, upload_to="images/")
+    image_link = models.TextField(unique=False, blank=True, null=True)
     author = models.ForeignKey(
         "User",
         on_delete=models.CASCADE
@@ -280,6 +289,7 @@ class Post(models.Model):
         max_length=255, choices=Visibility.choices, unique=False, blank=False, null=False, default=Visibility.PUBLIC)
     unlisted = models.BooleanField(
         unique=False, blank=False, null=False, default=False)
+    shared_post = models.ForeignKey("api.Post", on_delete=CASCADE)
 
     objects = PostManager()
 
@@ -291,12 +301,10 @@ class Post(models.Model):
 
 # TODO: Defaults to text/plain for contentType
 # TODO: Add posts or post_id to comment model
-
-
 class CommentManager(models.Manager):
 
     def create_comment(self, author, comment, post):
-
+        
         comment = Comment(
             type="comment",
             author=author,
@@ -308,7 +316,6 @@ class CommentManager(models.Manager):
         comment.save()
 
         return comment
-
 
 class Comment(models.Model):
     id = models.CharField(max_length=255, unique=True,
@@ -322,9 +329,10 @@ class Comment(models.Model):
     published = models.DateTimeField(
         unique=False, blank=False, null=False, auto_now_add=True)
     post = models.ForeignKey("Post", on_delete=CASCADE)
-
     objects = CommentManager()
 
+    class Meta:
+        ordering = ['published']
 
 class InboxManager(models.Manager):
     def create(self, author_id, content_object):
@@ -335,6 +343,42 @@ class InboxManager(models.Manager):
         inbox.save(using=self._db)
         return inbox
 
+#TODO: context is currently a placeholder
+class LikeManager(models.Manager):
+
+    def create_like(self, author, content_object):
+        summary = f"{author} liked {content_object}"
+
+        like = Like(
+            id=uuid4(),
+            context=HOST_API_URL,
+            summary=summary,
+            type='like',
+            author=author,
+            content_object=content_object
+        )
+
+        try:
+            like.save()
+        except IntegrityError:
+            return None
+
+        return like
+
+class Like(models.Model):
+    id = models.CharField(max_length=255, unique=True, null=False, blank=False, primary_key=True)
+    context = models.URLField(max_length=255, unique=False, null=False, blank=False)
+    summary = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    type = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    author = models.ForeignKey("User", on_delete=CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=CASCADE)
+    object_id = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    objects = LikeManager()
+
+    class Meta:
+        unique_together = (('content_type', 'object_id', 'author'))
 
 class Inbox(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -347,3 +391,4 @@ class Inbox(models.Model):
 
     class Meta:
         ordering = ['created_at']
+        

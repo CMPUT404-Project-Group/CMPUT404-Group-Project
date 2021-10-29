@@ -1,20 +1,24 @@
+from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
+from api.models import User, Post
 import json
 import os
-
 import requests
+from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
 from requests.models import Response
-from api.models import Post, User
+from rest_framework import serializers
+from api.models import User, Post, Comment, Like
+from api.serializers import PostSerializer
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.http.response import HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed
+from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from friendship.models import Follow, Friend, FriendshipRequest
 from django.urls import reverse
 from dotenv import load_dotenv
-from .forms import (CommentCreationForm, ManageProfileForm, PostCreationForm,
-                    RegisterForm)
+
 import logging
+from django.views import generic
 
 load_dotenv()
 HOST_URL = os.getenv("HOST_URL")
@@ -64,7 +68,7 @@ def create_post(request):
 
     return render(request, 'posts/create_post.html', {'form': form})
 
-
+@login_required
 def edit_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     user = request.user
@@ -80,6 +84,23 @@ def edit_post(request, post_id):
     else:
         return render(request, 'posts/edit_post.html', context)
 
+@login_required
+def share_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    context = {
+        'post': post}
+    if request.method == 'POST':
+        user = request.user
+        form = SharePostForm(data=request.POST, user=user, post=post)
+        if form.is_valid():
+            form.save()
+            return redirect('app:index')
+    else:
+        form = SharePostForm()
+
+    return render(request, 'posts/share_post.html', context)
+
+
 def delete_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     user = request.user
@@ -92,6 +113,7 @@ def delete_post(request, post_id):
         post.delete()
         return render(request, 'app/index.html')
 
+@login_required
 def post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     user = request.user
@@ -105,23 +127,37 @@ def post(request, post_id):
         'is_author': is_author}
 
     if request.method == 'GET':
+        if (request.GET.get('like-button')):
+            like_post(request, post_id)
         return render(request, 'posts/view_post.html', context)
 
     elif request.method == 'POST':
-        form = PostCreationForm(
-            data=request.POST, user=user, id=post_id, published=post.published)
-        if form.is_valid():
-            form.save()
+        data = request.POST.dict()
+        cookie = data.pop('csrfmiddlewaretoken')
+        query_set = Post.objects.filter(id=post_id)
+
+        posts_updated = query_set.update(**data)
+        if posts_updated == 0:
+            return HttpResponseBadRequest("Something unexpected has occured!")
 
         return redirect('app:index')
 
-
 def view_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    context = {'post': post}
 
-    return render(request, 'posts/view_post.html', context)
+    if (post.shared_post != None):
+        logging.error(post.shared_post)
+        original_post = get_object_or_404(Post, pk=shared_post.post.id)
+        context = {
+            'shared_post': post,
+            'original_post': original_post}
+        return render(request, 'posts/view_shared_post.html', context)
+    else:
+        context = {'post': post}
+        logging.error(post.shared_post)
+        return render(request, 'posts/view_post.html', context)
 
+      
 @login_required
 def view_profile(request):
     user = request.user
@@ -203,7 +239,6 @@ def unfollow(request, other_user_id):
 
         return redirect('app:view-other-user', other_user_id=other_user_id)
 
-
 @login_required
 def create_comment(request, post_id):
     if request.method == 'POST':
@@ -212,11 +247,46 @@ def create_comment(request, post_id):
         form = CommentCreationForm(data=request.POST, user=user, post=post)
         if form.is_valid():
             form.save()
+            post.count += 1
+            post.save()
             return redirect('app:index')
     else:
         form = CommentCreationForm()
 
     return render(request, 'comments/create_comment.html', {'form': form})
+
+def comments(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    comments = Comment.objects.all().filter(post=post)
+
+    context = {
+        'comments': comments,
+    }
+
+    if (request.GET.get('like-button')):
+        like_comment(request, request.GET.get('like-button'))
+
+    return render(request, "comments/comments.html", context)
+
+@login_required
+def like_post(request, post_id):
+    user = request.user
+    post = get_object_or_404(Post, pk=post_id)
+
+    like = Like.objects.create_like(
+        author=user,
+        content_object=post
+    )
+
+@login_required
+def like_comment(request, comment_id):
+    user = request.user
+    comment = get_object_or_404(Comment, pk=comment_id)
+
+    like = Like.objects.create_like(
+        author=user,
+        content_object=comment
+    )
 
 @login_required
 def inbox(request, author_id):
@@ -234,12 +304,25 @@ def inbox(request, author_id):
         if size:
             url += '&size=%s' % size
 
-        req = requests.get(url)
+        #req = requests.get(url)
         res = json.loads(req.content.decode('utf-8'))
         res['author'] = request.path.split('/')[3]
         return render(request, 'app/inbox.html', {'res': res})
     elif request.method == "DELETE":
-        req = requests.delete(url)
-        return HttpResponse(status=req.status_code)
+        #req = requests.delete(url)
+        return #HttpResponse(status=req.status_code)
     else:
         return HttpResponseNotAllowed
+
+
+class PostListView(generic.ListView):
+    model = Post
+    template_name = 'posts/post_list.html'
+
+    def get(self, request):
+        queryset = Post.objects.filter(visibility="public", unlisted=0)[:20]
+        serializer = PostSerializer(queryset, many=True)
+
+        return render(request, self.template_name, {'post_list': serializer.data})
+      
+
