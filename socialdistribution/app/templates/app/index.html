@@ -54,11 +54,15 @@
 									posted by {{ post.shared_post.author }} on {{ post.shared_post.published }}
 									</small> 
 								{% if post.shared_post.text_content %}
-									<p> {{ post.shared_post.text_content }} </p>
+									<p> {{ post.shared_post.text_content | urlize }} </p>
 								{% endif %}
 							
 								{% if post.shared_post.image_content %}
 									<img alt="User uploaded image" src={{ post.shared_post.image_content.url }}></img>
+								{% endif %}
+
+								{% if post.shared_post.image_link %}
+									<a href={{ post.shared_post.image_link }}><img src={{ post.shared_post.image_link }} alt="User image link" ></a>
 								{% endif %}
 								<br/>
 							</div>
@@ -71,11 +75,16 @@
 						posted by {{ post.author }} on {{ post.published }}
 						</small> 
 					{% if post.text_content %}
-						<p> {{ post.text_content }} </p>
+						<p> {{ post.text_content | urlize }} </p>
 					{% endif %}
 				
 					{% if post.image_content %}
 						<img alt="User uploaded image" src={{ post.image_content.url }}></img>
+					{% endif %}
+
+					
+					{% if post.image_link %}
+						<a href={{ post.image_link }}><img src={{ post.image_link }} alt="User image link" ></a>
 					{% endif %}
 					<br/>
 				</div>
