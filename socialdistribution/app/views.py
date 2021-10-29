@@ -243,3 +243,4 @@ class PostListView(generic.ListView):
         serializer = PostSerializer(queryset, many=True)
 
         return render(request, self.template_name, {'post_list': serializer.data})
+      
