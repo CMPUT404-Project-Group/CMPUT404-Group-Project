@@ -212,7 +212,7 @@ class PostBuilder():
 
 class PostManager(models.Manager):
 
-    def create_post(self, author, categories, image_content, image_link, text_content, title, visibility, unlisted):
+    def create_post(self, author, categories, image_content, text_content, title, visibility, unlisted, image_link=None):
         post_builder = PostBuilder()
         post_builder.set_post_content(
             title, categories, text_content, image_content, image_link)
@@ -254,7 +254,7 @@ class Post(models.Model):
         max_length=255, choices=ContentType.choices)
     text_content = models.TextField(unique=False, blank=True)
     image_content = models.ImageField(unique=False, blank=True, upload_to="images/")
-    image_link = models.TextField(unique=False, blank=True)
+    image_link = models.TextField(unique=False, blank=True, null=True)
     author = models.ForeignKey(
         "User",
         on_delete=models.CASCADE
@@ -315,6 +315,9 @@ class Comment(models.Model):
     post = models.ForeignKey("Post", on_delete=CASCADE)
 
     objects = CommentManager()
+
+    class Meta:
+        ordering = ['published']
 
 class InboxManager(models.Manager):
     def create(self, author_id, content_object):
