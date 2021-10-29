@@ -32,8 +32,7 @@ class PostCreationForm(forms.ModelForm):
 
     class Meta:
         model = Post
-        fields = ('title', 'text_content', 'image_content',
-                  'categories', 'visibility')
+        fields = ('title', 'text_content', 'image_content', 'image_link', 'categories', 'visibility')
 
     def __init__(self, *args, **kwargs):
         self.user = None
@@ -53,6 +52,7 @@ class PostCreationForm(forms.ModelForm):
                 categories=self.cleaned_data['categories'],
                 image_content=self.cleaned_data["image_content"],
                 text_content=self.cleaned_data["text_content"],
+                image_link=self.cleaned_data["image_link"],
                 title=self.cleaned_data["title"],
                 visibility=self.cleaned_data["visibility"],
                 unlisted=False
