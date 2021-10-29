@@ -1,5 +1,6 @@
 import os
 import json
+from django.db.models import aggregates, query
 from dotenv import load_dotenv
 import rest_framework.status as status
 from django.http import JsonResponse
@@ -17,10 +18,11 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Inbox as InboxItem
-from .models import Post, User
-from .serializers import PostSerializer, UserSerializer
+from .models import Post, User, Like, Comment
+from .serializers import LikeSerializer, LikedSerializer, PostSerializer, UserSerializer, CommentSerializer
 
 load_dotenv()
 HOST_API_URL = os.getenv("HOST_API_URL")
@@ -100,6 +102,89 @@ class PageNumberPaginationWithCount(PageNumberPagination):
                     '?', '?page=1&')  # need to correct route for front end pagination to work
         return response
 
+class Like_Post_API(APIView):
+
+    def get(self, request, *args, **kwargs):
+        post_id = self.kwargs.get('post_id')
+        query_set = Like.objects.filter(object_id=post_id)
+
+        serializer = LikeSerializer(query_set, many=True)
+        data = serializer.data
+
+        return Response(data, status.HTTP_200_OK)
+
+class Like_Comment_API(APIView):
+
+    def get(self, request, *args, **kwargs):
+        comment_id = self.kwargs.get('comment_id')
+        query_set = Like.objects.filter(object_id=comment_id)
+
+        serializer = LikeSerializer(query_set, many=True)
+        data = serializer.data
+
+        return Response(data, status.HTTP_200_OK)
+
+class Liked_API(APIView):
+
+    def get(self, request, *args, **kwargs):
+        author_id = self.kwargs.get('author_id')
+        query_set = Like.objects.filter(author_id=author_id)
+
+        serializer = LikedSerializer(query_set, many=True)
+        data = serializer.data
+
+        return Response(data, status.HTTP_200_OK)
+
+class Comment_API(generics.ListCreateAPIView):
+    serializer_class = CommentSerializer
+
+    def get(self, request, *args, **kwargs):
+        paginator = PageNumberPaginationWithCount()
+        author_id = self.kwargs.get('author_id')
+        post_id = self.kwargs.get('post_id')
+
+        query_set = Comment.objects.filter(post_id=post_id)
+
+        size = request.query_params.get('size', 10)
+        page = request.query_params.get('page', 1)
+        paginator.page_size = size
+        paginator.page = page
+        
+        paginated_qs = paginator.paginate_queryset(query_set, request)
+
+        items = []
+        for item in paginated_qs:
+            serializer = CommentSerializer(item)
+            items.append(serializer.data)
+        
+        paginated_response = paginator.get_paginated_response(paginated_qs)
+        data = {
+            'type': 'comment',
+            'prev': paginated_response.data.get('previous'), 'size': size,
+            'page': paginator.get_page_number(request, paginated_qs),
+            'total_pages': paginated_response.data.get('total_pages'),
+            'items': items
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+    
+    def post(self, request, *args, **kwargs):
+        author_id = self.kwargs.get('author_id')
+        post_id = self.kwargs.get('post_id')
+
+        request.data['post'] = post_id
+        request.data['author'] = author_id
+
+        serializer = CommentSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            post = get_object_or_404(Post, pk=post_id)
+            post.count += 1
+            post.save()
+            return Response(status.HTTP_204_NO_CONTENT)
+
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = PostSerializer
