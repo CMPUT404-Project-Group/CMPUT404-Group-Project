@@ -262,7 +262,7 @@ class Post(models.Model):
     content_type = models.CharField(
         max_length=255, choices=ContentType.choices)
     text_content = models.TextField(unique=False, blank=True)
-    image_content = models.ImageField(unique=False, blank=True)
+    image_content = models.ImageField(unique=False, blank=True, upload_to="images/")
     author = models.ForeignKey(
         "User",
         on_delete=models.CASCADE
