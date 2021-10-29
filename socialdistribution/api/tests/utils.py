@@ -23,7 +23,7 @@ class TestUtils():
             text_content=text_content,
             title=title,
             visibility=visibility,
-            unlisted=unlisted
+            unlisted=unlisted,
         )
     
     def get_test_comment(author=None, post=None, comment="DEFAULT-TEXT"):

@@ -3,7 +3,8 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from api.models import Comment, Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-import datetime
+import logging
+
 
 class RegisterForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
@@ -40,6 +41,7 @@ class PostCreationForm(forms.ModelForm):
 
         if "user" in kwargs:
             self.user = kwargs.pop("user")
+
         if "data" in kwargs and "image" in kwargs['data']:
             self.image = kwargs['data']['image_content']
 
@@ -57,8 +59,38 @@ class PostCreationForm(forms.ModelForm):
                 visibility=self.cleaned_data["visibility"],
                 unlisted=False
             )
-            
 
+class SharePostForm(forms.ModelForm):
+
+    class Meta:
+        model = Post
+        fields = ('text_content', 'categories', 'visibility')
+    
+    def __init__(self, *args, **kwargs):
+        self.user = None
+        self.post = None
+
+        if "user" in kwargs:
+            self.user = kwargs.pop("user")
+        if "post" in kwargs:
+            self.post = kwargs.pop("post")
+        super(SharePostForm, self).__init__(*args, **kwargs)
+    
+    def save(self, commit=True):
+        assert self.user, "User is not defined"
+        assert self.post, "Post to be shared is not defined"
+
+        new_shared_post = Post.objects.share_post(
+                author=self.user,
+                text_content=self.cleaned_data["text_content"],
+                title="{} shared a post".format(self.user),
+                categories=self.cleaned_data['categories'],
+                visibility=self.cleaned_data["visibility"],
+                unlisted=False,
+                shared_post=self.post
+        )
+
+        return new_shared_post
 
 class ManageProfileForm(UserChangeForm):
     github = forms.CharField(max_length=30, required=False)
@@ -97,3 +129,4 @@ class CommentCreationForm(forms.ModelForm):
         )
 
         return comment
+
