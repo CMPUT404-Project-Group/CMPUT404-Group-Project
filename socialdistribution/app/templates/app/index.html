@@ -74,18 +74,21 @@
 						<small>
 						posted by {{ post.author }} on {{ post.published }}
 						</small> 
-					{% if post.text_content %}
-						<p> {{ post.text_content | urlize }} </p>
-					{% endif %}
-				
-					{% if post.image_content %}
-						<img alt="User uploaded image" src={{ post.image_content.url }}></img>
-					{% endif %}
-
 					
-					{% if post.image_link %}
-						<a href={{ post.image_link }}><img src={{ post.image_link }} alt="User image link" ></a>
-					{% endif %}
+						<br>
+							{% if post.text_content %}
+								<p> {{ post.text_content | urlize }} </p>
+							{% endif %}
+						
+							{% if post.image_content %}
+								<img alt="User uploaded image" src={{ post.image_content.url }}></img>
+							{% endif %}
+
+							
+							{% if post.image_link %}
+								<a href={{ post.image_link }}><img src={{ post.image_link }} alt="User image link" ></a>
+							{% endif %}
+						<br/>
 					<br/>
 				</div>
 			{% endif %}
