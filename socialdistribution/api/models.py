@@ -216,17 +216,6 @@ class PostManager(models.Manager):
         post = post_builder.get_post()
         post.save(using=self._db)
         return post
-
-    def edit_post(self, author, categories, image_content, text_content, title, visibility, unlisted, id, published):
-        post_builder = PostBuilder(id, published)
-        post_builder.set_post_content(
-            title, categories, text_content, image_content)
-        post_builder.set_post_metadata(author, visibility, unlisted)
-
-        post = post_builder.get_post()
-        post.save(using=self._db)
-        return post
-
 # TODO: Specify uploadto field for image_content to post_imgs within project root
 # TODO: Upon adding comment model add comment as foreign key
 
