@@ -37,26 +37,18 @@ class PostCreationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = None
-        self.id = None
         self.image = None
 
         if "user" in kwargs:
             self.user = kwargs.pop("user")
-        if "id" in kwargs:
-            self.id = kwargs.pop("id")
         if "data" in kwargs and "image" in kwargs['data']:
             self.image = kwargs['data']['image_content']
-        if "published" in kwargs:
-            self.published = kwargs.pop("published")
 
         super(PostCreationForm, self).__init__(*args, **kwargs)
 
     # TODO: Unlisted always false
     def save(self, commit=True):
-        assert self.user, "User is not defined"
-
-        if not self.id:
-            return Post.objects.create_post(
+        return Post.objects.create_post(
                 author=self.user,
                 categories=self.cleaned_data['categories'],
                 image_content=self.cleaned_data["image_content"],
@@ -65,18 +57,7 @@ class PostCreationForm(forms.ModelForm):
                 visibility=self.cleaned_data["visibility"],
                 unlisted=False
             )
-        else:
-            return Post.objects.edit_post(
-                author=self.user,
-                categories=self.cleaned_data['categories'],
-                image_content=self.image,
-                text_content=self.cleaned_data["text_content"],
-                title=self.cleaned_data["title"],
-                visibility=self.cleaned_data['visibility'],
-                unlisted=False,
-                id=self.id,
-                published=self.published
-            )
+            
 
 
 class ManageProfileForm(UserChangeForm):
