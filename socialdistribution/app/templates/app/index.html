@@ -3,30 +3,61 @@
 {% block title %}SocialDistribution{% endblock %}
 
 {% block content %}
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{%url 'app:index'%}">SocialDistribution</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page"  href="{%url 'app:index'%}">Home</a>
-                </li>
-                <li class="nav-item active">
-                    <a class="nav-link" href="{% url 'app:create-post' %}">Create a post</a>
-                </li>
-                <li class="nav-item active">
-                    <a class="nav-link" href="{% url 'app:view-profile' %}">Profile</a>
-                </li>
-                <li class="nav-item active">
-                    <a class="nav-link" href="{% url 'app:logout' %}">logout</a>
-                </li>
-                </ul>
-            </div>
-            </div>
-        </nav>
-    <h1>Hello World, Welcome To SocialDistribution</h1>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+	<div class="container-fluid">
+		<a class="navbar-brand" href="{%url 'app:index'%}">SocialDistribution</a>
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+			aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<div class="collapse navbar-collapse" id="navbarNav">
+			<ul class="navbar-nav">
+				<li class="nav-item">
+					<a class="nav-link active" aria-current="page" href="{%url 'app:index'%}">Home</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" aria-current="page" href="{%url 'app:inbox' user.id%}?page=1&size=5">Inbox</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="{% url 'app:post-list' %}">Public posts</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="{% url 'app:create-post' %}">Create a Post</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="{% url 'app:view-profile' %}">Profile</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="{% url 'app:logout' %}">Logout</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+</nav>
 
+<section>
+    <h1>Posts</h1>
+    <ul>
+        {% for post in stream_posts %}
+            <div><a href="{% url 'app:posts' post.id %}">{{ post.title }}</a> 
+                <br>
+                    <small>
+                    posted by {{ post.author }} on {{ post.published }}
+                    </small> 
+                <br/>
+                    {{ post.text_content }}
+                <br>
+                {% if post.text_content %}
+                    <p> {{ post.text_content }} </p>
+                {% endif %}
+    
+                {% if post.image_content %}
+                    <img alt="User uploaded image" src={{ post.image_content.url }}></img>
+                {% endif %}
+                <br/>
+            </div>
+            <br><br/>
+        {% endfor %}
+    </ul>
+</section>
 {% endblock %}

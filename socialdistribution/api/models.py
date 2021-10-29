@@ -1,9 +1,15 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, IntegrityError
+from django.db.models.constraints import UniqueConstraint
 from django.db.models.deletion import CASCADE
 from django.db.models.manager import BaseManager
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+
 from dotenv import load_dotenv
 import os
 from uuid import uuid4
@@ -49,7 +55,7 @@ class UserManager(BaseUserManager):
             email=self.normalize_email(email),
         )
 
-        user.is_active = SiteSetting.objects.get(setting="allow_join").value()
+        #user.is_active = SiteSetting.objects.get(setting="allow_join").value()
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -215,19 +221,9 @@ class PostManager(models.Manager):
         post = post_builder.get_post()
         post.save(using=self._db)
         return post
-
-    def edit_post(self, author, categories, image_content, text_content, title, visibility, unlisted, id, published):
-        post_builder = PostBuilder(id, published)
-        post_builder.set_post_content(
-            title, categories, text_content, image_content)
-        post_builder.set_post_metadata(author, visibility, unlisted)
-
-        post = post_builder.get_post()
-        post.save(using=self._db)
-        return post
-
 # TODO: Specify uploadto field for image_content to post_imgs within project root
 # TODO: Upon adding comment model add comment as foreign key
+# TODO: Increment count upon commenting
 class Post(models.Model):
 
     class Visibility(models.TextChoices):
@@ -284,34 +280,96 @@ class Post(models.Model):
     def __str__(self):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
 
-#TODO: Defaults to text/plain for contentType
-#TODO: Add posts or post_id to comment model
-class CommentManager(models.Manager):
-    
-    def create_comment(self, author, comment, post):
+    class Meta:
+        ordering = ['published']
 
+# TODO: Defaults to text/plain for contentType
+# TODO: Add posts or post_id to comment model
+class CommentManager(models.Manager):
+
+    def create_comment(self, author, comment, post):
+        
         comment = Comment(
             type="comment",
             author=author,
             comment=comment,
             content_type="text/plain",
             post=post,
-            id = uuid4()
+            id=uuid4()
         )
         comment.save()
 
         return comment
-        
 
 class Comment(models.Model):
-    id = models.CharField(max_length=255, unique=True, null=False, blank=False, primary_key=True)
-    type = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    id = models.CharField(max_length=255, unique=True,
+                          null=False, blank=False, primary_key=True)
+    type = models.CharField(max_length=255, unique=False,
+                            null=False, blank=False)
     author = models.ForeignKey("User", on_delete=models.CASCADE)
     comment = models.TextField(unique=False, blank=False, null=False)
-    content_type = models.CharField(max_length=255, unique=False, null=False, blank=False)
-    published = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
+    content_type = models.CharField(
+        max_length=255, unique=False, null=False, blank=False)
+    published = models.DateTimeField(
+        unique=False, blank=False, null=False, auto_now_add=True)
     post = models.ForeignKey("Post", on_delete=CASCADE)
-    
 
     objects = CommentManager()
-    
+
+class InboxManager(models.Manager):
+    def create(self, author_id, content_object):
+        inbox = self.model(
+            author_id=author_id,
+            content_object=content_object,
+        )
+        inbox.save(using=self._db)
+        return inbox
+
+#TODO: context is currently a placeholder
+class LikeManager(models.Manager):
+
+    def create_like(self, author, content_object):
+        summary = f"{author} liked {content_object}"
+
+        like = Like(
+            id=uuid4(),
+            context=HOST_API_URL,
+            summary=summary,
+            type='like',
+            author=author,
+            content_object=content_object
+        )
+
+        try:
+            like.save()
+        except IntegrityError:
+            return None
+
+        return like
+
+class Like(models.Model):
+    id = models.CharField(max_length=255, unique=True, null=False, blank=False, primary_key=True)
+    context = models.URLField(max_length=255, unique=False, null=False, blank=False)
+    summary = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    type = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    author = models.ForeignKey("User", on_delete=CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=CASCADE)
+    object_id = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    objects = LikeManager()
+
+    class Meta:
+        unique_together = (('content_type', 'object_id', 'author'))
+
+class Inbox(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    created_at = models.DateTimeField(
+        unique=False, blank=False, null=False, auto_now_add=True)
+    objects = InboxManager()
+
+    class Meta:
+        ordering = ['created_at']
