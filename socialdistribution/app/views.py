@@ -320,6 +320,12 @@ class PostListView(generic.ListView):
         queryset = Post.objects.filter(visibility="public", unlisted=0)[:20]
         serializer = PostSerializer(queryset, many=True)
 
+        for post in serializer.data:
+            post_id = post['id']
+            url = f'http://127.0.0.1:8000/app/posts/{post_id}'
+            post['source'] = url
+            post['origin'] = url
+        
         return render(request, self.template_name, {'post_list': serializer.data})
       
 
