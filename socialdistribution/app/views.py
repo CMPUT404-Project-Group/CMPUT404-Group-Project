@@ -3,7 +3,9 @@ import os
 
 import requests
 from requests.models import Response
+from rest_framework import serializers
 from api.models import Post
+from api.serializers import PostSerializer
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -15,6 +17,7 @@ from dotenv import load_dotenv
 from .forms import (CommentCreationForm, ManageProfileForm, PostCreationForm,
                     RegisterForm)
 import logging
+from django.views import generic
 
 load_dotenv()
 HOST_URL = os.getenv("HOST_URL")
@@ -230,3 +233,14 @@ def inbox(request, author_id):
         return HttpResponse(status=req.status_code)
     else:
         return HttpResponseNotAllowed
+
+class PostListView(generic.ListView):
+    model = Post
+    template_name = 'posts/post_list.html'
+
+    def get(self, request):
+        queryset = Post.objects.filter(visibility="public", unlisted=0)[:20]
+        serializer = PostSerializer(queryset, many=True)
+
+        return render(request, self.template_name, {'post_list': serializer.data})
+      
