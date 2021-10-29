@@ -1,19 +1,23 @@
 import json
 import os
-from api.models import Post
+import requests
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
+from requests.models import Response
+from rest_framework import serializers
 from api.models import User, Post, Comment, Like
+from api.serializers import PostSerializer
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.http.response import HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed
+from django.http.response import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from friendship.models import Follow, Friend, FriendshipRequest
 from django.urls import reverse
 from dotenv import load_dotenv
-from .forms import (CommentCreationForm, ManageProfileForm, PostCreationForm,
-                    RegisterForm)
+
 import logging
+from django.views import generic
+
 
 load_dotenv()
 HOST_URL = os.getenv("HOST_URL")
@@ -79,6 +83,7 @@ def edit_post(request, post_id):
     else:
         return render(request, 'posts/edit_post.html', context)
 
+@login_required
 def delete_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     user = request.user
@@ -110,10 +115,13 @@ def post(request, post_id):
         return render(request, 'posts/view_post.html', context)
 
     elif request.method == 'POST':
-        form = PostCreationForm(
-            data=request.POST, user=user, id=post_id, published=post.published)
-        if form.is_valid():
-            form.save()
+        data = request.POST.dict()
+        cookie = data.pop('csrfmiddlewaretoken')
+        query_set = Post.objects.filter(id=post_id)
+
+        posts_updated = query_set.update(**data)
+        if posts_updated == 0:
+            return HttpResponseBadRequest("Something unexpected has occured!")
 
         return redirect('app:index')
 
@@ -184,7 +192,6 @@ def unfollow(request, other_user_id):
 
         return redirect('app:view-other-user', other_user_id=other_user_id)
 
-
 @login_required
 def create_comment(request, post_id):
     if request.method == 'POST':
@@ -214,8 +221,6 @@ def comments(request, post_id):
 
     return render(request, "comments/comments.html", context)
 
-    
-
 @login_required
 def like_post(request, post_id):
     user = request.user
@@ -225,8 +230,6 @@ def like_post(request, post_id):
         author=user,
         content_object=post
     )
-
-
 
 @login_required
 def like_comment(request, comment_id):
@@ -263,3 +266,16 @@ def inbox(request, author_id):
         return #HttpResponse(status=req.status_code)
     else:
         return HttpResponseNotAllowed
+
+
+class PostListView(generic.ListView):
+    model = Post
+    template_name = 'posts/post_list.html'
+
+    def get(self, request):
+        queryset = Post.objects.filter(visibility="public", unlisted=0)[:20]
+        serializer = PostSerializer(queryset, many=True)
+
+        return render(request, self.template_name, {'post_list': serializer.data})
+      
+

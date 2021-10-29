@@ -17,5 +17,6 @@ urlpatterns = [
     path('profile/<str:other_user_id>', views.view_other_user, name='view-other-user'),
     path('follow/<str:other_user_id>', views.follow, name='action-follow'),
     path('unfollow/<str:other_user_id>', views.unfollow, name='action-unfollow'),
-    path('author/<str:author_id>/inbox/', views.inbox, name='inbox')
+    path('author/<str:author_id>/inbox/', views.inbox, name='inbox'),
+    path('posts/', views.PostListView.as_view(), name='post-list'),
 ]
