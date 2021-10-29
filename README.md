@@ -2,7 +2,7 @@
 
 Group Project for CMPUT404; A distributed social networking webapp.
 
-LICENSE'D under the Apache license by Chase-Warwick, Dalton Ronan.
+LICENSE'D under the Apache license by Anthony Ma, Dalton Ronan, Xueying Luo, Chase Warwick, Zijian Zhou.
 
 ## Development
 
