@@ -56,7 +56,7 @@ class UserManager(BaseUserManager):
             email=self.normalize_email(email),
         )
 
-        #user.is_active = SiteSetting.objects.get(setting="allow_join").value()
+        user.is_active = SiteSetting.objects.get(setting="allow_join").value()
         user.set_password(password)
         user.save(using=self._db)
         return user

@@ -147,7 +147,7 @@ def view_post(request, post_id):
 
     if (post.shared_post != None):
         logging.error(post.shared_post)
-        original_post = get_object_or_404(Post, pk=shared_post.post.id)
+        original_post = get_object_or_404(Post, pk=post.shared_post.post.id)
         context = {
             'shared_post': post,
             'original_post': original_post}
@@ -290,13 +290,13 @@ def inbox(request, author_id):
         if size:
             url += '&size=%s' % size
 
-        #req = requests.get(url)
+        req = requests.get(url)
         res = json.loads(req.content.decode('utf-8'))
         res['author'] = request.path.split('/')[3]
         return render(request, 'app/inbox.html', {'res': res})
     elif request.method == "DELETE":
-        #req = requests.delete(url)
-        return #HttpResponse(status=req.status_code)
+        req = requests.delete(url)
+        return HttpResponse(status=req.status_code)
     else:
         return HttpResponseNotAllowed
 
