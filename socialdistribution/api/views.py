@@ -7,6 +7,15 @@ from dotenv import load_dotenv
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
+from django.http.response import HttpResponse
+from rest_framework.views import APIView
+from app.forms import PostCreationForm
+from .models import User, Post
+from .serializers import PostSerializer, UserSerializer
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -135,14 +144,25 @@ def authors(request):
 
     return Response(data, status=status.HTTP_200_OK)
 
-
-@ api_view(["GET"])
-def posts(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-
-    serializer = PostSerializer(post)
-    return Response(serializer.data)
-
+class PostAPI(APIView):
+    def get(self, request, post_id):
+        post = get_object_or_404(Post, pk=post_id)
+        serializer = PostSerializer(post)
+        return JsonResponse(serializer.data)
+    
+    def post(self, request, post_id):
+        post = get_object_or_404(Post, pk=post_id)
+        form = PostCreationForm(
+            instance=post, data=request.POST, id=post_id, published=post.published, user=post.author)
+        if form.is_valid():
+            form.save()
+            return HttpResponse("Sucessfully edited post")
+        return HttpResponse("Failed to edit post")
+    
+    def delete(self, request, post_id):
+        post = get_object_or_404(Post, pk=post_id)
+        post.delete()
+        return HttpResponse("Successfully deleted")
 
 class PageNumberPaginationWithCount(PageNumberPagination):
     # Q: https://stackoverflow.com/q/40985248 (Stupid.Fat.Cat)
