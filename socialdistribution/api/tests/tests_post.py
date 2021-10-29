@@ -1,7 +1,7 @@
 
 from django.test import TestCase
 
-from ..models import Post, PostBuilder
+from ..models import Post, PostBuilder, User
 from .utils import TestUtils
 
 
@@ -33,3 +33,39 @@ class PostBuilderTest(TestCase):
         post = self.post_builder.get_post()
 
         self.assertIsInstance(post, Post)
+
+    def test_share_post(self):
+        author = TestUtils.get_test_user()
+        visibility = Post.Visibility.PUBLIC
+        unlisted = False
+
+        test_shared_post = Post.objects.create_post(
+            author, 
+             'shared categories', 
+             None,
+             "Test shared post",
+            "Shared post", 
+            visibility, 
+            unlisted)
+
+        new_author = User.objects.create_user(
+            email="newguy@gmail.com",
+            displayName="New author",
+            github="newguy",
+            password="password",
+            type=type
+        )
+    
+
+        new_post = Post.objects.share_post(
+            new_author, 
+            "test", 
+            "{} shared a post".format(new_author), 
+            'New categories', 
+            visibility, 
+            unlisted, 
+            test_shared_post)
+
+        self.assertEqual(new_post.shared_post, test_shared_post)
+        self.assertEqual(new_post.author, new_author)
+        self.assertEqual(new_post.shared_post.author, author)
