@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title%}Create Post{% endblock %}
+{% block title%}Edit Post{% endblock %}
 
 {% block content%}
 
@@ -23,6 +23,10 @@
                         <div class="form-outline mb-2">
                             <label for="id_image_content" class="form-label h6">Image Attachment</label>
                             <input id="id_image_content" class="form-control-file" type="file" name="image_content"></input>
+                        </div>
+                        <div class="form-outline mb-2 text-start">
+                            <label for="id_image_link" class="form-label h6">Image Link</label>
+                            <input id="id_image_link" class="form-control" type="text" name="image_link" maxlength="300" value="{{post.image_link}}"></input>
                         </div>
                         <div class="form-outline mb-2 text-start">
                             <label for="id_categories" class="form-label h6">Tags (Comma Seperated)</label>

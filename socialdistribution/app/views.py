@@ -135,6 +135,8 @@ def post(request, post_id):
         cookie = data.pop('csrfmiddlewaretoken')
         query_set = Post.objects.filter(id=post_id)
 
+        logging.error(data)
+
         posts_updated = query_set.update(**data)
         if posts_updated == 0:
             return HttpResponseBadRequest("Something unexpected has occured!")

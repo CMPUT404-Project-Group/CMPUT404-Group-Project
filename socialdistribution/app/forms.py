@@ -38,7 +38,6 @@ class PostCreationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = None
         self.image = None
-
         if "user" in kwargs:
             self.user = kwargs.pop("user")
 
@@ -49,6 +48,7 @@ class PostCreationForm(forms.ModelForm):
 
     # TODO: Unlisted always false
     def save(self, commit=True):
+        logging.error(self.cleaned_data)
         return Post.objects.create_post(
                 author=self.user,
                 categories=self.cleaned_data['categories'],
