@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Inbox - {{user}}{% endblock %}
+
+{% block content %}
+
+{% block javascript %}
+<script>
+  const changeLabel = (id) => {
+    document.getElementById(id).classList.contains('collapsed') ?
+      document.getElementById(id).value = ("Show") :
+      document.getElementById(id).value = ("Hide")
+  }
+
+  const clearInbox = () => {
+    $.ajaxSetup({
+      headers: { "X-CSRFToken": "{{csrf_token}}" }
+    });
+    $.ajax({
+      type: 'DELETE',
+      url: "{%url 'app:inbox' res.author%}",
+      success: (response) => {
+        $.ajax({
+          type: 'GET',
+          url: "{%url 'app:inbox' res.author%}",
+          success: () => { location.reload() },
+          error: (response) => { console.log(response) }
+        })
+      },
+      error: (response) => { console.log(response) }
+    })
+
+  }
+</script>
+{% endblock %}
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{%url 'app:index'%}">SocialDistribution</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="{%url 'app:index'%}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="{%url 'app:inbox' user.id%}?page=1&size=5">Inbox</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'app:post-list' %}">Public posts</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'app:create-post' %}">Create a Post</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'app:view-profile' %}">Profile</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'app:logout' %}">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- clearModal for clearing inbox -->
+<div class="modal fade" id="clearModal" tabindex="-1" aria-labelledby="clearModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="clearModal">Clear Inbox</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you would like to clear all items in your inbox?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="clearInbox()">Yes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pt-5">
+  {%if res.items%}
+  <div class="container py-2 h-100">
+    <div class="row d-felx justify-content-center align-items-center h-100">
+      <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 75%">
+        <div class="d-flex justify-content-end">
+          <button type="button" class="btn btn-outline-danger float-end" data-bs-toggle="modal"
+            data-bs-target="#clearModal">Clear Inbox</button>
+        </div>
+        {% for item in res.items %}
+        <li class="py-2" style="list-style: none;">
+          <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
+            <div class="card-header d-inline-flex justify-content-between"
+              style="border-radius: 0.5rem; border: 0; background-color: #9cb1d627;">
+              <h5>
+                {{item.author.displayName}} sent you a post.
+              </h5>
+              <input class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#postData{{item.id}}"
+                aria-expanded="false" aria-controls="postData{{item.id}}" value="Show" id="#postData{{item.id}}"
+                onclick="changeLabel(this.id)">
+            </div>
+            <div class="collapse" id="postData{{item.id}}">
+              <div class="card-body">
+                <h6 class="card-text">{{item.title}}</h6>
+                <p class="card-text">{{item.content}}</p>
+                <div class="category">
+                  <p class="text-muted mb-0"><small>Categories:</small></p>
+                  {% for c in item.categories %}
+                  <span class="badge bg-dark">{{ c }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="container py-2 h-100">
+    <div class="row d-felx justify-content-center align-items-center h-100">
+      <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 75%">
+        <div class="flex-row d-inline-flex w-100 align-items-baseline justify-content-between">
+          <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm justify-content-right">
+              {% if res.prev == None %}
+              <li class="page-item disabled">
+                <a class="page-link" href="{{res.prev}}" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+              {% elif res.prev != None %}
+              <li class="page-item">
+                <a class="page-link" href="{{res.prev}}" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+              {% endif %}
+              {% for page in res.total_pages %}
+              <li class="page-item"><a class="page-link" href="?page={{page}}&size={{res.size}}">{{page}}</a></li>
+              {% endfor %}
+              {% if res.next == None %}
+              <li class="page-item disabled">
+                <a class="page-link" href="{{res.next}}" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+              {% elif res.next != None %}
+              <li class="page-item">
+                <a class="page-link" href="{{res.next}}" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+              {% endif %}
+            </ul>
+          </nav>
+          <div class="dropdown d-inline-flex">
+            <a class="btn btn-light btn-sm dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              {{res.size}}
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink" style="min-width: 0px;">
+              <li><a class="dropdown-item" href="?page=1&size=5">5</a></li>
+              <li><a class="dropdown-item" href="?page=1&size=10">10</a></li>
+              <li><a class="dropdown-item" href="?page=1&size=20">20</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="container py-2 h-100">
+    <div class="row d-felx justify-content-center align-items-center h-100">
+      <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 75%">
+        <div class="p-5 mb-1 rounded-3" style="background-color: #9cb1d627;">
+          <h6 class="display-6 mb-4 fw-bold">Looks like your inbox is empty.</h6>
+          <p>Items like posts, follows, and likes will be sent to your inbox by your friends and
+            authors you follow.</p>
+          <button class="btn btn-outline-secondary" type="button">Find Authors</button>
+          <a href="{% url 'app:index' %}"><button type="button"
+              class="btn btn-primary shadow mt-5 w-100">Back</button></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

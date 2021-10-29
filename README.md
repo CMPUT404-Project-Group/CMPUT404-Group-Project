@@ -2,26 +2,50 @@
 
 Group Project for CMPUT404; A distributed social networking webapp.
 
-Generally everything is LICENSE'D under the MIT license by Chase-Warwick, Dalton Ronan.
+LICENSE'D under the Apache license by Anthony Ma, Dalton Ronan, Xueying Luo, Chase Warwick, Zijian Zhou.
 
 ## Development
 
 The app is built with the Django web framework, and as such requires Python. We are using Django 3.2 which requires Python 3.6+.
 
-To run the app, you should create and activate a virtual environment running the correct Python version
+To run the app, you should create and activate a virtual environment running the correct Python version.
 
 ```
 virtualenv venv --python=python3.X.X
+source venv/bin/activate
 ```
 
-and install the libraries included in `requirements.txt`
+and install the libraries included in `requirements.txt`.
 
 ```
 python -m pip install -r requirements.txt
+``` 
+
+Before beginning local development, make sure your database schema is up to date by pulling and running the latest migrations from the `integration` branch.
+```
+git pull origin integration
+python manage.py migrate
 ```
 
-Now you can follow the usual Django steps to run the development server.
-=======
+To run the development server on `localhost:8000`, run the command
+```
+python manage.py runserver
+```
+
+The front-end of the application is seperated in the project app `/app/`.
+
+The back-end and API of the application is located in the project app `/api/`.
+
+Swagger API documentation can be found at `localhost:8000/api/swagger/`
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
 CMPUT404-project-socialdistribution
 ===================================
 
@@ -55,3 +79,6 @@ Contributors:
     Abram Hindle
     Braedy Kuzma
     Nhan Nguyen 
+    Anthony Ma
+    Xueying Luo
+    Zijian Zhou

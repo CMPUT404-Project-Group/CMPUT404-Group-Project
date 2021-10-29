@@ -14,8 +14,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
+from django.shortcuts import redirect
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+admin.site.site_header = "SocialDistribution Administration"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-]
+    path('app/', include('app.urls')),
+    path('api/', include('api.urls')),
+    path('', lambda req: redirect('app:index')),    #https://stackoverflow.com/questions/7284952/django-redirect-to-root-from-a-view
+] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

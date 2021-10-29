@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title%}View Post{% endblock %}
+
+{% block content%}
+    <h1>{{ shared_post.author }} shared a post: </h1>
+
+    <p> {{ shared_post.text_content | urlize}} </p>
+
+    <a href="{% url 'app:posts' original_post.id %}" style = "color: inherit; text-decoration: inherit;">
+        <div style = "margin-left:5%; margin-right:5%;">
+            Originally posted by {{ original_post.author }}:
+            <div style = "border-width:1px; border-style:solid; border-color:grey;">
+                <h1>{{ original_post.title }}</h1>
+
+                {% if original_post.text_content %}
+                    <p> {{ original_post.text_content | urlize }} </p>
+                {% endif %}
+
+                {% if original_post.image_content %}
+                    <img alt="User uploaded image" src={{ original_post.image_content }}></img>
+                {% endif %}
+
+                {% if original_post.image_link %}
+                    <a href={{ original_post.image_link }}><img src={{ original_post.image_link }} alt="User image link" ></a>
+                {% endif %}
+    
+
+                <p> Tags: {{ original_post.categories }} </p>
+            </div>
+        </div>
+    </a>
+{% endblock %}
