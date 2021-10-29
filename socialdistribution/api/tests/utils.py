@@ -1,4 +1,4 @@
-from ..models import Inbox, Post, User, Like
+from ..models import Inbox, Post, User, Like, Comment
 
 
 class TestUtils():
@@ -24,6 +24,19 @@ class TestUtils():
             title=title,
             visibility=visibility,
             unlisted=unlisted
+        )
+    
+    def get_test_comment(author=None, post=None, comment="DEFAULT-TEXT"):
+        if not author:
+            author = TestUtils.get_test_comment()
+        
+        if not post:
+            post = TestUtils.get_test_post()
+        
+        return Comment.objects.create_comment(
+            author=author,
+            post=post,
+            comment=comment
         )
     
     def get_test_like(author=None, content_object=None):

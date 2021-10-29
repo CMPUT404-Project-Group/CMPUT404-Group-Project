@@ -293,8 +293,6 @@ class Post(models.Model):
 
 # TODO: Defaults to text/plain for contentType
 # TODO: Add posts or post_id to comment model
-
-
 class CommentManager(models.Manager):
 
     def create_comment(self, author, comment, post):
