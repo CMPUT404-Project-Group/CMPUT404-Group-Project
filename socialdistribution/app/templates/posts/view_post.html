@@ -33,7 +33,7 @@
             <p>Click here to <a href="{% url 'app:edit-post' post.id %}">edit your post</a>.</p>
             <p>Click here to <a href="{% url 'app:delete-post' post.id %}">delete your post</a>.</p>
         {% endif %}
-      
-
+            <p>Click here to <a href="{% url 'app:comments' post.id%}">view comments</a>.</p>
     </div>
+
 {% endblock %}
