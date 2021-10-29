@@ -13,6 +13,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from dotenv import load_dotenv
 import os
 from uuid import uuid4
+import logging 
 
 load_dotenv()
 HOST_API_URL = os.getenv("HOST_API_URL")
@@ -149,12 +150,14 @@ class PostBuilder():
         self.size = None
         self.visibility = None
         self.unlisted = None
+        self.shared_post = None
 
-    def set_post_content(self, title, categories, text_content=None, image_content=None, image_link=None):
+    def set_post_content(self, title, categories, text_content=None, image_content=None, shared_post=None, image_link=None):
         self.title = title
         self.categories = categories
         self.text_content = text_content
         self.image_content = image_content
+        self.shared_post = shared_post
         self.image_link = image_link
 
     # TODO: Description is not very descriptive
@@ -187,7 +190,9 @@ class PostBuilder():
             size=self.size,
             comment_page=self.comment_page,
             visibility=self.visibility,
-            unlisted=self.unlisted
+            unlisted=self.unlisted,
+            shared_post = self.shared_post
+
         )
 
         if not self.published:
@@ -215,12 +220,22 @@ class PostManager(models.Manager):
     def create_post(self, author, categories, image_content, text_content, title, visibility, unlisted, image_link=None):
         post_builder = PostBuilder()
         post_builder.set_post_content(
-            title, categories, text_content, image_content, image_link)
+            title, categories, text_content, image_content, None, image_link)
         post_builder.set_post_metadata(author, visibility, unlisted)
 
         post = post_builder.get_post()
         post.save(using=self._db)
         return post
+
+    def share_post(self, author, text_content, title, categories, visibility, unlisted, shared_post):
+        post_builder = PostBuilder()
+        post_builder.set_post_content(title, categories, text_content, None, shared_post)
+        post_builder.set_post_metadata(author, visibility, unlisted)
+
+        post = post_builder.get_post()
+        post.save(using=self._db)
+        return post
+
 # TODO: Specify uploadto field for image_content to post_imgs within project root
 # TODO: Upon adding comment model add comment as foreign key
 # TODO: Increment count upon commenting
@@ -274,6 +289,7 @@ class Post(models.Model):
         max_length=255, choices=Visibility.choices, unique=False, blank=False, null=False, default=Visibility.PUBLIC)
     unlisted = models.BooleanField(
         unique=False, blank=False, null=False, default=False)
+    shared_post = models.ForeignKey("api.Post", on_delete=CASCADE)
 
     objects = PostManager()
 
@@ -313,7 +329,6 @@ class Comment(models.Model):
     published = models.DateTimeField(
         unique=False, blank=False, null=False, auto_now_add=True)
     post = models.ForeignKey("Post", on_delete=CASCADE)
-
     objects = CommentManager()
 
     class Meta:
