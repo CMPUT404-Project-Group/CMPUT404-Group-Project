@@ -8,10 +8,11 @@ from rest_framework import generics, serializers, status
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Inbox as InboxItem
-from .models import Post, User
-from .serializers import PostSerializer, UserSerializer
+from .models import Post, User, Like
+from .serializers import LikedSerializer, PostSerializer, UserSerializer
 
 load_dotenv()
 HOST_API_URL = os.getenv("HOST_API_URL")
@@ -80,6 +81,16 @@ class PageNumberPaginationWithCount(PageNumberPagination):
                     '?', '?page=1&')  # need to correct route for front end pagination to work
         return response
 
+class Liked_API(APIView):
+
+    def get(self, request, *args, **kwargs):
+        author_id = self.kwargs.get('author_id')
+        query_set = Like.objects.filter(author_id=author_id)
+
+        serializer = LikedSerializer(query_set, many=True)
+        data = serializer.data
+
+        return Response(data, status.HTTP_200_OK)
 
 class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = PostSerializer

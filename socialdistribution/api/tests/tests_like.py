@@ -26,11 +26,8 @@ class LikeTest(TestCase):
             post = TestUtils.get_test_post(author=self.user, title=f"TEST-TITLE-{i}")
             like = TestUtils.get_test_like(author=self.user, content_object=post)
 
-        context = {
-            'author': self.user,
-        }
-
-        response = self.client.get(reverse('api:liked'), kwargs=context)
+        #Couldn't get reverse to work 
+        response = self.client.get(f"http://localhost:8000/api/author/{self.user.id}/liked?format=json")
 
         self.assertEqual(response.status_code, 200)
 
