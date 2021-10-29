@@ -60,6 +60,10 @@
 								{% if post.shared_post.image_content %}
 									<img alt="User uploaded image" src={{ post.shared_post.image_content.url }}></img>
 								{% endif %}
+
+								{% if post.shared_post.image_link %}
+									<a href={{ post.shared_post.image_link }}><img src={{ post.shared_post.image_link }} alt="User image link" ></a>
+								{% endif %}
 								<br/>
 							</div>
 						</div>
@@ -76,6 +80,11 @@
 				
 					{% if post.image_content %}
 						<img alt="User uploaded image" src={{ post.image_content.url }}></img>
+					{% endif %}
+
+					
+					{% if post.image_link %}
+						<a href={{ post.image_link }}><img src={{ post.image_link }} alt="User image link" ></a>
 					{% endif %}
 					<br/>
 				</div>
