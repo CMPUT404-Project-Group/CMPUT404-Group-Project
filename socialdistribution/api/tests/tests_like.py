@@ -15,7 +15,16 @@ class LikeTest(TestCase):
         self.like = TestUtils.get_test_like(author=self.user, content_object=self.post)
 
     def test_GET_api_post_likes(self):
-        self.assertTrue(False)
+        context = {
+            'author_id': self.user.id,
+            'post_id': self.post.id
+        }
+
+        response = self.client.get(
+            reverse('api:like-post', kwargs=context)
+        )
+
+        self.assertEqual(response.status_code, 200)
     
     def test_GET_api_comment_likes(self):
         self.assertTrue(False)

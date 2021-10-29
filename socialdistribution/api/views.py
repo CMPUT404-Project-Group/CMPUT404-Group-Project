@@ -1,5 +1,6 @@
 import os
 import json
+from django.db.models import query
 from dotenv import load_dotenv
 import rest_framework.status as status
 from django.http import JsonResponse
@@ -12,7 +13,7 @@ from rest_framework.views import APIView
 
 from .models import Inbox as InboxItem
 from .models import Post, User, Like
-from .serializers import LikedSerializer, PostSerializer, UserSerializer
+from .serializers import LikeSerializer, LikedSerializer, PostSerializer, UserSerializer
 
 load_dotenv()
 HOST_API_URL = os.getenv("HOST_API_URL")
@@ -80,6 +81,17 @@ class PageNumberPaginationWithCount(PageNumberPagination):
                 response.data['previous'] = response.data['previous'].replace(
                     '?', '?page=1&')  # need to correct route for front end pagination to work
         return response
+
+class Like_Post_API(APIView):
+
+    def get(self, request, *args, **kwargs):
+        post_id = self.kwargs.get('post_id')
+        query_set = Like.objects.filter(object_id=post_id)
+
+        serializer = LikeSerializer(query_set, many=True)
+        data = serializer.data
+
+        return Response(data, status.HTTP_200_OK)
 
 class Liked_API(APIView):
 
