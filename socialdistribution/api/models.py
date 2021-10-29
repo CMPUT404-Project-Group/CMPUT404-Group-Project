@@ -298,7 +298,7 @@ class Post(models.Model):
 class CommentManager(models.Manager):
 
     def create_comment(self, author, comment, post):
-
+        
         comment = Comment(
             type="comment",
             author=author,
@@ -310,7 +310,6 @@ class CommentManager(models.Manager):
         comment.save()
 
         return comment
-
 
 class Comment(models.Model):
     id = models.CharField(max_length=255, unique=True,
@@ -326,7 +325,6 @@ class Comment(models.Model):
     post = models.ForeignKey("Post", on_delete=CASCADE)
 
     objects = CommentManager()
-
 
 class InboxManager(models.Manager):
     def create(self, author_id, content_object):
@@ -385,5 +383,3 @@ class Inbox(models.Model):
 
     class Meta:
         ordering = ['created_at']
-
-    

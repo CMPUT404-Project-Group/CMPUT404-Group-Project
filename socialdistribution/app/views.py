@@ -143,6 +143,8 @@ def create_comment(request, post_id):
         form = CommentCreationForm(data=request.POST, user=user, post=post)
         if form.is_valid():
             form.save()
+            post.count += 1
+            post.save()
             return redirect('app:index')
     else:
         form = CommentCreationForm()
