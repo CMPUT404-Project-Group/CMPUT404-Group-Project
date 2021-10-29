@@ -1,3 +1,5 @@
+from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
+from api.models import User, Post
 import json
 import os
 import requests
@@ -17,7 +19,6 @@ from dotenv import load_dotenv
 
 import logging
 from django.views import generic
-
 
 load_dotenv()
 HOST_URL = os.getenv("HOST_URL")
@@ -84,6 +85,22 @@ def edit_post(request, post_id):
         return render(request, 'posts/edit_post.html', context)
 
 @login_required
+def share_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    context = {
+        'post': post}
+    if request.method == 'POST':
+        user = request.user
+        form = SharePostForm(data=request.POST, user=user, post=post)
+        if form.is_valid():
+            form.save()
+            return redirect('app:index')
+    else:
+        form = SharePostForm()
+
+    return render(request, 'posts/share_post.html', context)
+
+
 def delete_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     user = request.user
@@ -125,6 +142,22 @@ def post(request, post_id):
 
         return redirect('app:index')
 
+def view_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+
+    if (post.shared_post != None):
+        logging.error(post.shared_post)
+        original_post = get_object_or_404(Post, pk=shared_post.post.id)
+        context = {
+            'shared_post': post,
+            'original_post': original_post}
+        return render(request, 'posts/view_shared_post.html', context)
+    else:
+        context = {'post': post}
+        logging.error(post.shared_post)
+        return render(request, 'posts/view_post.html', context)
+
+      
 def view_profile(request):
     user = request.user
     return render(request, 'profile/view_profile.html', {'user': user})
@@ -257,13 +290,13 @@ def inbox(request, author_id):
         if size:
             url += '&size=%s' % size
 
-        req = requests.get(url)
+        #req = requests.get(url)
         res = json.loads(req.content.decode('utf-8'))
         res['author'] = request.path.split('/')[3]
         return render(request, 'app/inbox.html', {'res': res})
     elif request.method == "DELETE":
-        req = requests.delete(url)
-        return HttpResponse(status=req.status_code)
+        #req = requests.delete(url)
+        return #HttpResponse(status=req.status_code)
     else:
         return HttpResponseNotAllowed
 

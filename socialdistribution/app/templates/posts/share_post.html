@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title%}Share Post{% endblock %}
+
+{% block content%}
+
+<div class="container py-5 h-100">
+    <div class="row d-felx justify-content-center align-items-center h-100">
+        <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 45%">
+            <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
+                <h3 class="mb-3">You are sharing this post: </h3>
+                <div>
+
+                    <h1>{{ post.title }}</h1>
+            
+                    {% if post.text_content %}
+                        <p> {{ post.text_content }} </p>
+                    {% endif %}
+            
+                    {% if post.image_content %}
+                        <img alt="User uploaded image" src={{ post.image_content.url }}></img>
+                    {% endif %}
+            
+                    <p> Tags: {{ post.categories }} </p>
+            
+                </div>
+                <div class="card-body text-center">
+                    <form  method='post' class="box">
+                        {% csrf_token %}
+                        <h3 class="mb-3">Add comment</h3>
+                        <div class="form-outline mb-2 text-start">
+                            <label for="id_text_content" class="form-label h6">Body</label>
+                            <textarea id="id_text_content" class="form-control" cols="40" rows="10" name="text_content"></textarea>
+                        </div>
+                        <div class="form-outline mb-2 text-start">
+                            <label for="id_categories" class="form-label h6">Tags (Comma Seperated)</label>
+                            <textarea id="id_categories" class="form-control" cols="40" rows="10" name="categories"></textarea>
+                        </div>
+                        <div class="form-outline mb-2">
+                            <label for="id_visibility" class="form-label h6">Post Visibility</label>
+                            <select id="id_visibility" class="form-select" name="visibility">
+                                <option value="public">Public</option>
+                                <option value="private_to_author">Private to Author</option>
+                                <option value="private_to_friend">Private to Friend</option>
+                            </select>
+                        </div>
+                        <div class="form-outline mb-2">
+                            <button class="btn btn-primary shadow mt-5 w-100" type="submit">Share Post</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
