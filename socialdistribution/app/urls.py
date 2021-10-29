@@ -14,5 +14,8 @@ urlpatterns = [
     path('posts/<str:post_id>/comments', views.comments, name='comments'),
     path('profile/', views.view_profile, name="view-profile"),
     path('profile/manage/', views.manage_profile, name="manage-profile"),
+    path('profile/<str:other_user_id>', views.view_other_user, name='view-other-user'),
+    path('follow/<str:other_user_id>', views.follow, name='action-follow'),
+    path('unfollow/<str:other_user_id>', views.unfollow, name='action-unfollow'),
     path('author/<str:author_id>/inbox/', views.inbox, name='inbox')
 ]

@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from api.models import Comment, Post, User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-
+import datetime
 
 class RegisterForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
@@ -38,14 +38,16 @@ class PostCreationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = None
         self.id = None
+        
         if "user" in kwargs:
             self.user = kwargs.pop("user")
         if "id" in kwargs:
             self.id = kwargs.pop("id")
-        if "published" in kwargs:
-            self.published = kwargs.pop("published")
         if "data" in kwargs:
             self.image = kwargs['data']['image_content']
+        if "published" in kwargs:
+            self.published = kwargs.pop("published")
+
         super(PostCreationForm, self).__init__(*args, **kwargs)
 
     # TODO: Unlisted always false
@@ -56,7 +58,7 @@ class PostCreationForm(forms.ModelForm):
             return Post.objects.create_post(
                 author=self.user,
                 categories=self.cleaned_data['categories'],
-                image_content=self.image,
+                image_content=self.cleaned_data["image_content"],
                 text_content=self.cleaned_data["text_content"],
                 title=self.cleaned_data["title"],
                 visibility=self.cleaned_data["visibility"],
