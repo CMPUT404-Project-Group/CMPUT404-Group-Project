@@ -1,17 +1,24 @@
+<<<<<<< HEAD
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post
+=======
+import json
+import os
+
+import requests
+from requests.models import Response
+from api.models import Post
+>>>>>>> integration
 from django.contrib import messages
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.http.response import HttpResponse, HttpResponseForbidden
+from django.http.response import HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login
 import logging
 
-
-@login_required
-def index(request):
-    return render(request, 'app/index.html')
-
+load_dotenv()
+HOST_URL = os.getenv("HOST_URL")
 
 def register(request):
     if request.method == 'POST':
@@ -34,11 +41,22 @@ def register(request):
     return render(request, 'app/register.html', {'form': form})
 
 @login_required
+def index(request):
+    
+    stream_posts = Post.objects.all().order_by('-published').filter(author=request.user)
+
+    context = {
+        "stream_posts" : stream_posts
+    }
+
+    return render(request, 'app/index.html', context)
+
+@login_required
 def create_post(request):
     # https://stackoverflow.com/questions/43347566/how-to-pass-user-object-to-forms-in-django
     if request.method == 'POST':
         user = request.user
-        form = PostCreationForm(data=request.POST, user=user)
+        form = PostCreationForm(data=request.POST, files=request.FILES, user=user)
         if form.is_valid():
             form.save()
             return redirect('app:index')
@@ -63,6 +81,7 @@ def edit_post(request, post_id):
     else:
         return render(request, 'posts/edit_post.html', context)
 
+<<<<<<< HEAD
 @login_required
 def share_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
@@ -79,6 +98,19 @@ def share_post(request, post_id):
 
     return render(request, 'posts/share_post.html', context)
 
+=======
+def delete_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    user = request.user
+
+    is_author = post.author == user
+
+    if not is_author:
+        return HttpResponseForbidden()
+    else:
+        post.delete()
+        return render(request, 'app/index.html')
+>>>>>>> integration
 
 def post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
@@ -125,26 +157,74 @@ def view_post(request, post_id):
         logging.error(post.shared_post)
         return render(request, 'posts/view_post.html', context)
 
+
 def view_profile(request):
     user = request.user
     return render(request, 'profile/view_profile.html', {'user': user})
     
-def manage_profile(request):
+def view_other_user(request, other_user_id):
+    other_user = User.objects.get(id=other_user_id)
 
+    if other_user==request.user: 
+        return redirect('app:view-profile')
+
+    if Friend.objects.are_friends(request.user, other_user):  
+        # friends (follow each other)
+        return render(request, 'profile/view_friend.html', {'other_user': other_user})
+    elif Follow.objects.follows(request.user, other_user):   
+        # following
+        return render(request, 'profile/view_following_user.html', {'other_user': other_user})
+    else:  # not following
+        return render(request, 'profile/view_other_user.html', {'other_user': other_user})
+
+
+
+def manage_profile(request):
     if request.method == 'POST':
         form = ManageProfileForm(request.POST, instance=request.user)
 
         if form.is_valid():
             form.save()
-
-            # https://www.youtube.com/watch?v=q4jPR-M0TAQ&list=PL-osiE80TeTtoQCKZ03TU5fNfx2UY6U4p&index=6 
-            # Will give a notification when edit successfully 
+            # Will give a notification when edit successfully
             messages.success(request,f'Request to edit profile has been submitted!')
+
             return redirect('app:view-profile')
+       
     else:
         form = ManageProfileForm(instance=request.user)
+    return render(request, 'profile/manage_profile.html', {'form': form})
 
-        return render(request, 'profile/manage_profile.html', {'form': form})
+
+def follow(request, other_user_id):
+    if request.method == 'POST':
+        other_user = User.objects.get(id=other_user_id)
+        Follow.objects.add_follower(request.user, other_user)  # follow
+
+        # if other_user is following user  ( there's a request received from other_user)
+        if Follow.objects.follows(other_user, request.user): 
+            # accept friend reqeust from other_user
+            friend_request = FriendshipRequest.objects.get(from_user=other_user, to_user=request.user)
+            friend_request.accept()
+
+        else: # other_user is not following user
+            # send a friend request
+            Friend.objects.add_friend(
+            request.user,                              # The sender
+            other_user)                                # The recipient
+        
+        return redirect('app:view-other-user', other_user_id=other_user_id)
+
+def unfollow(request, other_user_id):
+    if request.method == 'POST':
+        other_user = User.objects.get(id=other_user_id)
+        Follow.objects.remove_follower(request.user, other_user)  # unfollow 
+
+        # remove friend if user & other_user are friends
+        if Friend.objects.are_friends(request.user, other_user):
+            Friend.objects.remove_friend(request.user, other_user )
+
+        return redirect('app:view-other-user', other_user_id=other_user_id)
+
 
 @login_required
 def create_comment(request, post_id):
@@ -159,3 +239,32 @@ def create_comment(request, post_id):
         form = CommentCreationForm()
 
     return render(request, 'comments/create_comment.html', {'form': form})
+<<<<<<< HEAD
+=======
+
+@login_required
+def inbox(request, author_id):
+    url = HOST_URL+reverse('api:inbox', kwargs={'author_id': author_id})
+    if request.method == 'GET':
+        try:
+            page = request.GET.get('page')
+            size = request.GET.get('size')
+        except:
+            page = 1
+            size = None
+
+        if page:
+            url += '?page=%s' % page
+        if size:
+            url += '&size=%s' % size
+
+        req = requests.get(url)
+        res = json.loads(req.content.decode('utf-8'))
+        res['author'] = request.path.split('/')[3]
+        return render(request, 'app/inbox.html', {'res': res})
+    elif request.method == "DELETE":
+        req = requests.delete(url)
+        return HttpResponse(status=req.status_code)
+    else:
+        return HttpResponseNotAllowed
+>>>>>>> integration

@@ -43,7 +43,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'friendship',
+    'crispy_forms',
 ]
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -123,6 +126,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 LOGIN_URL = '/app/accounts/login/'
 
@@ -133,6 +139,6 @@ LOGOUT_REDIRECT_URL = '/app/'
 AUTH_USER_MODEL = 'api.User'
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
 }

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}View Profile{% endblock %}
+
+{% block content %}
+
+<div class="container py-5 h-100">
+  <div class="row d-felx justify-content-center align-items-center h-100">
+    <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 35%">
+      <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
+        <div class="card-body text-center">
+            <h3 style="margin-bottom: 30px">Profile</h3>
+            
+            <div style="font-size:12pt">
+                <p>Display Name: {{ other_user.displayName }} </p>
+                <p>Email: {{ other_user.email }} </p>
+                <p>Github: {{ other_user.github }} </p>
+            </div>
+
+            <form action="{% url 'app:action-unfollow' other_user.id %}" method='POST'>
+              {% csrf_token %}
+              <a href="{% url 'app:view-other-user' other_user.id %}"><button type="submit" class="btn btn-primary shadow mt-5 w-100">Unfollow</button></a>
+            </form>
+            <a href="{% url 'app:index' %}"><button type="button" class="btn btn-primary shadow mt-5 w-100">Back</button></a>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

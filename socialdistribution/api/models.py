@@ -4,6 +4,9 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.deletion import CASCADE
 from django.db.models.manager import BaseManager
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+
 from dotenv import load_dotenv
 import os
 from uuid import uuid4
@@ -241,6 +244,8 @@ class PostManager(models.Manager):
         
 # TODO: Specify uploadto field for image_content to post_imgs within project root
 # TODO: Upon adding comment model add comment as foreign key
+
+
 class Post(models.Model):
 
     class Visibility(models.TextChoices):
@@ -270,8 +275,7 @@ class Post(models.Model):
     content_type = models.CharField(
         max_length=255, choices=ContentType.choices)
     text_content = models.TextField(unique=False, blank=True)
-    image_content = models.ImageField(unique=False, blank=True)
-    image_link = models.TextField(unique=False, blank=True, null=True)
+    image_content = models.ImageField(unique=False, blank=True, upload_to="images/")
     author = models.ForeignKey(
         "User",
         on_delete=models.CASCADE
@@ -298,10 +302,15 @@ class Post(models.Model):
     def __str__(self):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
 
-#TODO: Defaults to text/plain for contentType
-#TODO: Add posts or post_id to comment model
+    class Meta:
+        ordering = ['published']
+
+# TODO: Defaults to text/plain for contentType
+# TODO: Add posts or post_id to comment model
+
+
 class CommentManager(models.Manager):
-    
+
     def create_comment(self, author, comment, post):
 
         comment = Comment(
@@ -310,21 +319,46 @@ class CommentManager(models.Manager):
             comment=comment,
             content_type="text/plain",
             post=post,
-            id = uuid4()
+            id=uuid4()
         )
         comment.save()
 
         return comment
-        
+
 
 class Comment(models.Model):
-    id = models.CharField(max_length=255, unique=True, null=False, blank=False, primary_key=True)
-    type = models.CharField(max_length=255, unique=False, null=False, blank=False)
+    id = models.CharField(max_length=255, unique=True,
+                          null=False, blank=False, primary_key=True)
+    type = models.CharField(max_length=255, unique=False,
+                            null=False, blank=False)
     author = models.ForeignKey("User", on_delete=models.CASCADE)
     comment = models.TextField(unique=False, blank=False, null=False)
-    content_type = models.CharField(max_length=255, unique=False, null=False, blank=False)
-    published = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
+    content_type = models.CharField(
+        max_length=255, unique=False, null=False, blank=False)
+    published = models.DateTimeField(
+        unique=False, blank=False, null=False, auto_now_add=True)
     post = models.ForeignKey("Post", on_delete=CASCADE)
-    
     objects = CommentManager()
-    
+
+
+class InboxManager(models.Manager):
+    def create(self, author_id, content_object):
+        inbox = self.model(
+            author_id=author_id,
+            content_object=content_object,
+        )
+        inbox.save(using=self._db)
+        return inbox
+
+
+class Inbox(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    created_at = models.DateTimeField(
+        unique=False, blank=False, null=False, auto_now_add=True)
+    objects = InboxManager()
+
+    class Meta:
+        ordering = ['created_at']
