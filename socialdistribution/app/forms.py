@@ -38,14 +38,16 @@ class PostCreationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = None
         self.id = None
-        
+
         if "user" in kwargs:
             self.user = kwargs.pop("user")
         if "id" in kwargs:
             self.id = kwargs.pop("id")
         if "data" in kwargs:
             self.image = kwargs['data']['image_content']
-        self.published = datetime.datetime.now()
+        if "published" in kwargs:
+            self.published = kwargs.pop("published")
+
         super(PostCreationForm, self).__init__(*args, **kwargs)
 
     # TODO: Unlisted always false
