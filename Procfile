@@ -1,1 +1,1 @@
-web: gunicorn socialdistribution/socialdistribution.wsgi
+web: gunicorn socialdistribution.wsgi
