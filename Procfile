@@ -1,1 +1,1 @@
-web: gunicorn socialdistribution.wsgi
+web: sh -c 'cd socialdistribution && exec gunicorn socialdistribution.wsgi'
