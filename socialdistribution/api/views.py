@@ -376,30 +376,23 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         paginator.page_size = size
         paginated_qs = paginator.paginate_queryset(query_set, request)
 
-        items = []
-        for item in paginated_qs:
-            if item.content_type.name == 'post':
-                s = PostSerializer(item.content_object)
-                items.append(s.data)
-            elif item.content_type.name == 'follow':
-                # TODO: serialize follow objectrs
-                pass
-            elif item.content_type.name == 'like':
-                # TODO: serialize like objectrs
-                pass
-        r = paginator.get_paginated_response(paginated_qs)
-        data = {'type': 'inbox', 'author': HOST_API_URL +
-                'author/'+author_id, 'next': r.data.get('next'),
-                'prev': r.data.get('previous'), 'size': size,
-                'page': paginator.get_page_number(request, paginated_qs),
-                'total_pages': r.data.get('total_pages'),
-                'items': items}
+        items = InboxSerializer(paginated_qs, many=True).data
+        p = paginator.get_paginated_response(paginated_qs)
+        data = {
+            'type': 'inbox', 
+            'author': HOST_API_URL+'/author/'+author_id, 
+            'items': items,
+            'next': p.data.get('next'),
+            'prev': p.data.get('previous'), 'size': size,
+            'page': paginator.get_page_number(request, paginated_qs),
+            'total_pages': p.data.get('total_pages'),}
+
 
         return Response(data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         responses={
-            204: openapi.Response(description="Succesffuly POST an item to an author's inbox."),
+            204: openapi.Response(description="Succesfully POST an item to an author's inbox."),
         },
         tags=['inbox'])
     def post(self, request, author_id, *args, **kwargs):
@@ -409,14 +402,10 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         'post' is the only content_type that is supported at this time.
         """
         try:
-            content_type = request.data["content_type"]
-            object_id = request.data["object_id"]
-            if content_type == "post":
-                content_object = Post.objects.get(id=object_id)
-                author = User.objects.get(id=author_id)
-                inbox = InboxItem.objects.create(author_id=author.id,
-                                                 content_object=content_object)
-                return Response(status=status.HTTP_204_NO_CONTENT)
+            item = request.data
+            author = User.objects.get(id=author_id)
+            InboxItem.objects.create(author_id=author.id, item=item)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
