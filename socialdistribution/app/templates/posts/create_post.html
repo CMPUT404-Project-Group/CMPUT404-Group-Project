@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "../app/base.html" %}
 
 {% block title%}Create Post{% endblock %}
 
 {% block content%}
 
-<div class="container py-5 h-100">
+<div class="container py-5">
     <div class="row d-felx justify-content-center align-items-center h-100">
         <div class="col-8 col-md-8 col-lg-6 col-xl-5" >
             <div class="card-header shadow p-3">
@@ -21,7 +21,7 @@
                         </div>
                         <div class="form-outline mb-2 text-start">
                             <label for="id_text_content" class="form-label h6">Body</label>
-                            <textarea id="id_text_content" class="form-control" cols="40" rows="7" name="text_content"></textarea>
+                            <textarea id="id_text_content" class="form-control" cols="40" rows="4" name="text_content"></textarea>
                         </div>
                         <div class="form-outline mb-2">
                             <label for="id_image_content" class="form-label h6">Image Attachment</label>

@@ -1,4 +1,6 @@
-{% extends "base.html" %} {% block content %} {% if post_list %}
+{% extends "../app/base.html" %}
+{% block content %} 
+{% if post_list %}
 <ul>
   {% for post in post_list %}
   <li style="list-style: none">

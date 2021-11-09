@@ -1,4 +1,5 @@
-{% extends "base.html" %} {% block title %}Inbox - {{user}}{% endblock %}
+{% extends "app/base.html" %} 
+{% block title %}Inbox - {{user}}{% endblock %}
 {%block content %} {% block javascript %}
 <script>
   const changeLabel = (id) => {
@@ -96,7 +97,6 @@
               style="
                 border-radius: 0.5rem;
                 border: 0;
-                background-color: #9cb1d627;
               "
             >
               <h5>{{item.author.displayName}} sent you a post.</h5>
@@ -206,7 +206,7 @@
   <div class="container py-2 h-100">
     <div class="row d-felx justify-content-center align-items-center h-100">
       <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 75%">
-        <div class="p-5 mb-1 rounded-3" style="background-color: #9cb1d627">
+        <div class="p-5 mb-1 rounded-3">
           <h6 class="display-6 mb-4 fw-bold">
             Looks like your inbox is empty.
           </h6>
