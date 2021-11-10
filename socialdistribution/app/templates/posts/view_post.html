@@ -1,8 +1,9 @@
-{% extends "../app/base.html" %}
+{% extends "base.html" %}
 
 {% block title%}View Post{% endblock %}
 
 {% block content%}
+{% include "app/includes/navbar.html" %}
     <div>
 
         <h1>{{ post.title }}</h1>

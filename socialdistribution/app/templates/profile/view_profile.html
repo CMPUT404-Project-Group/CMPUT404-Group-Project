@@ -1,8 +1,8 @@
-{% extends "../app/base.html" %}
+{% extends "base.html" %}
 {% block title %}View Profile {% endblock %} 
 {% block content %}
-<section class="vh-100" >
-  <div class="container py-5 h-100">
+{% include "app/includes/navbar.html" %}
+  <div class="container py-5 mt-5">
     <div class="row d-felx justify-content-center align-items-center h-100">
       <div class="col-8 col-md-8 col-lg-6 col-xl-5">
         <div class="card-header shadow p-3">Profile</div>
@@ -29,7 +29,7 @@
               </button></a
             >
             <a href="{% url 'app:index' %}"
-              ><button type="button" class="btn btn-primary shadow mt-5 w-100">
+              ><button type="button" class="btn btn-primary shadow mt-3 w-100">
                 Back
               </button></a
             >
@@ -43,6 +43,6 @@
       </div>
     </div>
   </div>
-</section>
+
 
 {% endblock %}

@@ -1,9 +1,9 @@
-{% extends "../app/base.html" %}
+{% extends "base.html" %}
 
 {% block title%}Comment on the Post{% endblock %}
 
 {% block content%}
-
+{% include "app/includes/navbar.html" %}
     {% for comment in comments%}
         <div>
             {{ comment.author }}

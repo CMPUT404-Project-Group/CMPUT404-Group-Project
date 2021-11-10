@@ -1,10 +1,10 @@
-{% extends "../app/base.html" %}
+{% extends "base.html" %}
 
 {% block title%}Create Post{% endblock %}
 
 {% block content%}
-
-<div class="container py-5">
+{% include "app/includes/navbar.html" %}
+<div class="container py-5 ">
     <div class="row d-felx justify-content-center align-items-center h-100">
         <div class="col-8 col-md-8 col-lg-6 col-xl-5" >
             <div class="card-header shadow p-3">
@@ -44,7 +44,7 @@
                         </div>
                         <div class="form-outline mb-2">
                             <button class="btn btn-primary shadow mt-5 w-100" type="submit">Create Post</button>
-                            <a href="{% url 'app:index' %}"><button type="button" class="btn btn-primary shadow mt-5 w-100">Discard</button></a>
+                            <a href="{% url 'app:index' %}"><button type="button" class="btn btn-primary shadow mt-3 w-100">Discard</button></a>
                         </div>
                     </form>
                 </div>
