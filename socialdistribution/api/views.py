@@ -522,6 +522,7 @@ class Followers(APIView):
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+    # TODO: must be authenticated
     @swagger_auto_schema(tags=['followers'])
     def post(self, request, *args, **kwargs):
         """
@@ -529,7 +530,15 @@ class Followers(APIView):
         
         Add {foreign_author_id} as a follower of {author_id}
         """
-        pass
+        try:
+            author_id = kwargs.get('author_id')
+            author = User.objects.get(id=author_id)
+            foreign_author_id = kwargs.get('foreign_author_id')
+            foreign_author = User.objects.get(id=foreign_author_id)
+            Follow.objects.add_follower(author, foreign_author)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(tags=['followers'])
     def delete(self, request, *args, **kwargs):
@@ -538,4 +547,12 @@ class Followers(APIView):
         
         Remove {foreign_author_id} from {author_id} followers
         """
-        pass
+        try:
+            author_id = kwargs.get('author_id')
+            author = User.objects.get(id=author_id)
+            foreign_author_id = kwargs.get('foreign_author_id')
+            foreign_author = User.objects.get(id=foreign_author_id)
+            Follow.objects.remove_follower(author, foreign_author)  # unfollow 
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
