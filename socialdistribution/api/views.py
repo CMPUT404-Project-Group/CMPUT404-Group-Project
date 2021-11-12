@@ -15,7 +15,7 @@ from django.http.response import HttpResponse
 from rest_framework.views import APIView
 from app.forms import PostCreationForm
 from .models import User, Post
-from .serializers import PostSerializer, UserSerializer
+from .serializers import FollowersSerializer, PostSerializer, UserSerializer
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -23,7 +23,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from friendship.models import Follow
 from .models import Inbox as InboxItem
 from .models import Post, User, Like, Comment
 from .serializers import LikeSerializer, LikedSerializer, InboxSerializer, PostSerializer, UserSerializer, CommentSerializer
@@ -452,7 +452,29 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-@swagger_auto_schema(method='GET', tags=['followers'])
+@swagger_auto_schema(method='GET', tags=['followers'], responses={
+    200: openapi.Response(description="Sucessfully GET {author_id}'s followers", examples=
+    {'application/json':{
+    "type": "followers",
+    "items": [
+        {
+            "type": "author",
+            "id": "http://127.0.0.1:8000/api/author/628fbb7e-d856-42b1-97c8-4276f1ebf18f",
+            "host": "http://127.0.0.1:8000/api/",
+            "displayName": "bob",
+            "url": "http://127.0.0.1:8000/api/628fbb7e-d856-42b1-97c8-4276f1ebf18f",
+            "github": "http://github.com/bob123"
+        },
+        {
+            "type": "author",
+            "id": "http://127.0.0.1:8000/api/author/533bb187-de22-41fe-86f7-11a037d7adfe",
+            "host": "http://127.0.0.1:8000/api/",
+            "displayName": "bill",
+            "url": "http://127.0.0.1:8000/api/533bb187-de22-41fe-86f7-11a037d7adfe",
+            "github": "http://github.com/billy"
+        }]}}),
+    400: openapi.Response(description="Bad Request")
+    })
 @api_view(['GET'])
 def followers(request, author_id):
     """
@@ -460,7 +482,14 @@ def followers(request, author_id):
 
     GETs a list of authors who are following {author_id}
     """
-    pass
+    try:
+        queryset = Follow.objects.filter(followee_id=author_id)
+        serializer = FollowersSerializer(queryset, many=True)
+        data = {'type': 'followers', 'items': serializer.data}
+
+        return Response(data, status=status.HTTP_200_OK)
+    except:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 class Followers(APIView):
     @swagger_auto_schema(tags=['followers'])
