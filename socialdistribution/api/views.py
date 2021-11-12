@@ -492,14 +492,35 @@ def followers(request, author_id):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 class Followers(APIView):
-    @swagger_auto_schema(tags=['followers'])
+    @swagger_auto_schema(tags=['followers'],
+    responses={
+        200: openapi.Response(
+            description="{foreign_author_id} is following {author_id}",
+            examples=
+                {'application/json': {
+                "type": "followers",
+                "is_following": "true"
+                }}),
+        400: openapi.Response(description="Bad Request")
+    }
+    )
     def get(self, request, *args, **kwargs):
         """
         Check if {foreign_author_id} is following {author_id}
         
-        Check if {foreign_author_id} is following {author_id}
+        Returns is_following: true if {foreign_author_id} is following {author_id}, is_following: false if not.
         """
-        pass
+        try: 
+            author_id = kwargs.get('author_id')
+            foreign_author_id = kwargs.get('foreign_author_id')
+            is_following = Follow.objects.filter(followee_id=author_id, follower_id=foreign_author_id)
+            if is_following.exists():
+                data = {'type': 'followers', 'is_following': 'true'}
+            else:
+                data = {'type': 'followers', 'is_following': 'false'}
+            return Response(data, status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(tags=['followers'])
     def post(self, request, *args, **kwargs):
