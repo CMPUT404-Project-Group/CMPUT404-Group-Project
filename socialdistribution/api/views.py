@@ -523,7 +523,12 @@ class Followers(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
     # TODO: must be authenticated
-    @swagger_auto_schema(tags=['followers'])
+    @swagger_auto_schema(tags=['followers'],
+        responses={
+        204: openapi.Response(
+            description="Follower added"),
+        400: openapi.Response(description="Bad Request")}
+    )
     def post(self, request, *args, **kwargs):
         """
         Add {foreign_author_id} as a follower of {author_id}
@@ -540,7 +545,12 @@ class Followers(APIView):
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    @swagger_auto_schema(tags=['followers'])
+    @swagger_auto_schema(tags=['followers'],
+        responses={
+        204: openapi.Response(
+            description="Follower removed"),
+        400: openapi.Response(description="Bad Request")}
+    )
     def delete(self, request, *args, **kwargs):
         """
         Remove {foreign_author_id} from {author_id} followers
