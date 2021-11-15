@@ -3,6 +3,7 @@
 {% block title%}View Post{% endblock %}
 
 {% block content%}
+{% include "app/includes/navbar.html" %}
     <h1>{{ shared_post.author }} shared a post: </h1>
 
     <p> {{ shared_post.text_content | urlize}} </p>

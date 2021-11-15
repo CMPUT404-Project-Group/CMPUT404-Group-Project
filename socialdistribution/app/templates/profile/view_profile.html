@@ -1,39 +1,48 @@
 {% extends "base.html" %}
-
-{% block title %}View Profile{% endblock %}
-
+{% block title %}View Profile {% endblock %} 
 {% block content %}
-<section class="vh-100" style="background-color: #9cb1d627;">
-<div class="container py-5 h-100">
-  
-  <div class="row d-felx justify-content-center align-items-center h-100">
-    
-    <div class="col-8 col-md-8 col-lg-6 col-xl-5">
-      <div class="card-header shadow p-3">
-        Profile
-      </div>
-      <div class="card shadow p-3" style="border-bottom-left-radius: 0.5rem;border-bottom-right-radius: 0.5rem; border-top-left-radius: 0rem;border-top-right-radius: 0rem;border: 0;">
-        <div class="card-body text-center">
-            <div style="font-size:12pt">
-                <h2>{{ user.displayName }} </h2>
-                <br>
-                <p>Email: {{ user.email }} </p>
-                <p>Github: {{ user.github }} </p>
+{% include "app/includes/navbar.html" %}
+  <div class="container py-5 mt-5">
+    <div class="row d-felx justify-content-center align-items-center h-100">
+      <div class="col-8 col-md-8 col-lg-6 col-xl-5">
+        <div class="card-header shadow p-3">Profile</div>
+        <div
+          class="card shadow p-3"
+          style="
+            border-bottom-left-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+            border-top-left-radius: 0rem;
+            border-top-right-radius: 0rem;
+            border: 0;
+          "
+        >
+          <div class="card-body text-center">
+            <div style="font-size: 12pt">
+              <h2>{{ user.displayName }}</h2>
+              <br />
+              <p>Email: {{ user.email }}</p>
+              <p>Github: {{ user.github }}</p>
             </div>
-            <a href="{% url 'app:manage-profile' %}"><button type="button" class="btn btn-primary shadow mt-5 w-100">Manage Profile</button></a>
-            <a href="{% url 'app:index' %}"><button type="button" class="btn btn-primary shadow mt-5 w-100">Back</button></a>
+            <a href="{% url 'app:manage-profile' %}"
+              ><button type="button" class="btn btn-primary shadow mt-5 w-100">
+                Manage Profile
+              </button></a
+            >
+            <a href="{% url 'app:index' %}"
+              ><button type="button" class="btn btn-primary shadow mt-3 w-100">
+                Back
+              </button></a
+            >
+          </div>
         </div>
+        {% if messages%} {%for message in messages%}
+        <div class="alert alert-{{message.tags}}" style="margin-top: 1em">
+          {{message}}
+        </div>
+        {%endfor%} {%endif%}
       </div>
-      {% if messages%}
-      {%for message in messages%}
-      <div class="alert alert-{{message.tags}}" style="margin-top:1em">
-        {{message}}
-      </div>
-      {%endfor%}
-      {%endif%}
     </div>
   </div>
-</div>
-</section>
+
 
 {% endblock %}
