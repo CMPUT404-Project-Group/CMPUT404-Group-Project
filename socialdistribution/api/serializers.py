@@ -66,11 +66,14 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class InboxSerializer(serializers.ModelSerializer):
-    content_type = serializers.CharField()
-
     class Meta:
         model = Inbox
-        fields = ['content_type', 'object_id']
+        fields =  ['item']
+    
+    def to_representation(self, instance):
+        inbox = super().to_representation(instance)
+        return inbox['item']
+
 class LikeSerializer(serializers.ModelSerializer):
 
     class Meta:

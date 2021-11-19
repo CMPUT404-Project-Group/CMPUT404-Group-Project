@@ -149,8 +149,11 @@ def authors(request):
     return Response(data, status=status.HTTP_200_OK)
 
 class PostAPI(APIView):
+    @swagger_auto_schema(tags=['posts'])
     def get(self, request, *args, **kwargs):
         """
+        GETs and returns a serialized post object which matches with the post_id provided
+        
         GETs and returns a serialized post object which matches with the post_id provided
         """
         post_id = kwargs.get('post_id')
@@ -158,8 +161,12 @@ class PostAPI(APIView):
         serializer = PostSerializer(post)
         return JsonResponse(serializer.data)
     
+    @swagger_auto_schema(tags=['posts'])
     def put(self, request, *args, **kwargs):
         """
+        PUTs a post creating an entry on the server at
+        the specified post id
+        
         PUTs a post creating an entry on the server at
         the specified post id
         """
@@ -173,8 +180,11 @@ class PostAPI(APIView):
 
         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    @swagger_auto_schema(tags=['posts'])
     def post(self, request, *args, **kwargs):
         """
+        Updates a post on the server which matches the given post id
+        
         Updates a post on the server which matches the given post id
         """
         post_id = kwargs.get('post_id')
@@ -186,8 +196,11 @@ class PostAPI(APIView):
             return HttpResponse("Sucessfully edited post")
         return HttpResponse("Failed to edit post")
     
+    @swagger_auto_schema(tags=['posts'])
     def delete(self, request, *args, **kwargs):
         """
+        DELETEs a post on the server which matches the given post id
+        
         DELETEs a post on the server which matches the given post id
         """
         post_id = kwargs.get('post_id')
@@ -215,9 +228,11 @@ class PageNumberPaginationWithCount(PageNumberPagination):
         return response
 
 class Like_Post_API(APIView):
-
+    @swagger_auto_schema(tags=['likes'])
     def get(self, request, *args, **kwargs):
         """
+        GETs and returns a list of likes on a post within the server which matches the given post id
+        
         GETs and returns a list of likes on a post within the server which matches the given post id
         """
         post_id = self.kwargs.get('post_id')
@@ -229,9 +244,11 @@ class Like_Post_API(APIView):
         return Response(data, status.HTTP_200_OK)
 
 class Like_Comment_API(APIView):
-
+    @swagger_auto_schema(tags=['likes'])
     def get(self, request, *args, **kwargs):
         """
+        GETs and returns a list of likes on a comment within the server which matches the given comment id
+        
         GETs and returns a list of likes on a comment within the server which matches the given comment id
         """
         comment_id = self.kwargs.get('comment_id')
@@ -243,9 +260,11 @@ class Like_Comment_API(APIView):
         return Response(data, status.HTTP_200_OK)
 
 class Liked_API(APIView):
-    
+    @swagger_auto_schema(tags=['likes'])
     def get(self, request, *args, **kwargs):
         """
+        GETs and returns a list of every like object corresponding to a user on the server who matches the given author id
+        
         GETs and returns a list of every like object corresponding to a user on the server who matches the given author id
         """
         author_id = self.kwargs.get('author_id')
@@ -258,9 +277,11 @@ class Liked_API(APIView):
 
 class Comment_API(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
-
+    @swagger_auto_schema(tags=['comments'])
     def get(self, request, *args, **kwargs):
         """
+        GETs and returns a paginated list of comments which correspond to the post which matches the given post id
+        
         GETs and returns a paginated list of comments which correspond to the post which matches the given post id
         """
         paginator = PageNumberPaginationWithCount()
@@ -291,9 +312,12 @@ class Comment_API(generics.ListCreateAPIView):
         }
 
         return Response(data, status=status.HTTP_200_OK)
-    
+
+    @swagger_auto_schema(tags=['comments'])
     def post(self, request, *args, **kwargs):
         """
+        Creates a comment on a post which is on the server and whose id matches the given post id. Authors the comment with the given author id
+        
         Creates a comment on a post which is on the server and whose id matches the given post id. Authors the comment with the given author id
         """
         author_id = self.kwargs.get('author_id')
@@ -376,30 +400,23 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         paginator.page_size = size
         paginated_qs = paginator.paginate_queryset(query_set, request)
 
-        items = []
-        for item in paginated_qs:
-            if item.content_type.name == 'post':
-                s = PostSerializer(item.content_object)
-                items.append(s.data)
-            elif item.content_type.name == 'follow':
-                # TODO: serialize follow objectrs
-                pass
-            elif item.content_type.name == 'like':
-                # TODO: serialize like objectrs
-                pass
-        r = paginator.get_paginated_response(paginated_qs)
-        data = {'type': 'inbox', 'author': HOST_API_URL +
-                'author/'+author_id, 'next': r.data.get('next'),
-                'prev': r.data.get('previous'), 'size': size,
-                'page': paginator.get_page_number(request, paginated_qs),
-                'total_pages': r.data.get('total_pages'),
-                'items': items}
+        items = InboxSerializer(paginated_qs, many=True).data
+        p = paginator.get_paginated_response(paginated_qs)
+        data = {
+            'type': 'inbox', 
+            'author': HOST_API_URL+'/author/'+author_id, 
+            'items': items,
+            'next': p.data.get('next'),
+            'prev': p.data.get('previous'), 'size': size,
+            'page': paginator.get_page_number(request, paginated_qs),
+            'total_pages': p.data.get('total_pages'),}
+
 
         return Response(data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         responses={
-            204: openapi.Response(description="Succesffuly POST an item to an author's inbox."),
+            204: openapi.Response(description="Succesfully POST an item to an author's inbox."),
         },
         tags=['inbox'])
     def post(self, request, author_id, *args, **kwargs):
@@ -409,14 +426,10 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         'post' is the only content_type that is supported at this time.
         """
         try:
-            content_type = request.data["content_type"]
-            object_id = request.data["object_id"]
-            if content_type == "post":
-                content_object = Post.objects.get(id=object_id)
-                author = User.objects.get(id=author_id)
-                inbox = InboxItem.objects.create(author_id=author.id,
-                                                 content_object=content_object)
-                return Response(status=status.HTTP_204_NO_CONTENT)
+            item = request.data
+            author = User.objects.get(id=author_id)
+            InboxItem.objects.create(author_id=author.id, item=item)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -428,6 +441,8 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     def delete(self, request, *args, **kwargs):
         """
         Delete all items in {author_id}'s Inbox.
+        
+        Delete all items in {author_id}'s Inbox.
         """
         try:
             author_id = self.kwargs.get('author_id')
@@ -436,3 +451,41 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+@swagger_auto_schema(method='GET', tags=['followers'])
+@api_view(['GET'])
+def followers(request, author_id):
+    """
+    GETs a list of authors who are following {author_id}
+
+    GETs a list of authors who are following {author_id}
+    """
+    pass
+
+class Followers(APIView):
+    @swagger_auto_schema(tags=['followers'])
+    def get(self, request, *args, **kwargs):
+        """
+        Check if {foreign_author_id} is following {author_id}
+        
+        Check if {foreign_author_id} is following {author_id}
+        """
+        pass
+
+    @swagger_auto_schema(tags=['followers'])
+    def post(self, request, *args, **kwargs):
+        """
+        Add {foreign_author_id} as a follower of {author_id}
+        
+        Add {foreign_author_id} as a follower of {author_id}
+        """
+        pass
+
+    @swagger_auto_schema(tags=['followers'])
+    def delete(self, request, *args, **kwargs):
+        """
+        Remove {foreign_author_id} from {author_id} followers
+        
+        Remove {foreign_author_id} from {author_id} followers
+        """
+        pass
