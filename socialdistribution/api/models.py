@@ -209,7 +209,7 @@ class PostBuilder():
     # TODO: Content type just defaults to plain text at the moment
     def __set_content_type__(self):
         self.content_type = Post.ContentType.PLAIN
-        marked_down_text = markdown.Markdown.convert(self.text_content)
+        marked_down_text = markdown.Markdown().convert(self.text_content)
         tag_stipped_text = marked_down_text.strip('<p>').strip('</p>')
         if tag_stipped_text != self.text_content:
             self.content_type = Post.ContentType.MARKDOWN
@@ -332,11 +332,12 @@ class CommentManager(models.Manager):
         return comment
     
     def __get_content_type__(self, comment):
-        self.content_type = Post.ContentType.PLAIN
-        marked_down_comment = markdown.Markdown.convert(self.text_content)
+        content_type = Post.ContentType.PLAIN
+        marked_down_comment = markdown.Markdown().convert(comment)
         tag_stipped_comment = marked_down_comment.strip('<p>').strip('</p>')
-        if tag_stipped_comment != self.text_content:
-            self.content_type = Post.ContentType.MARKDOWN
+        if tag_stipped_comment != comment:
+            content_type = Post.ContentType.MARKDOWN
+        return content_type
 
 
 class Comment(models.Model):
