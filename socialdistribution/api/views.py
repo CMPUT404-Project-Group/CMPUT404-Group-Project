@@ -514,6 +514,7 @@ class Followers(APIView):
             author_id = kwargs.get('author_id')
             foreign_author_id = kwargs.get('foreign_author_id')
             is_following = Follow.objects.filter(followee_id=author_id, follower_id=foreign_author_id)
+            # Not sure what to return? This should do for now.
             if is_following.exists():
                 data = {'type': 'followers', 'is_following': 'true'}
             else:
