@@ -548,7 +548,6 @@ class Followers(APIView):
             foreign_author = User.objects.get(id=foreign_author_id)
             Follow.objects.add_follower(foreign_author, author)
             if (FriendshipRequest.objects.filter(from_user=author, to_user=foreign_author).exists()):
-                print('ASDFASDFASDF')
                 friend_request = FriendshipRequest.objects.get(from_user=author, to_user=foreign_author)
                 friend_request.accept()
             return Response(status=status.HTTP_204_NO_CONTENT)
