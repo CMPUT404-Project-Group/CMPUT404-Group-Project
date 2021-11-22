@@ -33,8 +33,28 @@
         console.log(response);
       },
     });
-  };
-</script>
+    };
+
+    const followBack = async (item) => {
+      const string = item.replace(/[\']/g, '\"')
+      const json = JSON.parse(string)
+      const { actor, object } = json;
+      const { url: actorURL } = actor;
+      // this looks confusing, but we swap the roles when sending a friend request back.
+      const body = { 'type': 'Follow', 'summary': `${object.displayName} wants to follow ${actor.displayName}`, 'actor': object, 'object': actor }
+      let req = new Request(actorURL + '/inbox/', { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{csrf_token}}' } });
+      const res = await fetch(req)
+      if (res.status == 204) {
+        $('#followModalMessage').html('Friend Request sent. You are now following this author.')
+        $('#followModal').modal('toggle');
+      } else {
+        $('#followModalMessage').html('Something went wrong. Try following this author again later.')
+        $('#followModal').modal('toggle');
+      }
+    }
+
+
+  </script>
 {% endblock %}
 
 <!-- clearModal for clearing inbox -->
@@ -75,6 +95,43 @@
     </div>
   </div>
 </div>
+
+
+<div
+  class="modal fade"
+  id="followModal"
+  tabindex="-1"
+  aria-labelledby="followModal"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="followModal">Friend Request</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body" id="followModalMessage">
+        Friend Request sent.
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-primary"
+          data-bs-dismiss="modal"
+        >
+          Ok
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="pt-5">
   {%if res.items%}
   <div class="container py-2 h-100">
@@ -91,6 +148,7 @@
           </button>
         </div>
         {% for item in res.items %}
+        {% if item.type == 'post' %}
         <li class="py-2" style="list-style: none">
           <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
             <div
@@ -127,6 +185,39 @@
             </div>
           </div>
         </li>
+        {% elif item.type == 'Follow' %}
+        <li class="py-2" style="list-style: none">
+          <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
+            <div
+              class="card-header d-inline-flex justify-content-between"
+              style="
+                border-radius: 0.5rem;
+                border: 0;
+              "
+            >
+              <h5>{{item.actor.displayName}} sent you a friend request.</h5>
+              <input
+                class="btn btn-light"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#postData{{item.id}}"
+                aria-expanded="false"
+                aria-controls="postData{{item.id}}"
+                value="Show"
+                id="#postData{{item.id}}"
+                onclick="changeLabel(this.id)"
+              />
+            </div>
+            <div class="collapse" id="postData{{item.id}}">
+              <div class="card-body">
+                <h6 class="card-text">{{item.summary}}.</h6>
+                <p class="card-text">This means they will see your public posts, and can send you private posts.</p>
+                <button type="button" id="{{item}}" class="btn btn-sm btn-primary float-start mt-4 me-3" onclick="followBack(this.id)">Follow {{item.actor.displayName}}</button>
+              </div>
+            </div>
+          </div>
+        </li>
+        {% endif %}
         {% endfor %}
       </div>
     </div>

@@ -431,6 +431,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
             InboxItem.objects.create(author_id=author.id, item=item)
             return Response(status=status.HTTP_204_NO_CONTENT)
         except:
+            print(request.data)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @ swagger_auto_schema(
