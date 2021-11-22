@@ -4,10 +4,8 @@ import json
 import os
 import requests
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
-from requests.models import Response
-from rest_framework import serializers
 from api.models import User, Post, Comment, Like
-from api.serializers import PostSerializer
+from api.serializers import PostSerializer, FriendRequestSerializer
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -200,27 +198,32 @@ def follow(request, other_user_id):
 
         try: 
             # send a friend request
-            Friend.objects.add_friend(
+            friendrequest = Friend.objects.add_friend(
             request.user,                              # The sender
             other_user)                                # The recipient
+
+            # send request to object user's inbox
+            serializer = FriendRequestSerializer(friendrequest).data
+            inboxURL = serializer.get('object', {}).get('url') + '/inbox/'
+            requests.post(inboxURL, json=serializer)
 
             Follow.objects.add_follower(request.user, other_user)  # follow
             messages.success(request,f'Your friend request has been sent!')
 
         except:
             # if there's already a request from other_user
-            if (FriendshipRequest.objects.filter(from_user=other_user, to_user=request.user).exists() ):
-                # accept friend request from other_user
-                friend_request = FriendshipRequest.objects.get(from_user=other_user, to_user=request.user)
-                friend_request.accept()
-                Follow.objects.add_follower(request.user, other_user)  # follow
-                messages.success(request,f'You and %s are friends now!' % other_user.displayName)
-            elif (FriendshipRequest.objects.filter(from_user=request.user, to_user=other_user).exists()):
-                Follow.objects.add_follower(request.user, other_user)  # follow
-                messages.info(request,f'You already sent a friend request ')
-            else: 
-                messages.info(request,f'Error')
-
+            # if (FriendshipRequest.objects.filter(from_user=other_user, to_user=request.user).exists() ):
+            #     # accept friend request from other_user
+            #     # friend_request = FriendshipRequest.objects.get(from_user=other_user, to_user=request.user)
+            #     # friend_request.accept()
+            #     # Follow.objects.add_follower(request.user, other_user)  # follow
+            #     messages.success(request,f'You and %s are friends now!' % other_user.displayName)
+            # elif (FriendshipRequest.objects.filter(from_user=request.user, to_user=other_user).exists()):
+            #     # Follow.objects.add_follower(request.user, other_user)  # follow
+            #     messages.info(request,f'You already sent a friend request ')
+            # else: 
+            #     messages.info(request,f'Error')
+            pass
         
         return redirect('app:view-other-user', other_user_id=other_user_id)
 
