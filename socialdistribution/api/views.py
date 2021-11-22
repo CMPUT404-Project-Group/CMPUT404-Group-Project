@@ -188,13 +188,17 @@ class PostAPI(APIView):
         Updates a post on the server which matches the given post id
         """
         post_id = kwargs.get('post_id')
-        post = get_object_or_404(Post, pk=post_id)
-        form = PostCreationForm(
-            instance=post, data=request.POST, id=post_id, published=post.published, user=post.author)
-        if form.is_valid():
-            form.save()
-            return HttpResponse("Sucessfully edited post")
-        return HttpResponse("Failed to edit post")
+
+        query_set = Post.objects.filter(id=post_id)
+        data = request.data
+
+        posts_updated = query_set.update(**data)
+
+        if posts_updated == 0:
+            return HttpResponse("Something went wrong!")
+        
+
+        return HttpResponse("Successfully edited post")
     
     @swagger_auto_schema(tags=['posts'])
     def delete(self, request, *args, **kwargs):
