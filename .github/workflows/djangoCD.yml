@@ -10,7 +10,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.7]
 
     steps:
       - uses: actions/checkout@v2
@@ -30,10 +30,10 @@ jobs:
 
       steps:
         - uses: actions/checkout@v2
-        - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+        - uses: akhileshns/heroku-deploy@v3.12.12
           with:
             heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-            heroku_app_name: ${{secrets.HEROKU_APP}} #Must be unique in Heroku
+            heroku_app_name: ${{secrets.HEROKU_APP}}
             heroku_email: ${{secrets.HEROKU_EMAIL}}
         - name: Deployed successfully
           run: |
