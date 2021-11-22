@@ -13,6 +13,7 @@ urlpatterns = [
     path('posts/<str:post_id>/create-comment', views.create_comment, name='create-comment'),
     path('posts/<str:post_id>/comments', views.comments, name='comments'),
     path('profile/', views.view_profile, name="view-profile"),
+    path('profile/followers', views.view_followers, name="view-followers"),
     path('profile/manage/', views.manage_profile, name="manage-profile"),
     path('profile/<str:other_user_id>', views.view_other_user, name='view-other-user'),
     path('posts/share-post/<str:post_id>', views.share_post, name='share-post'),
@@ -20,4 +21,5 @@ urlpatterns = [
     path('unfollow/<str:other_user_id>', views.unfollow, name='action-unfollow'),
     path('author/<str:author_id>/inbox/', views.inbox, name='inbox'),
     path('posts/', views.PostListView.as_view(), name='post-list'),
+    path('authors/', views.explore_authors, name='explore-authors')
 ]

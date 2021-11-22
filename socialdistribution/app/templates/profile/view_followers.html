@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load app_tags %}
+{% block title %}View Profile {% endblock %}
+{% block content %}
+{% include "app/includes/navbar.html" %}
+
+<div class="pt-5">
+  {% if data %}
+  <div class="container py-2 h-100">
+    <div class="row d-felx justify-content-center align-items-center h-100">
+      <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 75%">
+        <h1>Followers</h1>
+        <div class="d-flex justify-content-center">
+          <ul class='ps-0'>
+            {% for item in data %}
+            <li class="py-2" style="list-style: none">
+              <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0; width: 25rem;">
+                <div class="card-header d-inline-flex justify-content-between"
+                  style="border-radius: 0.5rem; border: 0;">
+                  <h5>{{item.displayName}}</h5>
+                  <a href="{% url 'app:view-other-user' item.id|getID %}" class="btn btn-sm btn-primary float-end">View
+                    Profile</a>
+                </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="container py-2 h-100">
+    <div class="row d-felx justify-content-center align-items-center h-100">
+      <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 75%">
+        <div class="p-5 mb-1 rounded-3">
+          <h6 class="display-6 mb-4 fw-bold">
+            Looks like you don't have any followers or friends.
+          </h6>
+          <p>
+            Follow other authors on this, or other servers, to get their content.
+          </p>
+          <div class='mt-5'>
+            <a href="{% url 'app:explore-authors' %}" style="text-decoration: none;">
+              <button class="btn btn-primary" type="button">
+                Find Authors
+              </button>
+            </a>
+            <a href="{% url 'app:view-profile' %}"><button type="button" class="btn btn-outline-secondary shadow">
+                Back
+              </button></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
