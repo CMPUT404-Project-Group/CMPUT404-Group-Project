@@ -1,7 +1,8 @@
 {% extends "base.html" %} 
 {% block title %}Inbox - {{user}}{% endblock %}
-{%block content %} 
+{% block content %} 
 {% include "app/includes/navbar.html" %}
+{% load app_tags %}
 {% block javascript %}
 <script>
   const changeLabel = (id) => {
@@ -35,6 +36,7 @@
     });
     };
 
+    // I guess we'll need to do something like this for remote authors maybe?
     const followBack = async (item) => {
       const string = item.replace(/[\']/g, '\"')
       const json = JSON.parse(string)
@@ -52,8 +54,6 @@
         $('#followModal').modal('toggle');
       }
     }
-
-
   </script>
 {% endblock %}
 
@@ -211,8 +211,8 @@
             <div class="collapse" id="postData{{item.id}}">
               <div class="card-body">
                 <h6 class="card-text">{{item.summary}}.</h6>
-                <p class="card-text">This means they will see your public posts, and can send you private posts.</p>
                 <button type="button" id="{{item}}" class="btn btn-sm btn-primary float-start mt-4 me-3" onclick="followBack(this.id)">Follow {{item.actor.displayName}}</button>
+                <a href="{% url 'app:view-other-user' item.actor.id|getID %}" class="btn btn-sm btn-outline-primary float-start mt-4">View Profile</a>
               </div>
             </div>
           </div>
