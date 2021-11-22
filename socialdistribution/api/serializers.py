@@ -1,6 +1,7 @@
 import os
 from re import I
 from dotenv import load_dotenv
+from friendship.models import Follow
 from .models import HOST_API_URL, Post, User, Like
 from django.shortcuts import get_object_or_404
 from .models import User, Inbox, Comment
@@ -137,3 +138,13 @@ class CommentSerializer(serializers.ModelSerializer):
         return comment
 
         
+class FollowersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Follow
+        fields = ['follower_id']
+
+    def to_representation(self, instance):
+        follower = super().to_representation(instance)
+        author = User.objects.get(id=follower.get('follower_id'))
+        author_serializer = UserSerializer(author)
+        return author_serializer.data
