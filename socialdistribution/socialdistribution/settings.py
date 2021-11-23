@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 # env variables
 SECRET_KEY = os.environ.get("SECRET_KEY")
-DEBUG = os.environ.get("DEBUG")
+DEBUG = (os.environ.get("DEUBG") == 'True')
 GITHUB_URL = os.environ.get("GITHUB_URL")
 HOST_API_URL = os.environ.get("HOST_API_URL")
 HOST_URL = os.environ.get("HOST_URL")
