@@ -308,6 +308,9 @@ class Liked_API(APIView):
 
 class Comment_API(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     @swagger_auto_schema(tags=['comments'])
     def get(self, request, *args, **kwargs):
         """
@@ -351,22 +354,25 @@ class Comment_API(generics.ListCreateAPIView):
         
         Creates a comment on a post which is on the server and whose id matches the given post id. Authors the comment with the given author id
         """
-        author_id = self.kwargs.get('author_id')
         post_id = self.kwargs.get('post_id')
 
         request.data['post'] = post_id
-        request.data['author'] = author_id
 
         serializer = CommentSerializer(data=request.data)
 
-        if serializer.is_valid():
-            serializer.save()
-            post = get_object_or_404(Post, pk=post_id)
-            post.count += 1
-            post.save()
-            return Response(status.HTTP_204_NO_CONTENT)
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
 
-        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not str(request.user.id) == request.data['author']:
+            return Response("Authenticated user id does not match author id of comment being POSTed", status.HTTP_401_UNAUTHORIZED)
+
+        serializer.save()
+        post = get_object_or_404(Post, pk=post_id)
+        post.count += 1
+        post.save()
+        return Response(status.HTTP_204_NO_CONTENT)
+
 
 class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = InboxSerializer
