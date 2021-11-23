@@ -27,5 +27,7 @@ urlpatterns = [
     path('author/<str:author_id>/post/<str:post_id>/comment/<str:comment_id>/likes', views.Like_Comment_API.as_view(), name='like-comment'),
     path('author/<str:author_id>/liked', views.Liked_API.as_view(), name='liked'),
     path('author/<str:author_id>/posts/<str:post_id>/comments', views.Comment_API.as_view(), name='comments'),
-    path('author/<str:author_id>/posts/<str:post_id>', views.PostAPI.as_view(), name="posts")
+    path('author/<str:author_id>/posts/<str:post_id>', views.PostAPI.as_view(), name="posts"),
+    path('author/<str:author_id>/followers/', views.followers, name="followers-list"),
+    path('author/<str:author_id>/followers/<str:foreign_author_id>/', views.Followers.as_view(), name="followers"),
 ]
