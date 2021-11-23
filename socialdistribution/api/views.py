@@ -28,8 +28,8 @@ from .models import Inbox as InboxItem
 from .models import Post, User, Like, Comment
 from .serializers import LikeSerializer, LikedSerializer, InboxSerializer, PostSerializer, UserSerializer, CommentSerializer
 
-load_dotenv()
-HOST_API_URL = os.getenv("HOST_API_URL")
+from django.conf import settings
+HOST_API_URL = settings.HOST_API_URL
 
 
 class Author(APIView):
