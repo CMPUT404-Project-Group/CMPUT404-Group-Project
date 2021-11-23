@@ -11,6 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
 from dotenv import load_dotenv
+import markdown
 import os
 from uuid import uuid4
 import logging 
@@ -208,6 +209,10 @@ class PostBuilder():
     # TODO: Content type just defaults to plain text at the moment
     def __set_content_type__(self):
         self.content_type = Post.ContentType.PLAIN
+        marked_down_text = markdown.Markdown().convert(self.text_content)
+        tag_stipped_text = marked_down_text.strip('<p>').strip('</p>')
+        if tag_stipped_text != self.text_content:
+            self.content_type = Post.ContentType.MARKDOWN
     
     def __set_urls__(self):
         post_url = f"{HOST_API_URL}author/{self.author.id}/posts/{self.id}"
@@ -306,23 +311,34 @@ class Post(models.Model):
     class Meta:
         ordering = ['published']
 
-# TODO: Defaults to text/plain for contentType
+# TODO: Add other content types (currently just plain and markdown)
 # TODO: Add posts or post_id to comment model
 class CommentManager(models.Manager):
 
     def create_comment(self, author, comment, post):
+
+        content_type = self.__get_content_type__(comment)
         
         comment = Comment(
             type="comment",
             author=author,
             comment=comment,
-            content_type="text/plain",
+            content_type=content_type,
             post=post,
             id=uuid4()
         )
         comment.save()
 
         return comment
+    
+    def __get_content_type__(self, comment):
+        content_type = Post.ContentType.PLAIN
+        marked_down_comment = markdown.Markdown().convert(comment)
+        tag_stipped_comment = marked_down_comment.strip('<p>').strip('</p>')
+        if tag_stipped_comment != comment:
+            content_type = Post.ContentType.MARKDOWN
+        return content_type
+
 
 class Comment(models.Model):
     id = models.CharField(max_length=255, unique=True,
