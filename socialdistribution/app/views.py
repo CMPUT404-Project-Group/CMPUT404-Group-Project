@@ -20,8 +20,8 @@ from dotenv import load_dotenv
 import logging
 from django.views import generic
 
-load_dotenv()
-HOST_URL = os.getenv("HOST_URL")
+from django.conf import settings
+HOST_API_URL = settings.HOST_API_URL
 
 def register(request):
     if request.method == 'POST':
@@ -287,7 +287,7 @@ def like_comment(request, comment_id):
 
 @login_required
 def inbox(request, author_id):
-    url = HOST_URL+reverse('api:inbox', kwargs={'author_id': author_id})
+    url = HOST_API_URL+reverse('api:inbox', kwargs={'author_id': author_id})
     if request.method == 'GET':
         try:
             page = request.GET.get('page')
