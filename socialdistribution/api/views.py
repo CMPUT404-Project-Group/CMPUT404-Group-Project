@@ -10,7 +10,9 @@ from django.shortcuts import get_object_or_404
 from dotenv import load_dotenv
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
-from rest_framework.decorators import api_view
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.decorators import api_view, authentication_classes
 from django.http.response import HttpResponse
 from rest_framework.views import APIView
 from app.forms import PostCreationForm
@@ -149,6 +151,10 @@ def authors(request):
     return Response(data, status=status.HTTP_200_OK)
 
 class PostAPI(APIView):
+
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     @swagger_auto_schema(tags=['posts'])
     def get(self, request, *args, **kwargs):
         """
@@ -187,6 +193,7 @@ class PostAPI(APIView):
         
         Updates a post on the server which matches the given post id
         """
+
         post_id = kwargs.get('post_id')
 
         query_set = Post.objects.filter(id=post_id)
