@@ -9,9 +9,9 @@ from rest_framework import serializers
 from django.db.models import fields
 
 
-load_dotenv()
-HOST_API_URL = os.getenv("HOST_API_URL")
-GITHUB_URL = os.getenv("GITHUB_URL")
+from django.conf import settings
+HOST_API_URL = settings.HOST_API_URL
+GITHUB_URL = settings.GITHUB_URL
 
 
 class UserSerializer(serializers.ModelSerializer):

@@ -15,8 +15,8 @@ import os
 from uuid import uuid4
 import logging 
 
-load_dotenv()
-HOST_API_URL = os.getenv("HOST_API_URL")
+from django.conf import settings
+HOST_API_URL = settings.HOST_API_URL
 
 
 class SettingManager(models.Manager):
