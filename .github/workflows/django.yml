@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SECRET_KEY: testkey
+      HOST_API_URL: "https://social-distribution-t10.herokuapp.com/api/"
+      HOST_URL: "https://social-distribution-t10.herokuapp.com/"
+      GITHUB_URL: "http://github.com/"
     strategy:
       max-parallel: 4
       matrix:
