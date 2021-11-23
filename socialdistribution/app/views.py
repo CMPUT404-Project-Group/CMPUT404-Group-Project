@@ -21,7 +21,7 @@ import logging
 from django.views import generic
 
 from django.conf import settings
-HOST_API_URL = settings.HOST_API_URL
+HOST_URL = settings.HOST_URL
 
 def register(request):
     if request.method == 'POST':
@@ -287,7 +287,8 @@ def like_comment(request, comment_id):
 
 @login_required
 def inbox(request, author_id):
-    url = HOST_API_URL+reverse('api:inbox', kwargs={'author_id': author_id})
+    url = HOST_URL+reverse('api:inbox', kwargs={'author_id': author_id})
+    print(url)
     if request.method == 'GET':
         try:
             page = request.GET.get('page')
