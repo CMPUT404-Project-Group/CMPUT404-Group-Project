@@ -178,6 +178,10 @@ class PostAPI(APIView):
         """
         post_id = kwargs.get('post_id')
         request.data['id'] = post_id
+        
+        if not str(request.user.id) == request.data['author']:
+            return Response("Authenticated user id does not match author id of post being PUT", status.HTTP_401_UNAUTHORIZED)
+        
         serializer = PostSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -198,6 +202,9 @@ class PostAPI(APIView):
 
         query_set = Post.objects.filter(id=post_id)
         data = request.data
+
+        if 'content' in data:
+            data['text_content'] = data.pop('content')
         user = request.user
 
         if not query_set.count() == 1:
