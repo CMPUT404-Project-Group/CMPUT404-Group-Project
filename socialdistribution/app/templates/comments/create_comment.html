@@ -3,8 +3,8 @@
 {% block title%}Comment on the Post{% endblock %}
 
 {% block content%}
-
-<div class="container py-5 h-100">
+{% include "app/includes/navbar.html" %}
+<div class="container py-5 mt-5">
     <div class="row d-felx justify-content-center align-items-center h-100">
         <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 45%">
             <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
@@ -19,6 +19,10 @@
                         <div class="form-outline mb-2">
                             <button class="btn btn-primary shadow mt-5 w-100" type="submit">Create Comment</button>
                         </div>
+                          <a href="{% url 'app:index' %}"
+                            ><button type="button" class="btn btn-primary shadow mt-3 w-100">
+                                    Back
+                            </button></a>
                     </form>
                 </div>
             </div>

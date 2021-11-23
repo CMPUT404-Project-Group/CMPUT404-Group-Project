@@ -341,14 +341,6 @@ class Comment(models.Model):
     class Meta:
         ordering = ['published']
 
-class InboxManager(models.Manager):
-    def create(self, author_id, content_object):
-        inbox = self.model(
-            author_id=author_id,
-            content_object=content_object,
-        )
-        inbox.save(using=self._db)
-        return inbox
 
 #TODO: context is currently a placeholder
 class LikeManager(models.Manager):
@@ -387,15 +379,24 @@ class Like(models.Model):
     class Meta:
         unique_together = (('content_type', 'object_id', 'author'))
 
+
+
+class InboxManager(models.Manager):
+    def create(self, author_id, item):
+        inbox = self.model(
+            author_id=author_id,
+            item=item,
+        )
+        inbox.save(using=self._db)
+        return inbox
+
+
 class Inbox(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.UUIDField()
-    content_object = GenericForeignKey('content_type', 'object_id')
-    created_at = models.DateTimeField(
-        unique=False, blank=False, null=False, auto_now_add=True)
+    item = models.JSONField(default=dict)
+    created_at = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
     objects = InboxManager()
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['-created_at']
         

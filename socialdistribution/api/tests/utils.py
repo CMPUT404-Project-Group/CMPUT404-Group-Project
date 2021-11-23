@@ -1,3 +1,4 @@
+from ..serializers import PostSerializer
 from ..models import Inbox, Post, User, Like, Comment
 
 
@@ -54,7 +55,8 @@ class TestUtils():
 
     def setup_inbox(author_id, num_messages):
         for i in range(num_messages):
-            content_object = TestUtils.get_test_post(
+            post = TestUtils.get_test_post(
                 author=User.objects.get(id=author_id), text_content="Inbox Post %s" % i)
+            item = PostSerializer(post).data
             Inbox.objects.create(author_id=author_id,
-                                 content_object=content_object)
+                                 item=item)
