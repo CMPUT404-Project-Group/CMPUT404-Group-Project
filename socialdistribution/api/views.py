@@ -13,7 +13,7 @@ from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.decorators import api_view, authentication_classes
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed
 from rest_framework.views import APIView
 from app.forms import PostCreationForm
 from .models import User, Post
@@ -198,12 +198,15 @@ class PostAPI(APIView):
 
         query_set = Post.objects.filter(id=post_id)
         data = request.data
+        user = request.user
 
-        posts_updated = query_set.update(**data)
-
-        if posts_updated == 0:
+        if not query_set.count() == 1:
             return HttpResponse("Something went wrong!")
-        
+
+        if not PostAPI.__has_permission__(user, query_set.first()):
+            return Response("This user is not authenticated to update this post", status.HTTP_401_UNAUTHORIZED)
+
+        query_set.update(**data)
 
         return HttpResponse("Successfully edited post")
     
@@ -214,10 +217,20 @@ class PostAPI(APIView):
         
         DELETEs a post on the server which matches the given post id
         """
+        user = request.user
         post_id = kwargs.get('post_id')
         post = get_object_or_404(Post, pk=post_id)
+        if not PostAPI.__has_permission__(user, post):
+            return Response("This user is not authorized to delete this post", status.HTTP_401_UNAUTHORIZED)
         post.delete()
         return HttpResponse("Successfully deleted")
+
+    def __has_permission__(user, post):
+        author_id = post.author_id
+        user_id = user.id
+        if (user_id == author_id):
+            return True
+        return False
 
 class PageNumberPaginationWithCount(PageNumberPagination):
     # Q: https://stackoverflow.com/q/40985248 (Stupid.Fat.Cat)
