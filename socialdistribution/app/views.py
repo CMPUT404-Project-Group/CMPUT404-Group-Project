@@ -318,7 +318,7 @@ class PostListView(generic.ListView):
     template_name = 'posts/post_list.html'
 
     def get(self, request):
-        queryset = Post.objects.filter(visibility="public", unlisted=0)[:20]
+        queryset = Post.objects.filter(visibility="public", unlisted=False)[:20]
         serializer = PostSerializer(queryset, many=True)
 
         for post in serializer.data:
