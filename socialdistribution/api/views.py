@@ -4,14 +4,14 @@ import json
 from drf_yasg import openapi
 
 from django.db.models import aggregates, query
-from dotenv import load_dotenv
+from django.contrib.auth.decorators import login_required
 import rest_framework.status as status
 from django.shortcuts import get_object_or_404
 from dotenv import load_dotenv
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
 from rest_framework.authentication import BasicAuthentication
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.decorators import api_view, authentication_classes
 from django.http.response import HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed
 from rest_framework.views import APIView
@@ -127,6 +127,8 @@ class Author(APIView):
             'size', openapi.IN_QUERY, description='The size of the page to be returned', type=openapi.TYPE_INTEGER)
     ])
 @ api_view(["GET"])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def authors(request):
     """
     GETs and returns a paginated list of all Authors on the server. 
