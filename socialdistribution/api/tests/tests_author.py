@@ -93,7 +93,7 @@ class AuthorsTest(TestCase):
     Tests for the /authours/ endpoint
     """
 
-    def SetUp(self):
+    def setUp(self):
         self.client = APIClient()
 
     def test_get_authors(self):
@@ -103,6 +103,7 @@ class AuthorsTest(TestCase):
                                      i, github="testgit%s" % i, password="testpassword1", type="author")
 
         # Act
+        self.client.force_authenticate(user=User.objects.get(displayName="testuser0"))
         response = self.client.get(reverse('api:authors'))
         content = json.loads(response.content.decode('utf-8'))
 
@@ -124,6 +125,7 @@ class AuthorsTest(TestCase):
         self.assertEqual(User.objects.count(), 6)
 
         # Act
+        self.client.force_authenticate(user=User.objects.get(displayName="testuser0"))
         response = self.client.get(reverse('api:authors'))
         content = json.loads(response.content.decode('utf-8'))
 
@@ -143,6 +145,7 @@ class AuthorsTest(TestCase):
         self.assertEqual(User.objects.count(), 26)
 
         # Act - get first page
+        self.client.force_authenticate(user=User.objects.get(displayName="a_testuser"))
         response = self.client.get(reverse('api:authors') + '?page=1')
         content = json.loads(response.content.decode('utf-8'))
 
@@ -202,7 +205,17 @@ class AuthorsTest(TestCase):
 
     def test_unauthorized_method(self):
         # Act
+        User.objects.create_user(email="test@email.com", displayName='testuser', github="testgit",
+         password="testpassword1", type="author")
+        self.client.force_authenticate(user=User.objects.get(displayName="testuser"))
         response = self.client.delete(reverse('api:authors'))
 
         # Assert
         self.assertEqual(response.status_code, 405)
+
+    def test_unauthorized_user(self):
+        # Act
+        response = self.client.delete(reverse('api:authors'))
+
+        # Assert
+        self.assertEqual(response.status_code, 401)
