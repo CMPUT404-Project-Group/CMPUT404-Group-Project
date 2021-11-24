@@ -22,7 +22,7 @@
                 <span class="badge bg-dark">{{ c }}</span>
                 {% endfor %}
               </div>
-              <a href="{{ post.origin }}" class="btn btn-primary shadow mt-5">View Post</a>
+              <a href="{% url 'app:posts' post.id %}" class="btn btn-primary shadow mt-5">View Post</a>
             </div>
           </div>
         </div>
