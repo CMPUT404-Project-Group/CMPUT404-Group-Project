@@ -42,7 +42,6 @@ def register(request):
 
 @login_required
 def index(request):
-    
     stream_posts_objects = Post.objects.all().order_by('-published').filter(author=request.user)
     stream_posts = PostSerializer(stream_posts_objects, many=True).data
     for post in stream_posts:
@@ -347,7 +346,7 @@ class PostListView(generic.ListView):
     template_name = 'posts/post_list.html'
 
     def get(self, request):
-        queryset = Post.objects.filter(visibility="public", unlisted=0)[:20]
+        queryset = Post.objects.filter(visibility="public", unlisted=False)[:20]
         serializer = PostSerializer(queryset, many=True)
 
         for post in serializer.data:

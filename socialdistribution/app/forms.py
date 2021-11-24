@@ -33,7 +33,7 @@ class PostCreationForm(forms.ModelForm):
 
     class Meta:
         model = Post
-        fields = ('title', 'text_content', 'image_content', 'image_link', 'categories', 'visibility')
+        fields = ('title', 'text_content', 'image_content', 'image_link', 'categories', 'visibility', 'unlisted')
 
     def __init__(self, *args, **kwargs):
         self.user = None
@@ -48,6 +48,7 @@ class PostCreationForm(forms.ModelForm):
 
     # TODO: Unlisted always false
     def save(self, commit=True):
+        logging.error(self.cleaned_data)
         return Post.objects.create_post(
                 author=self.user,
                 categories=self.cleaned_data['categories'],
@@ -56,7 +57,7 @@ class PostCreationForm(forms.ModelForm):
                 image_link=self.cleaned_data["image_link"],
                 title=self.cleaned_data["title"],
                 visibility=self.cleaned_data["visibility"],
-                unlisted=False
+                unlisted=self.cleaned_data["unlisted"]
             )
 
 class SharePostForm(forms.ModelForm):

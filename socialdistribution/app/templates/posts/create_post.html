@@ -43,6 +43,10 @@
                             </select>
                         </div>
                         <div class="form-outline mb-2">
+                            <label for="id_unlisted" class="form-label h6">Unlisted</label>
+                            <input type="checkbox" id="id_unlisted" name="unlisted" value="unlisted">
+                        </div>
+                        <div class="form-outline mb-2">
                             <button class="btn btn-primary shadow mt-5 w-100" type="submit">Create Post</button>
                             <a href="{% url 'app:index' %}"><button type="button" class="btn btn-primary shadow mt-3 w-100">Discard</button></a>
                         </div>
