@@ -10,8 +10,10 @@ from django.shortcuts import get_object_or_404
 from dotenv import load_dotenv
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
-from rest_framework.decorators import api_view
-from django.http.response import HttpResponse
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.decorators import api_view, authentication_classes
+from django.http.response import HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed
 from rest_framework.views import APIView
 from app.forms import PostCreationForm
 from .models import User, Post
@@ -149,6 +151,10 @@ def authors(request):
     return Response(data, status=status.HTTP_200_OK)
 
 class PostAPI(APIView):
+
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     @swagger_auto_schema(tags=['posts'])
     def get(self, request, *args, **kwargs):
         """
@@ -172,6 +178,10 @@ class PostAPI(APIView):
         """
         post_id = kwargs.get('post_id')
         request.data['id'] = post_id
+        
+        if not str(request.user.id) == request.data['author']:
+            return Response("Authenticated user id does not match author id of post being PUT", status.HTTP_401_UNAUTHORIZED)
+        
         serializer = PostSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -187,16 +197,23 @@ class PostAPI(APIView):
         
         Updates a post on the server which matches the given post id
         """
+
         post_id = kwargs.get('post_id')
 
         query_set = Post.objects.filter(id=post_id)
         data = request.data
 
-        posts_updated = query_set.update(**data)
+        if 'content' in data:
+            data['text_content'] = data.pop('content')
+        user = request.user
 
-        if posts_updated == 0:
+        if not query_set.count() == 1:
             return HttpResponse("Something went wrong!")
-        
+
+        if not PostAPI.__has_permission__(user, query_set.first()):
+            return Response("This user is not authenticated to update this post", status.HTTP_401_UNAUTHORIZED)
+
+        query_set.update(**data)
 
         return HttpResponse("Successfully edited post")
     
@@ -207,10 +224,20 @@ class PostAPI(APIView):
         
         DELETEs a post on the server which matches the given post id
         """
+        user = request.user
         post_id = kwargs.get('post_id')
         post = get_object_or_404(Post, pk=post_id)
+        if not PostAPI.__has_permission__(user, post):
+            return Response("This user is not authorized to delete this post", status.HTTP_401_UNAUTHORIZED)
         post.delete()
         return HttpResponse("Successfully deleted")
+
+    def __has_permission__(user, post):
+        author_id = post.author_id
+        user_id = user.id
+        if (user_id == author_id):
+            return True
+        return False
 
 class PageNumberPaginationWithCount(PageNumberPagination):
     # Q: https://stackoverflow.com/q/40985248 (Stupid.Fat.Cat)
@@ -281,6 +308,9 @@ class Liked_API(APIView):
 
 class Comment_API(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     @swagger_auto_schema(tags=['comments'])
     def get(self, request, *args, **kwargs):
         """
@@ -324,22 +354,25 @@ class Comment_API(generics.ListCreateAPIView):
         
         Creates a comment on a post which is on the server and whose id matches the given post id. Authors the comment with the given author id
         """
-        author_id = self.kwargs.get('author_id')
         post_id = self.kwargs.get('post_id')
 
         request.data['post'] = post_id
-        request.data['author'] = author_id
 
         serializer = CommentSerializer(data=request.data)
 
-        if serializer.is_valid():
-            serializer.save()
-            post = get_object_or_404(Post, pk=post_id)
-            post.count += 1
-            post.save()
-            return Response(status.HTTP_204_NO_CONTENT)
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
 
-        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not str(request.user.id) == request.data['author']:
+            return Response("Authenticated user id does not match author id of comment being POSTed", status.HTTP_401_UNAUTHORIZED)
+
+        serializer.save()
+        post = get_object_or_404(Post, pk=post_id)
+        post.count += 1
+        post.save()
+        return Response(status.HTTP_204_NO_CONTENT)
+
 
 class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = InboxSerializer
