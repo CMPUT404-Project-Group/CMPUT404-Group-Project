@@ -43,7 +43,13 @@ def register(request):
 @login_required
 def index(request):
     
-    stream_posts = Post.objects.all().order_by('-published').filter(author=request.user)
+    stream_posts_objects = Post.objects.all().order_by('-published').filter(author=request.user)
+    stream_posts = PostSerializer(stream_posts_objects, many=True).data
+    for post in stream_posts:
+            post_id = post['id']
+            url = f'{HOST_URL}/app/posts/{post_id}'
+            post['source'] = url
+            post['origin'] = url
 
     context = {
         "stream_posts" : stream_posts
@@ -112,11 +118,12 @@ def delete_post(request, post_id):
 
 @login_required
 def post(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
+    post_obj = get_object_or_404(Post, pk=post_id)
+    post = PostSerializer(post_obj).data
     user = request.user
 
     is_author = False
-    if post.author == user:
+    if post_obj.author == user:
         is_author = True
 
     context = {
@@ -140,10 +147,11 @@ def post(request, post_id):
         return redirect('app:index')
 
 def view_post(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-
+    post_obj = get_object_or_404(Post, pk=post_id)
+    post = PostSerializer(post_obj).data
     if (post.shared_post != None):
-        original_post = get_object_or_404(Post, pk=post.shared_post.post.id)
+        original_post_obj = get_object_or_404(Post, pk=post_obj.shared_post.post.id)
+        original_post = PostSerializer(original_post_obj).data
         context = {
             'shared_post': post,
             'original_post': original_post}
@@ -278,6 +286,7 @@ def comments(request, post_id):
 
     context = {
         'comments': comments,
+        'post_id': post_id
     }
 
     if (request.GET.get('like-button')):
@@ -343,7 +352,7 @@ class PostListView(generic.ListView):
 
         for post in serializer.data:
             post_id = post['id']
-            url = f'http://127.0.0.1:8000/app/posts/{post_id}'
+            url = f'{HOST_URL}/app/posts/{post_id}'
             post['source'] = url
             post['origin'] = url
         
