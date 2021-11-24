@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title%}Post List{% endblock %}
-{% block content %} 
+{% block content %}
 {% include "app/includes/navbar.html" %}
 {% if post_list %}
 <ul>
@@ -13,18 +13,16 @@
             <div class="card-body">
               <h4 class="card-title">{{ post.title }}</h4>
               <span class="text-muted">
-                {{ post.author }} <br />
+                {{ post.author.displayName }} <br />
                 <span style="font-style: italic">{{ post.published }}</span>
               </span>
-              <p class="card-text mt-4">{{ post.text_content }}</p>
+              <p class="card-text mt-4">{{ post.content }}</p>
               <div class="category">
                 {% for c in post.categories %}
                 <span class="badge bg-dark">{{ c }}</span>
                 {% endfor %}
               </div>
-              <a href="{{ post.origin }}" class="btn btn-primary shadow mt-5"
-                >View Post</a
-              >
+              <a href="{{ post.origin }}" class="btn btn-primary shadow mt-5">View Post</a>
             </div>
           </div>
         </div>
