@@ -42,8 +42,13 @@ def register(request):
 
 @login_required
 def index(request):
+
+    querySet = Follow.objects.filter(follower_id=request.user.id)
+    followed_ids = [item.followee_id for item in querySet]
+    user_param = list(User.objects.all().filter(id__in=followed_ids))
+    user_param.append(request.user)
     
-    stream_posts = Post.objects.all().order_by('-published').filter(author=request.user, unlisted=False)
+    stream_posts = Post.objects.all().order_by('-published').filter(author__in=user_param, unlisted=False)
 
     context = {
         "stream_posts" : stream_posts
