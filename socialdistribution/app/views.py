@@ -4,10 +4,8 @@ import json
 import os
 import requests
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
-from requests.models import Response
-from rest_framework import serializers
 from api.models import User, Post, Comment, Like
-from api.serializers import PostSerializer
+from api.serializers import PostSerializer, FriendRequestSerializer
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -178,6 +176,25 @@ def view_other_user(request, other_user_id):
 
 
 @login_required
+def view_followers(request):
+    user = request.user
+    url = user.url + '/followers/'
+    res = requests.get(url)
+    data = json.loads(res.content.decode('utf-8'))
+    return render(request, 'profile/view_followers.html', {'data': data.get('items')})
+
+@login_required
+def explore_authors(request):
+    res = requests.get(HOST_URL+reverse('api:authors'))
+    data = json.loads(res.content.decode('utf-8'))
+    local_authors = data.get('items')
+    for author in local_authors:
+        if author.get('displayName') == request.user.displayName: # remove current user from list
+            local_authors.remove(author)
+    return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': {} })
+
+
+@login_required
 def manage_profile(request):
     if request.method == 'POST':
         form = ManageProfileForm(request.POST, instance=request.user)
@@ -200,9 +217,14 @@ def follow(request, other_user_id):
 
         try: 
             # send a friend request
-            Friend.objects.add_friend(
+            friend_request = Friend.objects.add_friend(
             request.user,                              # The sender
             other_user)                                # The recipient
+
+            # send request to object user's inbox
+            serializer = FriendRequestSerializer(friend_request).data
+            inboxURL = serializer.get('object', {}).get('url') + '/inbox/'
+            requests.post(inboxURL, json=serializer)
 
             Follow.objects.add_follower(request.user, other_user)  # follow
             messages.success(request,f'Your friend request has been sent!')
@@ -219,9 +241,7 @@ def follow(request, other_user_id):
                 Follow.objects.add_follower(request.user, other_user)  # follow
                 messages.info(request,f'You already sent a friend request ')
             else: 
-                messages.info(request,f'Error')
-
-        
+                messages.info(request,f'Error')        
         return redirect('app:view-other-user', other_user_id=other_user_id)
 
 @login_required

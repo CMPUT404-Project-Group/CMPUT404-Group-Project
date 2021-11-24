@@ -1,7 +1,8 @@
 {% extends "base.html" %} 
 {% block title %}Inbox - {{user}}{% endblock %}
-{%block content %} 
+{% block content %} 
 {% include "app/includes/navbar.html" %}
+{% load app_tags %}
 {% block javascript %}
 <script>
   const changeLabel = (id) => {
@@ -33,7 +34,38 @@
         console.log(response);
       },
     });
-  };
+    };
+
+  // I guess we'll need to do something like this for remote authors maybe?
+  const followBack = async (item) => {
+    const string = item.replace(/[\']/g, '\"')
+    const json = JSON.parse(string)
+    const { actor, object } = json;
+    const { url: actorURL } = actor;
+
+    // PUT to add as follower
+    const foreign_author_id = object.id.split('/')
+    follow_url = actorURL + '/followers/' + foreign_author_id[foreign_author_id.length - 1] + '/'
+    let req = new Request(follow_url, { method: 'PUT', headers: { 'X-CSRFToken': '{{csrf_token}}' } })
+    const res = await fetch(req)
+    if (res.status === 204) {
+      // this looks confusing, but we swap the roles when sending a friend request back.
+      const body = { 'type': 'Follow', 'summary': `${object.displayName} wants to follow ${actor.displayName}`, 'actor': object, 'object': actor }
+      req = new Request(actorURL + '/inbox/', { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{csrf_token}}' } });
+      const res = await fetch(req) // POST follow to authors inbox
+      if (res.status === 204) {
+        $('#followModalMessage').html('Friend Request sent. You are now following this author.')
+        $('#followModal').modal('toggle');
+      } else {
+        $('#followModalMessage').html('Something went wrong. Try following this author again later.')
+        $('#followModal').modal('toggle');
+      }
+    } else {
+      $('#followModalMessage').html('Something went wrong. Try following this author again later.')
+      $('#followModal').modal('toggle');
+    }
+  }
+
 </script>
 {% endblock %}
 
@@ -75,6 +107,43 @@
     </div>
   </div>
 </div>
+
+
+<div
+  class="modal fade"
+  id="followModal"
+  tabindex="-1"
+  aria-labelledby="followModal"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="followModal">Friend Request</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body" id="followModalMessage">
+        Friend Request sent.
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-primary"
+          data-bs-dismiss="modal"
+        >
+          Ok
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="pt-5">
   {%if res.items%}
   <div class="container py-2 h-100">
@@ -91,6 +160,7 @@
           </button>
         </div>
         {% for item in res.items %}
+        {% if item.type == 'post' %}
         <li class="py-2" style="list-style: none">
           <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
             <div
@@ -127,6 +197,39 @@
             </div>
           </div>
         </li>
+        {% elif item.type == 'Follow' %}
+        <li class="py-2" style="list-style: none">
+          <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
+            <div
+              class="card-header d-inline-flex justify-content-between"
+              style="
+                border-radius: 0.5rem;
+                border: 0;
+              "
+            >
+              <h5>{{item.actor.displayName}} sent you a friend request.</h5>
+              <input
+                class="btn btn-light"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#postData{{item.id}}"
+                aria-expanded="false"
+                aria-controls="postData{{item.id}}"
+                value="Show"
+                id="#postData{{item.id}}"
+                onclick="changeLabel(this.id)"
+              />
+            </div>
+            <div class="collapse" id="postData{{item.id}}">
+              <div class="card-body">
+                <h6 class="card-text">{{item.summary}}.</h6>
+                <button type="button" id="{{item}}" class="btn btn-sm btn-primary float-start mt-4 me-3" onclick="followBack(this.id)">Follow {{item.actor.displayName}}</button>
+                <a href="{% url 'app:view-other-user' item.actor.id|getID %}" class="btn btn-sm btn-outline-primary float-start mt-4">View Profile</a>
+              </div>
+            </div>
+          </div>
+        </li>
+        {% endif %}
         {% endfor %}
       </div>
     </div>
@@ -215,14 +318,16 @@
             Items like posts, follows, and likes will be sent to your inbox by
             your friends and authors you follow.
           </p>
-          <button class="btn btn-outline-secondary" type="button">
-            Find Authors
-          </button>
-          <a href="{% url 'app:index' %}"
-            ><button type="button" class="btn btn-primary shadow mt-5 w-100">
-              Back
-            </button></a
-          >
+          <div class='mt-5'>
+            <a href="{% url 'app:explore-authors' %}" style="text-decoration: none;">
+              <button class="btn btn-primary" type="button">
+                Find Authors
+              </button>
+            </a>
+            <a href="{% url 'app:index' %}"><button type="button" class="btn btn-outline-secondary shadow">
+                Back
+              </button></a>
+          </div>
         </div>
       </div>
     </div>

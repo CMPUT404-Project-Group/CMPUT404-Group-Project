@@ -15,7 +15,7 @@
         >
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
+        <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
           <ul class="navbar-nav">
             <li class="nav-item">
               <a class="nav-link" href="{%url 'app:index'%}">Home</a>
@@ -30,7 +30,7 @@
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{% url 'app:post-list' %}"
-                >Public posts</a
+                >Public Posts</a
               >
             </li>
             <li class="nav-item">
@@ -39,16 +39,22 @@
               >
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'app:view-profile' %}"
-                >Profile</a
+              <a class="nav-link" href="{% url 'app:explore-authors' %}"
+                >Explore Authors</a
               >
             </li>
-            {% if user.is_authenticated %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'app:logout' %}">Logout</a>
-            </li>
-            {% endif %}
-          </ul>
+            </ul>
+            <ul class='navbar-nav'>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'app:view-profile' %}">Profile</a>
+              </li>
+              {% if user.is_authenticated %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'app:logout' %}">Logout</a>
+              </li>
+              {% endif %}
+            </ul>
+            </ul>
         </div>
       </div>
     </nav>

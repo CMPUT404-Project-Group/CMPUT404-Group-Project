@@ -23,7 +23,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from friendship.models import Follow
+from friendship.models import Follow, FriendshipRequest
 from .models import Inbox as InboxItem
 from .models import Post, User, Like, Comment
 from .serializers import LikeSerializer, LikedSerializer, InboxSerializer, PostSerializer, UserSerializer, CommentSerializer
@@ -435,6 +435,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
             InboxItem.objects.create(author_id=author.id, item=item)
             return Response(status=status.HTTP_204_NO_CONTENT)
         except:
+            print(request.data)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @ swagger_auto_schema(
@@ -534,7 +535,7 @@ class Followers(APIView):
             description="Follower added"),
         400: openapi.Response(description="Bad Request")}
     )
-    def post(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         """
         Add {foreign_author_id} as a follower of {author_id}
         
@@ -545,7 +546,10 @@ class Followers(APIView):
             author = User.objects.get(id=author_id)
             foreign_author_id = kwargs.get('foreign_author_id')
             foreign_author = User.objects.get(id=foreign_author_id)
-            Follow.objects.add_follower(author, foreign_author)
+            Follow.objects.add_follower(foreign_author, author)
+            if (FriendshipRequest.objects.filter(from_user=author, to_user=foreign_author).exists()):
+                friend_request = FriendshipRequest.objects.get(from_user=author, to_user=foreign_author)
+                friend_request.accept()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
