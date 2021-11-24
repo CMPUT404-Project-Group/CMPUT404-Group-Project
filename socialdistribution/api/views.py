@@ -4,7 +4,6 @@ import json
 from drf_yasg import openapi
 
 from django.db.models import aggregates, query
-from django.contrib.auth.decorators import login_required
 import rest_framework.status as status
 from django.shortcuts import get_object_or_404
 from dotenv import load_dotenv
