@@ -45,7 +45,7 @@ def register(request):
 @login_required
 def index(request):
     
-    stream_posts = Post.objects.all().order_by('-published').filter(author=request.user)
+    stream_posts = Post.objects.all().order_by('-published').filter(author=request.user, unlisted=False)
 
     context = {
         "stream_posts" : stream_posts
