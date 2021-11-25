@@ -23,6 +23,7 @@ from django.views import generic
 
 from django.conf import settings
 HOST_URL = settings.HOST_URL
+HOST_API_URL = settings.HOST_API_URL
 API_TOKEN = settings.API_TOKEN
 
 def register(request):
@@ -207,7 +208,7 @@ def view_other_user(request, other_user_id):
 @login_required
 def view_followers(request):
     user = request.user
-    url = user.url + '/followers/'
+    url = HOST_API_URL + 'author/%s/followers/' % user.id
     res = requests.get(url)
     data = json.loads(res.content.decode('utf-8'))
     return render(request, 'profile/view_followers.html', {'data': data.get('items')})
