@@ -93,7 +93,7 @@ class AuthorsTest(TestCase):
     Tests for the /authours/ endpoint
     """
 
-    def SetUp(self):
+    def setUp(self):
         self.client = APIClient()
 
     def test_get_authors(self):
@@ -103,14 +103,15 @@ class AuthorsTest(TestCase):
                                      i, github="testgit%s" % i, password="testpassword1", type="author")
 
         # Act
+        self.client.force_authenticate(user=User.objects.get(displayName="testuser0"))
         response = self.client.get(reverse('api:authors'))
         content = json.loads(response.content.decode('utf-8'))
 
         # Assert
         self.assertEqual(response.status_code, 200)
         self.assertEqual(content["type"], "authors")
-        self.assertIsInstance(content["items"], list)
-        self.assertEqual(len(content["items"]), 5)
+        self.assertIsInstance(content["data"], list)
+        self.assertEqual(len(content["data"]), 5)
 
     def test_get_authors_only(self):
         # Arrange - create a set of authors
@@ -124,15 +125,16 @@ class AuthorsTest(TestCase):
         self.assertEqual(User.objects.count(), 6)
 
         # Act
+        self.client.force_authenticate(user=User.objects.get(displayName="testuser0"))
         response = self.client.get(reverse('api:authors'))
         content = json.loads(response.content.decode('utf-8'))
 
         # Assert
         self.assertEqual(response.status_code, 200)
         self.assertEqual(content["type"], "authors")
-        self.assertIsInstance(content["items"], list)
-        self.assertEqual(len(content["items"]), 5)
-        for i in content["items"]:
+        self.assertIsInstance(content["data"], list)
+        self.assertEqual(len(content["data"]), 5)
+        for i in content["data"]:
             self.assertEqual(i["type"], "author")
 
     def test_get_authors_pagination(self):
@@ -143,15 +145,16 @@ class AuthorsTest(TestCase):
         self.assertEqual(User.objects.count(), 26)
 
         # Act - get first page
+        self.client.force_authenticate(user=User.objects.get(displayName="a_testuser"))
         response = self.client.get(reverse('api:authors') + '?page=1')
         content = json.loads(response.content.decode('utf-8'))
 
         # Assert - first page
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(content["items"]), 10)
+        self.assertEqual(len(content["data"]), 10)
         for i in range(0, 10):
             # assert the page is correct by checking ordering
-            self.assertEquals(content["items"][i]["displayName"][0], chr(97+i))
+            self.assertEquals(content["data"][i]["displayName"][0], chr(97+i))
 
         # Act - get second page
         response = self.client.get(reverse('api:authors') + '?page=2')
@@ -159,10 +162,10 @@ class AuthorsTest(TestCase):
 
         # Assert - second page
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(content["items"]), 10)
+        self.assertEqual(len(content["data"]), 10)
         for i in range(10, 20):
             # assert the page is correct by checking ordering
-            self.assertEquals(content["items"][i-10]
+            self.assertEquals(content["data"][i-10]
                               ["displayName"][0], chr(97+i))
 
         # Act - get third page
@@ -171,10 +174,10 @@ class AuthorsTest(TestCase):
 
         # Assert - third page
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(content["items"]), 6)
+        self.assertEqual(len(content["data"]), 6)
         for i in range(20, 26):
             # assert the page is correct by checking ordering
-            self.assertEquals(content["items"][i-20]
+            self.assertEquals(content["data"][i-20]
                               ["displayName"][0], chr(97+i))
 
         # Act - set page size
@@ -183,10 +186,10 @@ class AuthorsTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(content["items"]), 5)
+        self.assertEqual(len(content["data"]), 5)
         for i in range(0, 5):
             # assert the page is correct by checking ordering
-            self.assertEquals(content["items"][i]["displayName"][0], chr(97+i))
+            self.assertEquals(content["data"][i]["displayName"][0], chr(97+i))
 
         # Act - set page size
         response = self.client.get(reverse('api:authors') + '?page=4&size=5')
@@ -194,15 +197,25 @@ class AuthorsTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(content["items"]), 5)
+        self.assertEqual(len(content["data"]), 5)
         for i in range(20, 25):
             # assert the page is correct by checking ordering
-            self.assertEquals(content["items"][i-20]
+            self.assertEquals(content["data"][i-20]
                               ["displayName"][0], chr(97+i-5))
 
     def test_unauthorized_method(self):
         # Act
+        User.objects.create_user(email="test@email.com", displayName='testuser', github="testgit",
+         password="testpassword1", type="author")
+        self.client.force_authenticate(user=User.objects.get(displayName="testuser"))
         response = self.client.delete(reverse('api:authors'))
 
         # Assert
         self.assertEqual(response.status_code, 405)
+
+    def test_unauthorized_user(self):
+        # Act
+        response = self.client.delete(reverse('api:authors'))
+
+        # Assert
+        self.assertEqual(response.status_code, 401)

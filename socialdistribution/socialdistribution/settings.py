@@ -23,10 +23,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 # env variables
 SECRET_KEY = os.environ.get("SECRET_KEY")
-DEBUG = os.environ.get("DEBUG")
+DEBUG = (os.environ.get("DEBUG") == 'True')
 GITHUB_URL = os.environ.get("GITHUB_URL")
 HOST_API_URL = os.environ.get("HOST_API_URL")
 HOST_URL = os.environ.get("HOST_URL")
+API_TOKEN = os.environ.get("API_TOKEN")
 
 ALLOWED_HOSTS = ['*']
 
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'friendship',
     'crispy_forms',
     'drf_yasg'

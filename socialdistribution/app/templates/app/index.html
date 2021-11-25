@@ -1,68 +1,97 @@
 {% extends "base.html" %}
-
 {% block title %}SocialDistribution{% endblock %}
-
 {% block content %}
 {% include "app/includes/navbar.html" %}
+{% load filters %}
+{% autoescape off %}
 <section >
-    <h1>Posts</h1>
-    <ul>
+	<ul>
         {% for post in stream_posts %}
 			{% if post.shared_post %}
 				{{ post.author }} shared a post on {{ post.published }}
-
-				<p> {{ post.text_content }} </p>
-			
-				<a href="{% url 'app:posts' post.shared_post.id %}" style = "color: inherit; text-decoration: inherit;">
-					<div >
-						Originally posted by {{ post.shared_post.author }}:
-						<div style = "border-width:1px; border-style:solid; border-color:grey; margin-left:2%; margin-right: 5%;">
-							<div><a href="{% url 'app:posts' post.shared_post.id %}">{{ post.shared_post.title }}</a>
-								<br>
-									<small>
-									posted by {{ post.shared_post.author }} on {{ post.shared_post.published }}
-									</small> 
-								{% if post.shared_post.text_content %}
-									<p> {{ post.shared_post.text_content | urlize }} </p>
-								{% endif %}
-							
-								{% if post.shared_post.image_content %}
-									<img alt="User uploaded image" src={{ post.shared_post.image_content.url }}></img>
-								{% endif %}
-
-								{% if post.shared_post.image_link %}
-									<a href={{ post.shared_post.image_link }}><img src={{ post.shared_post.image_link }} alt="User image link" ></a>
-								{% endif %}
-								<br/>
+				<li style="list-style: none">
+					<div class="container py-2 h-100 mt-3">
+						<div class="row d-felx justify-content-center align-items-center h-100">
+							<div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 50%">
+								<div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
+									<div class="card-body">
+										<h4 class="card-title">
+											{% if post.contentType == 'text/markdown'%}
+												{{ post.title | commonmark}}
+											{% else %}
+												{{ post.title }}
+											{% endif %}
+										</h4>
+										<span class="text-muted">
+											{{ post.author.displayName }} <br />
+											<span style="font-style: italic">{{ post.published }}</span>
+										</span>
+										<p class="card-text mt-4">
+											{% if post.contentType == 'text/markdown'%}
+												{{ post.content | commonmark}}
+											{% else %}
+												{{ post.content }}
+											{% endif %}  
+										</p>
+										{% if post.image_content %}
+											<img alt="User uploaded image" src="{{ post.image_content }}"></img>
+										{% endif %}
+										<div class="category">
+											{% for c in post.categories %}
+											<span class="badge bg-dark">{{ c }}</span>
+											{% endfor %}
+										</div>
+										<a href="{{ post.origin }}" class="btn btn-primary shadow mt-5">View Post</a>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
+				</li>
 			{% else %}
-				<div><a href="{% url 'app:posts' post.id %}">{{ post.title }}</a>
-					<br>
-						<small>
-						posted by {{ post.author }} on {{ post.published }}
-						</small> 
-					
-						<br>
-							{% if post.text_content %}
-								<p> {{ post.text_content | urlize }} </p>
-							{% endif %}
-						
-							{% if post.image_content %}
-								<img alt="User uploaded image" src={{ post.image_content.url }}></img>
-							{% endif %}
-
-							
-							{% if post.image_link %}
-								<a href={{ post.image_link }}><img src={{ post.image_link }} alt="User image link" ></a>
-							{% endif %}
-						<br/>
-					<br/>
+			<li style="list-style: none">
+				<div class="container py-2 h-100 mt-3">
+					<div class="row d-felx justify-content-center align-items-center h-100">
+						<div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 100%">
+							<div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
+								<div class="card-body">
+									<h4 class="card-title">
+										{% if post.contentType == 'text/markdown'%}
+											{{ post.title | commonmark}}
+										{% else %}
+											{{ post.title }}
+										{% endif %}
+									</h4>
+									<span class="text-muted">
+										{{ post.author.displayName }} <br />
+										<span style="font-style: italic">{{ post.published}}</span>
+									</span>
+									<p class="card-text mt-4">
+										{% if post.contentType == 'text/markdown'%}
+                                    		{{ post.content | commonmark}}
+										{% else %}
+											{{ post.content }}
+										{% endif %}  
+									</p>
+									{% if post.image_content %}
+										<img alt="User uploaded image" src="{{ post.image_content }}" style="width:20%"></img>
+									{% endif %}
+									<div class="category">
+										{% for c in post.categories %}
+										<span class="badge bg-dark">{{ c }}</span>
+										{% endfor %}
+									</div>
+									<a href="{{ post.origin }}" class="btn btn-primary shadow mt-5">View Post</a>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
+			</li>
 			{% endif %}
             <br><br/>
         {% endfor %}
     </ul>
 </section>
+{% endautoescape %}
 {% endblock %}

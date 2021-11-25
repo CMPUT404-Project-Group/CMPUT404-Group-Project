@@ -28,11 +28,21 @@
                 Manage Profile
               </button></a
             >
+            <a href="{% url 'app:view-followers' %}"
+              ><button type="button" class="btn btn-outline-secondary shadow mt-3 w-100">
+                View Followers
+              </button></a
+            >
+            
             <a href="{% url 'app:index' %}"
-              ><button type="button" class="btn btn-primary shadow mt-3 w-100">
+              ><button type="button" class="btn btn-outline-primary shadow mt-5 w-100">
                 Back
               </button></a
             >
+            <form action="#" method="get">
+                <button class="btn btn-sm btn-outline-primary float-start mt-4 me-3" type="submit" id="like-button"
+                  name='github-sync-button' value="pressed">Sync Github Activity</button>
+            </form>
           </div>
         </div>
         {% if messages%} {%for message in messages%}

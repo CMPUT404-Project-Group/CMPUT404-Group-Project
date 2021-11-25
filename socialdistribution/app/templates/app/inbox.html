@@ -1,7 +1,8 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
 {% block title %}Inbox - {{user}}{% endblock %}
-{%block content %} 
+{% block content %}
 {% include "app/includes/navbar.html" %}
+{% load filters %}
 {% block javascript %}
 <script>
   const changeLabel = (id) => {
@@ -34,27 +35,47 @@
       },
     });
   };
+
+  // I guess we'll need to do something like this for remote authors maybe?
+  const followBack = async (item) => {
+    const string = item.replace(/[\']/g, '\"')
+    const json = JSON.parse(string)
+    const { actor, object } = json;
+    const { url: actorURL } = actor;
+
+    // PUT to add as follower
+    const foreign_author_id = object.id.split('/')
+    follow_url = actorURL + '/followers/' + foreign_author_id[foreign_author_id.length - 1] + '/'
+    let req = new Request(follow_url, { method: 'PUT', headers: { 'X-CSRFToken': '{{csrf_token}}' } })
+    const res = await fetch(req)
+    if (res.status === 204) {
+      // this looks confusing, but we swap the roles when sending a friend request back.
+      const body = { 'type': 'Follow', 'summary': `${object.displayName} wants to follow ${actor.displayName}`, 'actor': object, 'object': actor }
+      req = new Request(actorURL + '/inbox/', { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{csrf_token}}' } });
+      const res = await fetch(req) // POST follow to authors inbox
+      if (res.status === 204) {
+        $('#followModalMessage').html('Friend Request sent. You are now following this author.')
+        $('#followModal').modal('toggle');
+      } else {
+        $('#followModalMessage').html('Something went wrong. Try following this author again later.')
+        $('#followModal').modal('toggle');
+      }
+    } else {
+      $('#followModalMessage').html('Something went wrong. Try following this author again later.')
+      $('#followModal').modal('toggle');
+    }
+  }
+
 </script>
 {% endblock %}
 
 <!-- clearModal for clearing inbox -->
-<div
-  class="modal fade"
-  id="clearModal"
-  tabindex="-1"
-  aria-labelledby="clearModal"
-  aria-hidden="true"
->
+<div class="modal fade" id="clearModal" tabindex="-1" aria-labelledby="clearModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="clearModal">Clear Inbox</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         Are you sure you would like to clear all items in your inbox?
@@ -63,55 +84,58 @@
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
           Cancel
         </button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          data-bs-dismiss="modal"
-          onclick="clearInbox()"
-        >
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="clearInbox()">
           Yes
         </button>
       </div>
     </div>
   </div>
 </div>
+
+
+<div class="modal fade" id="followModal" tabindex="-1" aria-labelledby="followModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="followModal">Friend Request</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="followModalMessage">
+        Friend Request sent.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+          Ok
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="pt-5">
   {%if res.items%}
   <div class="container py-2 h-100">
     <div class="row d-felx justify-content-center align-items-center h-100">
       <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 75%">
         <div class="d-flex justify-content-end">
-          <button
-            type="button"
-            class="btn btn-outline-danger float-end"
-            data-bs-toggle="modal"
-            data-bs-target="#clearModal"
-          >
+          <button type="button" class="btn btn-outline-danger float-end" data-bs-toggle="modal"
+            data-bs-target="#clearModal">
             Clear Inbox
           </button>
         </div>
         {% for item in res.items %}
+        {% if item.type == 'post' %}
         <li class="py-2" style="list-style: none">
           <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
-            <div
-              class="card-header d-inline-flex justify-content-between"
-              style="
+            <div class="card-header d-inline-flex justify-content-between" style="
                 border-radius: 0.5rem;
                 border: 0;
-              "
-            >
+              ">
               <h5>{{item.author.displayName}} sent you a post.</h5>
-              <input
-                class="btn btn-light"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#postData{{item.id}}"
-                aria-expanded="false"
-                aria-controls="postData{{item.id}}"
-                value="Show"
-                id="#postData{{item.id}}"
-                onclick="changeLabel(this.id)"
-              />
+              <input class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#postData{{item.id}}"
+                aria-expanded="false" aria-controls="postData{{item.id}}" value="Show" id="#postData{{item.id}}"
+                onclick="changeLabel(this.id)" />
             </div>
             <div class="collapse" id="postData{{item.id}}">
               <div class="card-body">
@@ -127,6 +151,30 @@
             </div>
           </div>
         </li>
+        {% elif item.type == 'Follow' %}
+        <li class="py-2" style="list-style: none">
+          <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
+            <div class="card-header d-inline-flex justify-content-between" style="
+                border-radius: 0.5rem;
+                border: 0;
+              ">
+              <h5>{{item.actor.displayName}} sent you a friend request.</h5>
+              <input class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#postData{{item.id}}"
+                aria-expanded="false" aria-controls="postData{{item.id}}" value="Show" id="#postData{{item.id}}"
+                onclick="changeLabel(this.id)" />
+            </div>
+            <div class="collapse" id="postData{{item.id}}">
+              <div class="card-body">
+                <h6 class="card-text">{{item.summary}}.</h6>
+                <button type="button" id="{{item}}" class="btn btn-sm btn-primary float-start mt-4 me-3"
+                  onclick="followBack(this.id)">Follow {{item.actor.displayName}}</button>
+                <a href="{% url 'app:view-other-user' item.actor.id|getID %}"
+                  class="btn btn-sm btn-outline-primary float-start mt-4">View Profile</a>
+              </div>
+            </div>
+          </div>
+        </li>
+        {% endif %}
         {% endfor %}
       </div>
     </div>
@@ -134,15 +182,13 @@
   <div class="container py-2 h-100">
     <div class="row d-felx justify-content-center align-items-center h-100">
       <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 75%">
-        <div
-          class="
+        <div class="
             flex-row
             d-inline-flex
             w-100
             align-items-baseline
             justify-content-between
-          "
-        >
+          ">
           <nav aria-label="Page navigation">
             <ul class="pagination pagination-sm justify-content-right">
               {% if res.prev == None %}
@@ -159,9 +205,7 @@
               </li>
               {% endif %} {% for page in res.total_pages %}
               <li class="page-item">
-                <a class="page-link" href="?page={{page}}&size={{res.size}}"
-                  >{{page}}</a
-                >
+                <a class="page-link" href="?page={{page}}&size={{res.size}}">{{page}}</a>
               </li>
               {% endfor %} {% if res.next == None %}
               <li class="page-item disabled">
@@ -179,21 +223,11 @@
             </ul>
           </nav>
           <div class="dropdown d-inline-flex">
-            <a
-              class="btn btn-light btn-sm dropdown-toggle"
-              href="#"
-              role="button"
-              id="dropdownMenuLink"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
+            <a class="btn btn-light btn-sm dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+              data-bs-toggle="dropdown" aria-expanded="false">
               {{res.size}}
             </a>
-            <ul
-              class="dropdown-menu"
-              aria-labelledby="dropdownMenuLink"
-              style="min-width: 0px"
-            >
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink" style="min-width: 0px">
               <li><a class="dropdown-item" href="?page=1&size=5">5</a></li>
               <li><a class="dropdown-item" href="?page=1&size=10">10</a></li>
               <li><a class="dropdown-item" href="?page=1&size=20">20</a></li>
@@ -215,14 +249,16 @@
             Items like posts, follows, and likes will be sent to your inbox by
             your friends and authors you follow.
           </p>
-          <button class="btn btn-outline-secondary" type="button">
-            Find Authors
-          </button>
-          <a href="{% url 'app:index' %}"
-            ><button type="button" class="btn btn-primary shadow mt-5 w-100">
-              Back
-            </button></a
-          >
+          <div class='mt-5'>
+            <a href="{% url 'app:explore-authors' %}" style="text-decoration: none;">
+              <button class="btn btn-primary shadow" type="button">
+                Find Authors
+              </button>
+            </a>
+            <a href="{% url 'app:index' %}"><button type="button" class="btn btn-outline-primary shadow">
+                Back
+              </button></a>
+          </div>
         </div>
       </div>
     </div>

@@ -1,7 +1,8 @@
 import os
 from re import I
+from typing import OrderedDict
 from dotenv import load_dotenv
-from friendship.models import Follow
+from friendship.models import Follow, Friend
 from .models import HOST_API_URL, Post, User, Like
 from django.shortcuts import get_object_or_404
 from .models import User, Inbox, Comment
@@ -32,7 +33,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     contentType = serializers.CharField(source='content_type')
     content = serializers.CharField(source='text_content')
-
+   
     class Meta:
         model = Post
         fields = [
@@ -44,6 +45,7 @@ class PostSerializer(serializers.ModelSerializer):
             'description',
             'contentType',
             'content',
+            'image_content',
             'author',
             'categories',
             'count',
@@ -145,6 +147,28 @@ class FollowersSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         follower = super().to_representation(instance)
-        author = User.objects.get(id=follower.get('follower_id'))
-        author_serializer = UserSerializer(author)
-        return author_serializer.data
+        author_obj = User.objects.get(id=follower.get('follower_id'))
+        author = UserSerializer(author_obj)
+        return author.data
+
+
+class FriendRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Friend
+        fields = ['from_user', 'to_user']
+
+    def to_representation(self, instance):
+        request =  super().to_representation(instance)
+        actor_obj = User.objects.get(id=request.get('from_user'))
+        actor = UserSerializer(actor_obj).data
+        object_obj = User.objects.get(id=request.get('to_user'))
+        object = UserSerializer(object_obj).data
+        return {'type': 'Follow', 'summary': actor.get('displayName') + ' wants to follow ' + object.get('displayName'), 'actor': actor, 'object': object}
+        
+class GithubEventSerializer(PostSerializer):
+
+    pass
+
+class GithubEventToPostAdapter():
+
+    pass

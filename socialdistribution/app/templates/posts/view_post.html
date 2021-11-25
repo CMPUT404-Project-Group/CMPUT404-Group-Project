@@ -1,40 +1,76 @@
 {% extends "base.html" %}
-
-{% block title%}View Post{% endblock %}
-
-{% block content%}
+{% block title %}View Post{% endblock %}
+{% block content %}
 {% include "app/includes/navbar.html" %}
-    <div>
+{% load filters %}
+{% autoescape off %}
 
-        <h1>{{ post.title }}</h1>
-
-        {% if post.text_content %}
-            <p> {{ post.text_content | urlize }} </p>
-        {% endif %}
-
-        {% if post.image_content %}
-            <img alt="User uploaded image" src={{ post.image_content.url }}></img>
-        {% endif %}
-
-        {% if post.image_link %}
-            <a href={{ post.image_link }}><img src={{ post.image_link }} alt="User image link" ></a>
-        {% endif %}
-
-        <p> Tags: {{ post.categories }} </p>
-
+<div>
+  <div class="container py-2 h-100 mt-3">
+    <div class="row d-felx justify-content-center align-items-center h-100">
+      <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 100%">
+        <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              <h4>
+                {% if post.contentType == 'text/markdown'%}
+                {{ post.title | commonmark}}
+                {% else %}
+                {{ post.title }}
+                {% endif %}
+              </h4>
+              {% if is_author %}
+              <div>
+                <a href="{% url 'app:delete-post' post.id %}">
+                  <button class="btn btn-sm btn-outline-danger float-end me-3">Delete</button>
+                </a>
+                <a href="{% url 'app:edit-post' post.id %}">
+                  <button class="btn btn-sm btn-outline-secondary float-end me-3">Edit</button>
+                </a>
+              </div>
+              {% endif %}
+            </div>
+            <span class="text-muted">
+              {{ post.author.displayName }} <br />
+              <span style="font-style: italic">{{ post.published }}</span>
+            </span>
+            <p class="card-text mt-4">
+              {% if post.contentType == 'text/markdown'%}
+              {{ post.content | commonmark}}
+              {% else %}
+              {{ post.content }}
+              {% endif %}
+            </p>
+            {% if post.image_content %}
+            <img alt="User uploaded image" src="{{ post.image_content }}"></img>
+            {% endif %}
+            <div class="category">
+              {% for c in post.categories %}
+              <span class="badge bg-dark">{{ c }}</span>
+              {% endfor %}
+            </div>
+            <hr>
+            <div>
+              <a href="{% url 'app:comments' post.id%}"><button
+                  class="btn btn-sm btn-outline-primary float-start mt-4 me-3">View
+                  Comments</button></a>
+              <a href="{% url 'app:create-comment' post.id %}"><button
+                  class="btn btn-sm btn-outline-primary float-start mt-4 me-3">Add
+                  Comment</button></a>
+              <form action="#" method="get">
+                <button class="btn btn-sm btn-outline-primary float-start mt-4 me-3" type="submit" id="like-button"
+                  name='like-button' value="pressed">Like</button>
+              </form>
+              <a href="{% url 'app:share-post' post.id %}"><button
+                  class="btn btn-sm btn-outline-primary float-start mt-4 me-3">Share</button></a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
+</div>
 
-    <div>
-        <form action="#" method="get">
-            <button type="submit" id="like-button" name='like-button' value="pressed">Like Post</button>
-        </form>
-            <p>Click here to <a href="{% url 'app:create-comment' post.id %}">comment on the post</a>.</p>
-            <p>Click here to <a href="{% url 'app:share-post' post.id %}">share this post</a>.</p>
-        {% if is_author %}
-            <p>Click here to <a href="{% url 'app:edit-post' post.id %}">edit your post</a>.</p>
-            <p>Click here to <a href="{% url 'app:delete-post' post.id %}">delete your post</a>.</p>
-        {% endif %}
-            <p>Click here to <a href="{% url 'app:comments' post.id%}">view comments</a>.</p>
-    </div>
 
+{% endautoescape %}
 {% endblock %}
