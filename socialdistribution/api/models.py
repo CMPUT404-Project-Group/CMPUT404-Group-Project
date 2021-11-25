@@ -432,7 +432,7 @@ class GithubAccessDataManager(models.Manager):
 
     
 class GithubAccessData(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
     last_accessed = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
     objects = GithubAccessDataManager()
 
