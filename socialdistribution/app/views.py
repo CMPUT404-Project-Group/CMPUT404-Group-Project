@@ -194,7 +194,7 @@ def view_followers(request):
 def explore_authors(request):
     res = requests.get(HOST_URL+reverse('api:authors'))
     data = json.loads(res.content.decode('utf-8'))
-    local_authors = data.get('items')
+    local_authors = data.get('data')
     for author in local_authors:
         if author.get('displayName') == request.user.displayName: # remove current user from list
             local_authors.remove(author)
