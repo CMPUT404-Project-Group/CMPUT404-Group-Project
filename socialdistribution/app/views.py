@@ -315,7 +315,8 @@ def comments(request, post_id):
     if (request.GET.get('like-button')):
         like_comment(request, request.GET.get('like-button'))
 
-    if (post.visibility != "public" and author != request.user):
+    # Only public posts have comments that are visible to other users
+    if (post.visibility != "public" and post.author != request.user):
         return HttpResponseForbidden()
     else:
         return render(request, "comments/comments.html", context)
