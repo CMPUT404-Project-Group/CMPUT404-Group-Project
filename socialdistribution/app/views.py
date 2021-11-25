@@ -61,7 +61,14 @@ def index(request):
     friends_posts = Post.objects.all().filter(author__in=friends_ids, visibility="private_to_friend", unlisted=False)
 
     #Union of above post querysets, ordered by published date
-    stream_posts = (follower_posts | friends_posts | user_posts).distinct().order_by('-published')
+    stream_posts_obj = (follower_posts | friends_posts | user_posts).distinct().order_by('-published')
+    stream_posts = PostSerializer(stream_posts_obj, many=True).data
+    
+    for post in stream_posts:
+            post_id = post['id']
+            url = f'{HOST_URL}/app/posts/{post_id}'
+            post['source'] = url
+            post['origin'] = url
 
     context = {
         "stream_posts" : stream_posts
