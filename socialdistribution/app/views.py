@@ -315,7 +315,10 @@ def comments(request, post_id):
     if (request.GET.get('like-button')):
         like_comment(request, request.GET.get('like-button'))
 
-    return render(request, "comments/comments.html", context)
+    if (post.visibility != "public" and author != request.user):
+        return HttpResponseForbidden()
+    else:
+        return render(request, "comments/comments.html", context)
 
 @login_required
 def like_post(request, post_id):
