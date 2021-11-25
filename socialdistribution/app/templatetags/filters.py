@@ -9,3 +9,11 @@ register = template.Library()
 @stringfilter
 def commonmark(value):
     return markdown.Markdown().convert(value)
+
+@register.filter(name="getID")
+def get_ID(value):
+    return value.split('/')[-1]
+
+@register.filter(name="getNav")
+def get_nav(value):
+    return value.split('/')[-2]

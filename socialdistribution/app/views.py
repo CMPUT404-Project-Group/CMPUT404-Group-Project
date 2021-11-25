@@ -1,11 +1,15 @@
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post
+import datetime
 import json
 import os
 import requests
+import time
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
-from api.models import User, Post, Comment, Like
+from api.models import User, Post, Comment, Like, GithubAccessData
 from api.serializers import PostSerializer, FriendRequestSerializer
+from requests.models import Response
+from rest_framework import serializers
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -14,12 +18,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from friendship.models import Follow, Friend, FriendshipRequest
 from django.urls import reverse
 from dotenv import load_dotenv
-
 import logging
 from django.views import generic
 
 from django.conf import settings
 HOST_URL = settings.HOST_URL
+API_TOKEN = settings.API_TOKEN
 
 def register(request):
     if request.method == 'POST':
@@ -42,7 +46,6 @@ def register(request):
 
 @login_required
 def index(request):
-
     #Get all posts from yourself (besides unlisted ones)
     user_posts = Post.objects.all().order_by('-published').filter(author=request.user, unlisted=False)
 
@@ -127,11 +130,12 @@ def delete_post(request, post_id):
 
 @login_required
 def post(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
+    post_obj = get_object_or_404(Post, pk=post_id)
+    post = PostSerializer(post_obj).data
     user = request.user
 
     is_author = False
-    if post.author == user:
+    if post_obj.author == user:
         is_author = True
 
     context = {
@@ -155,10 +159,11 @@ def post(request, post_id):
         return redirect('app:index')
 
 def view_post(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-
+    post_obj = get_object_or_404(Post, pk=post_id)
+    post = PostSerializer(post_obj).data
     if (post.shared_post != None):
-        original_post = get_object_or_404(Post, pk=post.shared_post.post.id)
+        original_post_obj = get_object_or_404(Post, pk=post_obj.shared_post.post.id)
+        original_post = PostSerializer(original_post_obj).data
         context = {
             'shared_post': post,
             'original_post': original_post}
@@ -171,6 +176,8 @@ def view_post(request, post_id):
 @login_required
 def view_profile(request):
     user = request.user
+    if request.GET.get('github-sync-button'):
+        sync_github_activity(request)
     return render(request, 'profile/view_profile.html', {'user': user})
     
 @login_required
@@ -200,9 +207,10 @@ def view_followers(request):
 
 @login_required
 def explore_authors(request):
-    res = requests.get(HOST_URL+reverse('api:authors'))
+    headers = {'Authorization': 'Token %s' % API_TOKEN}
+    res = requests.get(HOST_URL+reverse('api:authors'), headers=headers)
     data = json.loads(res.content.decode('utf-8'))
-    local_authors = data.get('items')
+    local_authors = data.get('data')
     for author in local_authors:
         if author.get('displayName') == request.user.displayName: # remove current user from list
             local_authors.remove(author)
@@ -293,6 +301,7 @@ def comments(request, post_id):
 
     context = {
         'comments': comments,
+        'post_id': post_id
     }
 
     if (request.GET.get('like-button')):
@@ -351,17 +360,75 @@ def inbox(request, author_id):
 class PostListView(generic.ListView):
     model = Post
     template_name = 'posts/post_list.html'
-
+    
     def get(self, request):
         queryset = Post.objects.filter(visibility="public", unlisted=False)[:20]
         serializer = PostSerializer(queryset, many=True)
 
         for post in serializer.data:
             post_id = post['id']
-            url = f'http://127.0.0.1:8000/app/posts/{post_id}'
+            url = f'{HOST_URL}/app/posts/{post_id}'
             post['source'] = url
             post['origin'] = url
         
         return render(request, self.template_name, {'post_list': serializer.data})
       
+@login_required
+def sync_github_activity(request):
+    user = request.user
+    if user.github:
+        github_username = user.github
 
+        uri = f"https://api.github.com/users/{github_username}/events"
+        http_response = requests.get(uri)
+        response_json = http_response.json()
+
+        try:
+            github_access_data = GithubAccessData.objects.get(user_id=user.id)
+        except GithubAccessData.DoesNotExist:
+            last_accessed_date = None
+            github_access_data = GithubAccessData.objects.create(
+                user=user
+            )
+        else:
+            last_accessed_date = github_access_data.last_accessed
+            github_access_data.last_accessed = datetime.datetime.now()
+            github_access_data.save()
+            
+        
+        for event in response_json:
+            creation_date = time.strptime(event['created_at'], "%Y-%m-%dT%H:%M:%SZ")
+            event_creation_datetime = datetime.datetime(
+                creation_date.tm_year, 
+                creation_date.tm_mon,
+                creation_date.tm_mday,
+                creation_date.tm_hour,
+                creation_date.tm_min,
+                creation_date.tm_sec,
+                tzinfo=datetime.timezone.utc)
+            if not last_accessed_date or event_creation_datetime > last_accessed_date:
+                github_event_to_post_adapter(user, event)
+    
+    
+
+
+def github_event_to_post_adapter(author, event):
+    type = Post.ContentType.PLAIN
+    title = f"Github Event of type {event['type']}"
+    categories = f"github, {event['type']}"
+    text_content = f"""
+    id: {str(event['id'])}\n
+    repository: {str(event['repo'])}\n
+    Payload: {str(event['payload'])}\n"""
+
+
+    post = Post.objects.create_post(
+        author=author, 
+        categories=categories,
+        image_content=None,
+        text_content=text_content,
+        title=title,
+        visibility=Post.Visibility.PUBLIC,
+        unlisted=False,
+        )
+            

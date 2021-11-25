@@ -4,6 +4,13 @@ Group Project for CMPUT404; A distributed social networking webapp.
 
 LICENSE'D under the Apache license by Anthony Ma, Dalton Ronan, Xueying Luo, Chase Warwick, Zijian Zhou.
 
+## Connecting
+App (frontend) URL: https://social-distribution-t10.herokuapp.com/app/ 
+
+Api (backend service) URL: https://social-distribution-t10.herokuapp.com/api/
+
+Api documentation: https://social-distribution-t10.herokuapp.com/api/swagger/
+
 ## Development
 
 The app is built with the Django web framework, and as such requires Python. We are using Django 3.2 which requires Python 3.6+.

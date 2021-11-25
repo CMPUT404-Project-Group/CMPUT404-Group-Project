@@ -1,3 +1,4 @@
+from enum import unique
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -162,7 +163,6 @@ class PostBuilder():
     # TODO: Description is not very descriptive
     def set_post_metadata(self, author, visibility, unlisted):
         assert self.title, "set_post_content must be called before set_post_metadata"
-        logging.error(unlisted)
         self.author = author
         self.visibility = visibility
         self.unlisted = unlisted
@@ -416,3 +416,24 @@ class Inbox(models.Model):
     class Meta:
         ordering = ['-created_at']
         
+
+class Node(models.Model):
+    url = models.URLField(max_length=255, unique=False, null=False, blank=False)
+    is_active = models.BooleanField(default=True)
+
+class GithubAccessDataManager(models.Manager):
+    def create(self, user):
+        github_data = self.model(
+            user=user
+        )
+    
+        github_data.save()
+        return github_data
+
+    
+class GithubAccessData(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    last_accessed = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
+    objects = GithubAccessDataManager()
+
+    

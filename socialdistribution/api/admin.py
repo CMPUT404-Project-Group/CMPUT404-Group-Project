@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
 
-from .models import Post, SiteSetting, User
+from .models import Post, Node, SiteSetting, User
 
 
 class UserCreationForm(forms.ModelForm):
@@ -64,16 +64,16 @@ class UserAdmin(BaseUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
     actions = [make_active, make_inactive]
-    list_display = ('email', 'displayName', 'github', 'is_admin', 'is_active')
-    list_filter = ('is_admin', 'is_active')
+    list_display = ('email', 'displayName', 'github', 'is_admin', 'is_active', 'type')
+    list_filter = ('is_admin', 'is_active', 'type')
     fieldsets = (
         (None, {'fields': ('email', 'displayName',
-         'github', 'password', 'is_active')}),
+         'github', 'password', 'is_active', 'type')}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('displayName', 'email', 'github', 'set_password', 'confirm_password'),
+            'fields': ('displayName', 'email', 'github', 'type', 'set_password', 'confirm_password'),
         }),
     )
     search_fields = ('email',)
@@ -124,4 +124,5 @@ class SettingsAdmin(admin.ModelAdmin):
 admin.site.register(User, UserAdmin)
 admin.site.register(Post)
 admin.site.register(SiteSetting, SettingsAdmin)
+admin.site.register(Node)
 admin.site.unregister(Group)

@@ -33,7 +33,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     contentType = serializers.CharField(source='content_type')
     content = serializers.CharField(source='text_content')
-
+   
     class Meta:
         model = Post
         fields = [
@@ -45,6 +45,7 @@ class PostSerializer(serializers.ModelSerializer):
             'description',
             'contentType',
             'content',
+            'image_content',
             'author',
             'categories',
             'count',
@@ -163,3 +164,11 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         object_obj = User.objects.get(id=request.get('to_user'))
         object = UserSerializer(object_obj).data
         return {'type': 'Follow', 'summary': actor.get('displayName') + ' wants to follow ' + object.get('displayName'), 'actor': actor, 'object': object}
+        
+class GithubEventSerializer(PostSerializer):
+
+    pass
+
+class GithubEventToPostAdapter():
+
+    pass
