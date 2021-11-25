@@ -167,7 +167,8 @@ def view_post(request, post_id):
 @login_required
 def view_profile(request):
     user = request.user
-    sync_github_activity(request)
+    if request.GET.get('github-sync-button'):
+        sync_github_activity(request)
     return render(request, 'profile/view_profile.html', {'user': user})
     
 @login_required
