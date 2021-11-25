@@ -454,6 +454,8 @@ class Comment_API(generics.ListCreateAPIView):
 
 class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = InboxSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     @swagger_auto_schema(
         responses={200: openapi.Response(description='Successfully get inbox items.',
@@ -535,17 +537,34 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         tags=['inbox'])
     def post(self, request, author_id, *args, **kwargs):
         """
-        Send an item to {author_id}'s inbox. For now, posts are the only accepted objects.
+        Send an item to {author_id}'s inbox.
 
-        'post' is the only content_type that is supported at this time.
+        Send an item to {author_id}'s inbox.
         """
         try:
             item = request.data
+            type = item['type']
+            if type == 'follow':
+                # create this follow object
+                # this is where we might have to add the foreign user to our db so we can create 
+                # the relationship? not sure though.
+                pass
+            elif type == 'like':
+                # create this like on the given post
+                pass
+            elif type == 'comment':
+                # create this comment on the given post
+                pass
+            elif type == 'post':
+                # I don't think we need to actually create the post?
+                # they will just send us the post object for us to view in the inbox?
+                pass
+
+            # then we send the notification to the inbox
             author = User.objects.get(id=author_id)
             InboxItem.objects.create(author_id=author.id, item=item)
             return Response(status=status.HTTP_204_NO_CONTENT)
         except:
-            print(request.data)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @ swagger_auto_schema(
