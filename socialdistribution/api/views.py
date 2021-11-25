@@ -99,23 +99,34 @@ class Author(APIView):
     method='get',
     responses={
         200: openapi.Response(description="Success",
-                              examples={"application/json": [{
-                                  "type": "author",
-                                  "id": "http://127.0.0.1:8000/api/author/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
-                                  "host": "http://127.0.0.1:8000/api/",
-                                  "displayName": "Bill",
-                                  "url": "http://127.0.0.1:8000/api/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
-                                  "github": "http://github.com/bill123"
-                              },
-                                  {
-                                  "type": "author",
-                                  "id": "http://127.0.0.1:8000/api/author/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
-                                  "host": "http://127.0.0.1:8000/api/",
-                                  "displayName": "Frank",
-                                  "url": "http://127.0.0.1:8000/api/077d7a7e-304c-4f34-9d8f-d3c61e214b35",
-                                  "github": "http://github.com/FrankFrank"
-                              }
-                              ]}),
+                              examples={"application/json": {
+                                  "type": "authors",
+                                  "next": "null",
+                                  "data": [
+                                      {
+                                          "type": "author",
+                                          "id": "http://127.0.0.1:8000/api/author/71a43eca-9478-4594-8701-2a5997e3a5dd",
+                                          "host": "http://127.0.0.1:8000/api/",
+                                          "displayName": "bob",
+                                          "url": "http://127.0.0.1:8000/api/71a43eca-9478-4594-8701-2a5997e3a5dd",
+                                          "github": "http://github.com/bob"
+                                      },
+                                      {
+                                          "type": "author",
+                                          "id": "http://127.0.0.1:8000/api/author/f9aedd77-e337-4b08-a883-cc7168d4ddda",
+                                          "host": "http://127.0.0.1:8000/api/",
+                                          "displayName": "dronan",
+                                          "url": "http://127.0.0.1:8000/api/f9aedd77-e337-4b08-a883-cc7168d4ddda",
+                                          "github": "http://github.com/dijonron"
+                                      }
+                                  ],
+                                  "prev": "null",
+                                  "size": "2",
+                                  "page": "1",
+                                  "total_pages": [
+                                      1
+                                  ]
+                              }}),
         400: openapi.Response(description="Method Not Allowed.", examples={"application/json": {'detail': "Method \"POST\" not allowed."}})
     },
     paginator_inspectors='d',
@@ -134,21 +145,27 @@ def authors(request):
     Pagination settings are passed as url parameters: ~/inbox/?page=1&size=5
     """
     paginator = PageNumberPaginationWithCount()
-    query_params = request.query_params
     query_set = User.objects.all().filter(type="author")
+    size = request.query_params.get('size', 10)
+    page = request.query_params.get('page', 1)
+    paginator.page = page
+    paginator.page_size = size
+    paginated_qs = paginator.paginate_queryset(query_set, request)
+    serializer = UserSerializer(paginated_qs, many=True).data
+    p = paginator.get_paginated_response(paginated_qs)
 
-    if query_params:
-        size = query_params.get("size")
-        if size:
-            paginator.page_size = size
-        authors = paginator.paginate_queryset(query_set, request)
-    else:
-        authors = query_set
-
-    serializer = UserSerializer(authors, many=True)
-    data = {"type": "authors", "items": serializer.data}
+    data = {
+        "type": "authors",
+        'next': p.data.get('next'),
+        "data": serializer,
+        'prev': p.data.get('previous'),
+        'size': size,
+        'page': paginator.get_page_number(request, paginated_qs),
+        'total_pages': p.data.get('total_pages')
+    }
 
     return Response(data, status=status.HTTP_200_OK)
+
 
 class PostAPI(APIView):
 
@@ -159,29 +176,29 @@ class PostAPI(APIView):
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a serialized post object which matches with the post_id provided
-        
+
         GETs and returns a serialized post object which matches with the post_id provided
         """
         post_id = kwargs.get('post_id')
         post = get_object_or_404(Post, pk=post_id)
         serializer = PostSerializer(post)
         return JsonResponse(serializer.data)
-    
+
     @swagger_auto_schema(tags=['posts'])
     def put(self, request, *args, **kwargs):
         """
         PUTs a post creating an entry on the server at
         the specified post id
-        
+
         PUTs a post creating an entry on the server at
         the specified post id
         """
         post_id = kwargs.get('post_id')
         request.data['id'] = post_id
-        
+
         if not str(request.user.id) == request.data['author']:
             return Response("Authenticated user id does not match author id of post being PUT", status.HTTP_401_UNAUTHORIZED)
-        
+
         serializer = PostSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -189,12 +206,12 @@ class PostAPI(APIView):
             return HttpResponse("Sucessfully created post\n")
 
         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     @swagger_auto_schema(tags=['posts'])
     def post(self, request, *args, **kwargs):
         """
         Updates a post on the server which matches the given post id
-        
+
         Updates a post on the server which matches the given post id
         """
 
@@ -216,12 +233,12 @@ class PostAPI(APIView):
         query_set.update(**data)
 
         return HttpResponse("Successfully edited post")
-    
+
     @swagger_auto_schema(tags=['posts'])
     def delete(self, request, *args, **kwargs):
         """
         DELETEs a post on the server which matches the given post id
-        
+
         DELETEs a post on the server which matches the given post id
         """
         user = request.user
@@ -238,6 +255,7 @@ class PostAPI(APIView):
         if (user_id == author_id):
             return True
         return False
+
 
 class PageNumberPaginationWithCount(PageNumberPagination):
     # Q: https://stackoverflow.com/q/40985248 (Stupid.Fat.Cat)
@@ -258,12 +276,13 @@ class PageNumberPaginationWithCount(PageNumberPagination):
                     '?', '?page=1&')  # need to correct route for front end pagination to work
         return response
 
+
 class Like_Post_API(APIView):
     @swagger_auto_schema(tags=['likes'])
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a list of likes on a post within the server which matches the given post id
-        
+
         GETs and returns a list of likes on a post within the server which matches the given post id
         """
         post_id = self.kwargs.get('post_id')
@@ -274,12 +293,13 @@ class Like_Post_API(APIView):
 
         return Response(data, status.HTTP_200_OK)
 
+
 class Like_Comment_API(APIView):
     @swagger_auto_schema(tags=['likes'])
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a list of likes on a comment within the server which matches the given comment id
-        
+
         GETs and returns a list of likes on a comment within the server which matches the given comment id
         """
         comment_id = self.kwargs.get('comment_id')
@@ -290,12 +310,13 @@ class Like_Comment_API(APIView):
 
         return Response(data, status.HTTP_200_OK)
 
+
 class Liked_API(APIView):
     @swagger_auto_schema(tags=['likes'])
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a list of every like object corresponding to a user on the server who matches the given author id
-        
+
         GETs and returns a list of every like object corresponding to a user on the server who matches the given author id
         """
         author_id = self.kwargs.get('author_id')
@@ -306,12 +327,69 @@ class Liked_API(APIView):
 
         return Response(data, status.HTTP_200_OK)
 
+
 class Comment_API(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    @swagger_auto_schema(tags=['comments'])
+    @swagger_auto_schema(
+        tags=['comments'],
+        manual_parameters=[
+            openapi.Parameter(
+                'page', openapi.IN_QUERY, description='A page number within the paginated result set.', type=openapi.TYPE_INTEGER),
+            openapi.Parameter(
+                'size', openapi.IN_QUERY, description='The size of the page to be returned', type=openapi.TYPE_INTEGER)
+            ],
+        responses={
+            200: openapi.Response(description="Success",
+                                  examples={"application/json": {
+                                      "type": "comment",
+                                      "prev": "null",
+                                      "size": 10,
+                                      "page": "1",
+                                      "total_pages": [
+                                          1
+                                      ],
+                                      "data": [
+                                          {
+                                              "type": "comment",
+                                              "author": {
+                                                  "type": "author",
+                                                  "id": "http://127.0.0.1:8000/api/author/71a43eca-9478-4594-8701-2a5997e3a5dd",
+                                                  "host": "http://127.0.0.1:8000/api/",
+                                                  "displayName": "bob",
+                                                  "url": "http://127.0.0.1:8000/api/71a43eca-9478-4594-8701-2a5997e3a5dd",
+                                                  "github": "http://github.com/bob"
+                                              },
+                                              "post": "156ad8a2-b4ce-4c1e-bd31-b01f6bd90eaa",
+                                              "comment": "A comment",
+                                              "contentType": "text/plain",
+                                              "published": "2021-11-24T18:39:55.663583-07:00",
+                                              "id": "4a3148b5-ead5-467c-80fa-8cfdfcd19872"
+                                          },
+                                          {
+                                              "type": "comment",
+                                              "author": {
+                                                  "type": "author",
+                                                  "id": "http://127.0.0.1:8000/api/author/71a43eca-9478-4594-8701-2a5997e3a5dd",
+                                                  "host": "http://127.0.0.1:8000/api/",
+                                                  "displayName": "bob",
+                                                  "url": "http://127.0.0.1:8000/api/71a43eca-9478-4594-8701-2a5997e3a5dd",
+                                                  "github": "http://github.com/bob"
+                                              },
+                                              "post": "156ad8a2-b4ce-4c1e-bd31-b01f6bd90eaa",
+                                              "comment": "Another One!",
+                                              "contentType": "text/plain",
+                                              "published": "2021-11-24T18:40:02.034586-07:00",
+                                              "id": "bb02e889-50ce-4621-9899-0f2b89ece09f"
+                                          }
+                                      ]
+                                  }
+                                  }
+                                  )
+        }
+    )
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a paginated list of comments which correspond to the post which matches the given post id
@@ -328,21 +406,21 @@ class Comment_API(generics.ListCreateAPIView):
         page = request.query_params.get('page', 1)
         paginator.page_size = size
         paginator.page = page
-        
+
         paginated_qs = paginator.paginate_queryset(query_set, request)
 
         items = []
         for item in paginated_qs:
             serializer = CommentSerializer(item)
             items.append(serializer.data)
-        
+
         paginated_response = paginator.get_paginated_response(paginated_qs)
         data = {
             'type': 'comment',
             'prev': paginated_response.data.get('previous'), 'size': size,
             'page': paginator.get_page_number(request, paginated_qs),
             'total_pages': paginated_response.data.get('total_pages'),
-            'items': items
+            'data': items
         }
 
         return Response(data, status=status.HTTP_200_OK)
@@ -351,7 +429,7 @@ class Comment_API(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         """
         Creates a comment on a post which is on the server and whose id matches the given post id. Authors the comment with the given author id
-        
+
         Creates a comment on a post which is on the server and whose id matches the given post id. Authors the comment with the given author id
         """
         post_id = self.kwargs.get('post_id')
@@ -362,7 +440,6 @@ class Comment_API(generics.ListCreateAPIView):
 
         if not serializer.is_valid():
             return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
 
         if not str(request.user.id) == request.data['author']:
             return Response("Authenticated user id does not match author id of comment being POSTed", status.HTTP_401_UNAUTHORIZED)
@@ -440,14 +517,13 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         items = InboxSerializer(paginated_qs, many=True).data
         p = paginator.get_paginated_response(paginated_qs)
         data = {
-            'type': 'inbox', 
-            'author': HOST_API_URL+'/author/'+author_id, 
+            'type': 'inbox',
+            'author': HOST_API_URL+'/author/'+author_id,
             'items': items,
             'next': p.data.get('next'),
             'prev': p.data.get('previous'), 'size': size,
             'page': paginator.get_page_number(request, paginated_qs),
-            'total_pages': p.data.get('total_pages'),}
-
+            'total_pages': p.data.get('total_pages'), }
 
         return Response(data, status=status.HTTP_200_OK)
 
@@ -479,7 +555,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     def delete(self, request, *args, **kwargs):
         """
         Delete all items in {author_id}'s Inbox.
-        
+
         Delete all items in {author_id}'s Inbox.
         """
         try:
@@ -490,29 +566,29 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+
 @swagger_auto_schema(method='GET', tags=['followers'], responses={
-    200: openapi.Response(description="Sucessfully GET {author_id}'s followers", examples=
-    {'application/json':{
-    "type": "followers",
-    "items": [
-        {
-            "type": "author",
-            "id": "http://127.0.0.1:8000/api/author/628fbb7e-d856-42b1-97c8-4276f1ebf18f",
-            "host": "http://127.0.0.1:8000/api/",
-            "displayName": "bob",
-            "url": "http://127.0.0.1:8000/api/628fbb7e-d856-42b1-97c8-4276f1ebf18f",
-            "github": "http://github.com/bob123"
-        },
-        {
-            "type": "author",
-            "id": "http://127.0.0.1:8000/api/author/533bb187-de22-41fe-86f7-11a037d7adfe",
-            "host": "http://127.0.0.1:8000/api/",
-            "displayName": "bill",
-            "url": "http://127.0.0.1:8000/api/533bb187-de22-41fe-86f7-11a037d7adfe",
-            "github": "http://github.com/billy"
-        }]}}),
+    200: openapi.Response(description="Sucessfully GET {author_id}'s followers", examples={'application/json': {
+        "type": "followers",
+        "items": [
+            {
+                "type": "author",
+                "id": "http://127.0.0.1:8000/api/author/628fbb7e-d856-42b1-97c8-4276f1ebf18f",
+                "host": "http://127.0.0.1:8000/api/",
+                "displayName": "bob",
+                "url": "http://127.0.0.1:8000/api/628fbb7e-d856-42b1-97c8-4276f1ebf18f",
+                "github": "http://github.com/bob123"
+            },
+            {
+                "type": "author",
+                "id": "http://127.0.0.1:8000/api/author/533bb187-de22-41fe-86f7-11a037d7adfe",
+                "host": "http://127.0.0.1:8000/api/",
+                "displayName": "bill",
+                "url": "http://127.0.0.1:8000/api/533bb187-de22-41fe-86f7-11a037d7adfe",
+                "github": "http://github.com/billy"
+            }]}}),
     400: openapi.Response(description="Bad Request")
-    })
+})
 @api_view(['GET'])
 def followers(request, author_id):
     """
@@ -529,29 +605,30 @@ def followers(request, author_id):
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
+
 class Followers(APIView):
     @swagger_auto_schema(tags=['followers'],
-    responses={
+                         responses={
         200: openapi.Response(
             description="{foreign_author_id} is following {author_id}",
-            examples=
-                {'application/json': {
+            examples={'application/json': {
                 "type": "followers",
                 "is_following": "true"
-                }}),
+            }}),
         400: openapi.Response(description="Bad Request")
     }
     )
     def get(self, request, *args, **kwargs):
         """
         Check if {foreign_author_id} is following {author_id}
-        
+
         Returns is_following: true if {foreign_author_id} is following {author_id}, is_following: false if not.
         """
-        try: 
+        try:
             author_id = kwargs.get('author_id')
             foreign_author_id = kwargs.get('foreign_author_id')
-            is_following = Follow.objects.filter(followee_id=author_id, follower_id=foreign_author_id)
+            is_following = Follow.objects.filter(
+                followee_id=author_id, follower_id=foreign_author_id)
             # Not sure what to return? This should do for now.
             if is_following.exists():
                 data = {'type': 'followers', 'is_following': 'true'}
@@ -563,7 +640,7 @@ class Followers(APIView):
 
     # TODO: must be authenticated
     @swagger_auto_schema(tags=['followers'],
-        responses={
+                         responses={
         204: openapi.Response(
             description="Follower added"),
         400: openapi.Response(description="Bad Request")}
@@ -571,7 +648,7 @@ class Followers(APIView):
     def put(self, request, *args, **kwargs):
         """
         Add {foreign_author_id} as a follower of {author_id}
-        
+
         Add {foreign_author_id} as a follower of {author_id}
         """
         try:
@@ -581,14 +658,15 @@ class Followers(APIView):
             foreign_author = User.objects.get(id=foreign_author_id)
             Follow.objects.add_follower(foreign_author, author)
             if (FriendshipRequest.objects.filter(from_user=author, to_user=foreign_author).exists()):
-                friend_request = FriendshipRequest.objects.get(from_user=author, to_user=foreign_author)
+                friend_request = FriendshipRequest.objects.get(
+                    from_user=author, to_user=foreign_author)
                 friend_request.accept()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(tags=['followers'],
-        responses={
+                         responses={
         204: openapi.Response(
             description="Follower removed"),
         400: openapi.Response(description="Bad Request")}
@@ -596,7 +674,7 @@ class Followers(APIView):
     def delete(self, request, *args, **kwargs):
         """
         Remove {foreign_author_id} from {author_id} followers
-        
+
         Remove {foreign_author_id} from {author_id} followers
         """
         try:
@@ -604,7 +682,7 @@ class Followers(APIView):
             author = User.objects.get(id=author_id)
             foreign_author_id = kwargs.get('foreign_author_id')
             foreign_author = User.objects.get(id=foreign_author_id)
-            Follow.objects.remove_follower(author, foreign_author)  # unfollow 
+            Follow.objects.remove_follower(author, foreign_author)  # unfollow
             return Response(status=status.HTTP_204_NO_CONTENT)
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
