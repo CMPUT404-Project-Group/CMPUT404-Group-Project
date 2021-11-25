@@ -1,8 +1,10 @@
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post
+import datetime
 import json
 import os
 import requests
+import time
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
 from api.models import User, Post, Comment, Like, GithubAccessData
 from api.serializers import PostSerializer, FriendRequestSerializer
@@ -165,6 +167,7 @@ def view_post(request, post_id):
 @login_required
 def view_profile(request):
     user = request.user
+    sync_github_activity(request)
     return render(request, 'profile/view_profile.html', {'user': user})
     
 @login_required
@@ -346,7 +349,7 @@ def inbox(request, author_id):
 class PostListView(generic.ListView):
     model = Post
     template_name = 'posts/post_list.html'
-
+    
     def get(self, request):
         queryset = Post.objects.filter(visibility="public", unlisted=False)[:20]
         serializer = PostSerializer(queryset, many=True)
@@ -362,34 +365,58 @@ class PostListView(generic.ListView):
 @login_required
 def sync_github_activity(request):
     user = request.user
-    github_username = user['github_username']
+    github_username = user.github
 
     uri = f"https://api.github.com/users/{github_username}/events"
     http_response = requests.get(uri)
     response_json = http_response.json()
 
     try:
-        github_access_data = GithubAccessData.get(pk=user['id'])
+        github_access_data = GithubAccessData.objects.get(user_id=user.id)
     except GithubAccessData.DoesNotExist:
-        github_access_data = GithubAccessData.objects.create(
-            user['id']
-        )
         last_accessed_date = None
+        github_access_data = GithubAccessData.objects.create(
+            user=user
+        )
     else:
-        last_accessed_date = github_access_data['last_accessed']
+        last_accessed_date = github_access_data.last_accessed
+        github_access_data.last_accessed = datetime.datetime.now()
+        github_access_data.save()
+        
     
-    if last_accessed_date:
-        for event in response_json:
-            event_creation_date = event['created_at']
-            if event_creation_date > last_accessed_date:
-                response_json.pop(event)
-            else:
-                #Turn event into post
-                return
+    for event in response_json:
+        creation_date = time.strptime(event['created_at'], "%Y-%m-%dT%H:%M:%SZ")
+        event_creation_datetime = datetime.datetime(
+            creation_date.tm_year, 
+            creation_date.tm_mon,
+            creation_date.tm_mday,
+            creation_date.tm_hour,
+            creation_date.tm_min,
+            creation_date.tm_sec,
+            tzinfo=datetime.timezone.utc)
+        if not last_accessed_date or event_creation_datetime > last_accessed_date:
+            github_event_to_post_adapter(user, event)
+    
+    
 
-    else:
-        for event in response_json:
-            #turn event into post
-            return
 
+def github_event_to_post_adapter(author, event):
+    type = Post.ContentType.PLAIN
+    title = f"Github Event of type {event['type']}"
+    categories = f"github, {event['type']}"
+    text_content = f"""
+    id: {str(event['id'])}\n
+    repository: {str(event['repo'])}\n
+    Payload: {str(event['payload'])}\n"""
+
+
+    post = Post.objects.create_post(
+        author=author, 
+        categories=categories,
+        image_content=None,
+        text_content=text_content,
+        title=title,
+        visibility=Post.Visibility.PUBLIC,
+        unlisted=False,
+        )
             

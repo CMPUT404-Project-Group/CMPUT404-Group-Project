@@ -163,7 +163,6 @@ class PostBuilder():
     # TODO: Description is not very descriptive
     def set_post_metadata(self, author, visibility, unlisted):
         assert self.title, "set_post_content must be called before set_post_metadata"
-        logging.error(unlisted)
         self.author = author
         self.visibility = visibility
         self.unlisted = unlisted
@@ -423,9 +422,9 @@ class Node(models.Model):
     is_active = models.BooleanField(default=True)
 
 class GithubAccessDataManager(models.Manager):
-    def create(self, author_id):
+    def create(self, user):
         github_data = self.model(
-            author_id=author_id
+            user=user
         )
     
         github_data.save()
@@ -433,7 +432,7 @@ class GithubAccessDataManager(models.Manager):
 
     
 class GithubAccessData(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     last_accessed = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
     objects = GithubAccessDataManager()
 
