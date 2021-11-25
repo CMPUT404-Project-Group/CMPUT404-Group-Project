@@ -53,7 +53,7 @@ class UserManager(BaseUserManager):
             id=uuid,
             host=host,
             displayName=displayName,
-            url=host+str(uuid),
+            url=host+ '/author/' + str(uuid),
             github=github,
             email=self.normalize_email(email),
         )
