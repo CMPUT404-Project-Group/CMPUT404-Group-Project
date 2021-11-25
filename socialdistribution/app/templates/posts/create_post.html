@@ -4,6 +4,7 @@
 
 {% block content%}
 {% include "app/includes/navbar.html" %}
+
 <div class="container py-5 ">
     <div class="row d-felx justify-content-center align-items-center h-100">
         <div class="col-8 col-md-8 col-lg-6 col-xl-5" >
@@ -32,16 +33,30 @@
                         </div>
                         <div class="form-outline mb-2 text-start">
                             <label for="id_categories" class="form-label h6">Tags (Comma Seperated)</label>
-                            <textarea id="id_categories" class="form-control" cols="40" rows="4" name="categories"></textarea>
+                            <textarea id="id_categories" class="form-control" cols="40" rows="4" name="categories"  ></textarea>
                         </div>
                         <div class="form-outline mb-2">
                             <label for="id_visibility" class="form-label h6">Post Visibility</label>
-                            <select id="id_visibility" class="form-select" name="visibility">
+                            <select id="id_visibility" class="form-select" name="visibility" onchange="showDiv(this)">
                                 <option value="public">Public</option>
                                 <option value="private_to_author">Private to Author</option>
                                 <option value="private_to_friend">Private to Friend</option>
                             </select>
                         </div>
+                        <textarea id="private_to_author" class="form-control" rows="1" style="display:none;" placeholder="Enter author account"></textarea>
+                        <textarea id="private_to_friend" class="form-control" rows="1" style="display:none;" placeholder="Enter friend account"></textarea>
+                        <script type="text/javascript">
+                            function showDiv(select){
+                                if(select.value=="private_to_author"){
+                                document.getElementById('private_to_author').style.display = "block";
+                                document.getElementById('private_to_friend').style.display = "none";
+                                } 
+                                else if(select.value=="private_to_friend"){
+                                    document.getElementById('private_to_friend').style.display = "block";
+                                    document.getElementById('private_to_author').style.display = "none";
+                                }
+                            } 
+                        </script>
                         <div class="form-outline mb-2">
                             <label for="id_unlisted" class="form-label h6">Unlisted</label>
                             <input type="checkbox" id="id_unlisted" name="unlisted" value="unlisted">
