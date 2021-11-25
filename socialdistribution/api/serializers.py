@@ -33,7 +33,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     contentType = serializers.CharField(source='content_type')
     content = serializers.CharField(source='text_content')
-
+   
     class Meta:
         model = Post
         fields = [
