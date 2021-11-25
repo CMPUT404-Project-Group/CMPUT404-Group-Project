@@ -210,7 +210,6 @@ def view_followers(request):
     user = request.user
     url = HOST_API_URL + 'author/%s/followers/' % user.id
     res = requests.get(url)
-    # print(res.content)
     data = json.loads(res.content.decode('utf-8'))
     return render(request, 'profile/view_followers.html', {'data': data.get('items')})
 
