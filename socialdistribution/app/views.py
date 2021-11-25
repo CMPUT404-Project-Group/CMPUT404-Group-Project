@@ -46,13 +46,22 @@ def register(request):
 
 @login_required
 def index(request):
-    stream_posts_objects = Post.objects.all().order_by('-published').filter(author=request.user)
-    stream_posts = PostSerializer(stream_posts_objects, many=True).data
-    for post in stream_posts:
-            post_id = post['id']
-            url = f'{HOST_URL}/app/posts/{post_id}'
-            post['source'] = url
-            post['origin'] = url
+    #Get all posts from yourself (besides unlisted ones)
+    user_posts = Post.objects.all().order_by('-published').filter(author=request.user, unlisted=False)
+
+    #Get public posts of followers
+    followed_qs = Follow.objects.filter(follower_id=request.user.id)
+    followed_ids = [item.followee_id for item in followed_qs]
+    follower_posts = Post.objects.all().filter(author__in=followed_ids, visibility="public", unlisted=False)
+
+    #Get public and friends only posts from friends
+    friends_qs = Friend.objects.friends(request.user)
+    friends_ids = [item.id for item in friends_qs]
+
+    friends_posts = Post.objects.all().filter(author__in=friends_ids, visibility="private_to_friend", unlisted=False)
+
+    #Union of above post querysets, ordered by published date
+    stream_posts = (follower_posts | friends_posts | user_posts).distinct().order_by('-published')
 
     context = {
         "stream_posts" : stream_posts
