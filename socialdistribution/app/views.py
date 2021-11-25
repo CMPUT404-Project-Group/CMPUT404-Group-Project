@@ -365,37 +365,38 @@ class PostListView(generic.ListView):
 @login_required
 def sync_github_activity(request):
     user = request.user
-    github_username = user.github
+    if user.github:
+        github_username = user.github
 
-    uri = f"https://api.github.com/users/{github_username}/events"
-    http_response = requests.get(uri)
-    response_json = http_response.json()
+        uri = f"https://api.github.com/users/{github_username}/events"
+        http_response = requests.get(uri)
+        response_json = http_response.json()
 
-    try:
-        github_access_data = GithubAccessData.objects.get(user_id=user.id)
-    except GithubAccessData.DoesNotExist:
-        last_accessed_date = None
-        github_access_data = GithubAccessData.objects.create(
-            user=user
-        )
-    else:
-        last_accessed_date = github_access_data.last_accessed
-        github_access_data.last_accessed = datetime.datetime.now()
-        github_access_data.save()
+        try:
+            github_access_data = GithubAccessData.objects.get(user_id=user.id)
+        except GithubAccessData.DoesNotExist:
+            last_accessed_date = None
+            github_access_data = GithubAccessData.objects.create(
+                user=user
+            )
+        else:
+            last_accessed_date = github_access_data.last_accessed
+            github_access_data.last_accessed = datetime.datetime.now()
+            github_access_data.save()
+            
         
-    
-    for event in response_json:
-        creation_date = time.strptime(event['created_at'], "%Y-%m-%dT%H:%M:%SZ")
-        event_creation_datetime = datetime.datetime(
-            creation_date.tm_year, 
-            creation_date.tm_mon,
-            creation_date.tm_mday,
-            creation_date.tm_hour,
-            creation_date.tm_min,
-            creation_date.tm_sec,
-            tzinfo=datetime.timezone.utc)
-        if not last_accessed_date or event_creation_datetime > last_accessed_date:
-            github_event_to_post_adapter(user, event)
+        for event in response_json:
+            creation_date = time.strptime(event['created_at'], "%Y-%m-%dT%H:%M:%SZ")
+            event_creation_datetime = datetime.datetime(
+                creation_date.tm_year, 
+                creation_date.tm_mon,
+                creation_date.tm_mday,
+                creation_date.tm_hour,
+                creation_date.tm_min,
+                creation_date.tm_sec,
+                tzinfo=datetime.timezone.utc)
+            if not last_accessed_date or event_creation_datetime > last_accessed_date:
+                github_event_to_post_adapter(user, event)
     
     
 
