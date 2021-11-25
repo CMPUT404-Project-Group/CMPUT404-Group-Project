@@ -164,3 +164,11 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         object_obj = User.objects.get(id=request.get('to_user'))
         object = UserSerializer(object_obj).data
         return {'type': 'Follow', 'summary': actor.get('displayName') + ' wants to follow ' + object.get('displayName'), 'actor': actor, 'object': object}
+        
+class GithubEventSerializer(PostSerializer):
+
+    pass
+
+class GithubEventToPostAdapter():
+
+    pass

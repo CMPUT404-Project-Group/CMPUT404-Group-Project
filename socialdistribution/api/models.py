@@ -1,3 +1,4 @@
+from enum import unique
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -420,3 +421,20 @@ class Inbox(models.Model):
 class Node(models.Model):
     url = models.URLField(max_length=255, unique=False, null=False, blank=False)
     is_active = models.BooleanField(default=True)
+
+class GithubAccessDataManager(models.Manager):
+    def create(self, author_id):
+        github_data = self.model(
+            author_id=author_id
+        )
+    
+        github_data.save()
+        return github_data
+
+    
+class GithubAccessData(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
+    last_accessed = models.DateTimeField(unique=False, blank=False, null=False, auto_now_add=True)
+    objects = GithubAccessDataManager()
+
+    

@@ -4,8 +4,10 @@ import json
 import os
 import requests
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
-from api.models import User, Post, Comment, Like
+from api.models import User, Post, Comment, Like, GithubAccessData
 from api.serializers import PostSerializer, FriendRequestSerializer
+from requests.models import Response
+from rest_framework import serializers
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -357,4 +359,37 @@ class PostListView(generic.ListView):
         
         return render(request, self.template_name, {'post_list': serializer.data})
       
+@login_required
+def sync_github_activity(request):
+    user = request.user
+    github_username = user['github_username']
 
+    uri = f"https://api.github.com/users/{github_username}/events"
+    http_response = requests.get(uri)
+    response_json = http_response.json()
+
+    try:
+        github_access_data = GithubAccessData.get(pk=user['id'])
+    except GithubAccessData.DoesNotExist:
+        github_access_data = GithubAccessData.objects.create(
+            user['id']
+        )
+        last_accessed_date = None
+    else:
+        last_accessed_date = github_access_data['last_accessed']
+    
+    if last_accessed_date:
+        for event in response_json:
+            event_creation_date = event['created_at']
+            if event_creation_date > last_accessed_date:
+                response_json.pop(event)
+            else:
+                #Turn event into post
+                return
+
+    else:
+        for event in response_json:
+            #turn event into post
+            return
+
+            
