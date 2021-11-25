@@ -27,6 +27,7 @@ DEBUG = (os.environ.get("DEBUG") == 'True')
 GITHUB_URL = os.environ.get("GITHUB_URL")
 HOST_API_URL = os.environ.get("HOST_API_URL")
 HOST_URL = os.environ.get("HOST_URL")
+API_TOKEN = os.environ.get("API_TOKEN")
 
 ALLOWED_HOSTS = ['*']
 
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'friendship',
     'crispy_forms',
     'drf_yasg'
@@ -141,6 +143,6 @@ AUTH_USER_MODEL = 'api.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10,
 }
 django_on_heroku.settings(locals(), test_runner=False) # bottom of the file

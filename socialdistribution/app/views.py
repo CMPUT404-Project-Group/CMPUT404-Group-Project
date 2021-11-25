@@ -14,12 +14,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from friendship.models import Follow, Friend, FriendshipRequest
 from django.urls import reverse
 from dotenv import load_dotenv
-
 import logging
 from django.views import generic
 
 from django.conf import settings
 HOST_URL = settings.HOST_URL
+API_TOKEN = settings.API_TOKEN
 
 def register(request):
     if request.method == 'POST':
@@ -192,7 +192,8 @@ def view_followers(request):
 
 @login_required
 def explore_authors(request):
-    res = requests.get(HOST_URL+reverse('api:authors'))
+    headers = {'Authorization': 'Token %s' % API_TOKEN}
+    res = requests.get(HOST_URL+reverse('api:authors'), headers=headers)
     data = json.loads(res.content.decode('utf-8'))
     local_authors = data.get('data')
     for author in local_authors:
