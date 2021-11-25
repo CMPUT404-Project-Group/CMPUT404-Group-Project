@@ -162,7 +162,6 @@ class PostBuilder():
     # TODO: Description is not very descriptive
     def set_post_metadata(self, author, visibility, unlisted):
         assert self.title, "set_post_content must be called before set_post_metadata"
-        logging.error(unlisted)
         self.author = author
         self.visibility = visibility
         self.unlisted = unlisted
