@@ -1,7 +1,3 @@
-from rest_framework.decorators import permission_classes
-
-from socialdistribution.app.views import post
-
 
 class URLDecorator():
 
