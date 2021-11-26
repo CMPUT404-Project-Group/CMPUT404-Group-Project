@@ -25,7 +25,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from friendship.models import Follow, FriendshipRequest
+from friendship.models import Follow, FriendshipRequest, Friend
 from .models import Inbox as InboxItem
 from .models import Post, User, Like, Comment
 from .serializers import LikeSerializer, LikedSerializer, InboxSerializer, PostSerializer, UserSerializer, CommentSerializer
@@ -547,9 +547,21 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         type = item['type']
         if type == 'follow':
             # create this follow object
-            # this is where we might have to add the foreign user to our db so we can create 
-            # the relationship? not sure though.
-            pass
+            author = User.objects.get(id=author_id) 
+            foreign_author = item['actor']
+            if not User.objects.filter(displayName=foreign_author['displayName']).exists():
+                user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=foreign_author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
+                User.objects.filter(id=user.id).update(id=foreign_author['id'].split('/')[-1])
+                user = User.objects.get(id=foreign_author['id'].split('/')[-1])
+            else:
+                user = User.objects.get(id=foreign_author['id'].split('/')[-1])
+            Follow.objects.add_follower(user, author)
+            if (FriendshipRequest.objects.filter(from_user=author, to_user=user).exists()):
+                friend_request = FriendshipRequest.objects.get(from_user=author, to_user=user)
+                friend_request.accept()
+            else:
+                # send a friend request
+                Friend.objects.add_friend(user, author)
         elif type == 'like':
             # create this like on the given post
             post_id = item['post']
