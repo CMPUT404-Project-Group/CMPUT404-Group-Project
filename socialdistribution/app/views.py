@@ -236,8 +236,11 @@ def explore_authors(request):
     # get remote authors
     nodes = Node.objects.get_queryset()
     for node in nodes:
-        res = requests.get(str(node)+'authors/', headers={})
-        remote_authors = json.loads(res.content.decode('utf-8'))['data']
+        try:
+            res = requests.get(str(node)+'authors/', headers={})
+            remote_authors = json.loads(res.content.decode('utf-8'))['data']
+        except:
+            remote_authors = {}
     return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': remote_authors })
 
 
