@@ -2,7 +2,7 @@ import os
 import json
 
 from drf_yasg import openapi
-
+import uuid
 from django.db.models import aggregates, query
 import rest_framework.status as status
 from django.shortcuts import get_object_or_404
@@ -167,13 +167,63 @@ def authors(request):
 
     return Response(data, status=status.HTTP_200_OK)
 
+class PostsAPI(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    @swagger_auto_schema(tags=['posts'])
+    def get(self, request, *args, **kwargs):
+        """
+        GETs and returns a paginated list of comments which correspond to the post which matches the given post id
+            
+        GETs and returns a paginated list of comments which correspond to the post which matches the given post id
+        """
+        paginator = PageNumberPaginationWithCount()
+        author_id = self.kwargs.get('author_id')
+
+        query_set = Post.objects.filter(author_id=author_id)
+
+        size = request.query_params.get('size', 10)
+        page = request.query_params.get('page', 1)
+        paginator.page_size = size
+        paginator.page = page
+
+        paginated_qs = paginator.paginate_queryset(query_set, request)
+
+        items = []
+        for item in paginated_qs:
+            serializer = PostSerializer(item)
+            items.append(serializer.data)
+
+        paginated_response = paginator.get_paginated_response(paginated_qs)
+        data = {
+            'type': 'post',
+            'prev': paginated_response.data.get('previous'), 'size': size,
+            'page': paginator.get_page_number(request, paginated_qs),
+            'total_pages': paginated_response.data.get('total_pages'),
+            'data': items
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+    
+    @swagger_auto_schema(tags=['posts'])
+    def post(self, request, *args, **kwargs):
+        id = str(uuid.uuid4())
+        request.data['id'] = id
+        serializer = PostSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return HttpResponse("Sucessfully created post\n")
+
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PostAPI(APIView):
 
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    @swagger_auto_schema(tags=['posts'])
+    @swagger_auto_schema(tags=['post'])
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a serialized post object which matches with the post_id provided
@@ -185,7 +235,7 @@ class PostAPI(APIView):
         serializer = PostSerializer(post)
         return JsonResponse(serializer.data)
 
-    @swagger_auto_schema(tags=['posts'])
+    @swagger_auto_schema(tags=['post'])
     def put(self, request, *args, **kwargs):
         """
         PUTs a post creating an entry on the server at
@@ -208,7 +258,7 @@ class PostAPI(APIView):
 
         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @swagger_auto_schema(tags=['posts'])
+    @swagger_auto_schema(tags=['post'])
     def post(self, request, *args, **kwargs):
         """
         Updates a post on the server which matches the given post id
@@ -235,7 +285,7 @@ class PostAPI(APIView):
 
         return HttpResponse("Successfully edited post")
 
-    @swagger_auto_schema(tags=['posts'])
+    @swagger_auto_schema(tags=['post'])
     def delete(self, request, *args, **kwargs):
         """
         DELETEs a post on the server which matches the given post id
