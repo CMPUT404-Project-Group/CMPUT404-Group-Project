@@ -33,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
 
     contentType = serializers.CharField(source='content_type')
-    content = serializers.CharField(source='text_content')
+    content = serializers.CharField(source='get_content')
    
     class Meta:
         model = Post
@@ -60,7 +60,7 @@ class PostSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         post = super().to_representation(instance)
 
-        post['id'] = URLDecorator.post_id_url(HOST_API_URL, post['author'], post['id'])
+        post['id'] = URLDecorator.post_id_url(HOST_API_URL[:-1], post['author'], post['id'])
         post['categories'] = post['categories'].split(',')
 
         author_id = post['author']
@@ -137,7 +137,7 @@ class CommentSerializer(serializers.ModelSerializer):
         comment = super().to_representation(instance)
 
         comment['id'] = URLDecorator.comment_id_url(
-            HOST_API_URL, comment['author'], comment['post'], comment['id'])
+            HOST_API_URL[:-1], comment['author'], comment['post'], comment['id'])
 
         author_id = comment['author']
         author = User.objects.get(id=author_id)
@@ -171,11 +171,3 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         object_obj = User.objects.get(id=request.get('to_user'))
         object = UserSerializer(object_obj).data
         return {'type': 'Follow', 'summary': actor.get('displayName') + ' wants to follow ' + object.get('displayName'), 'actor': actor, 'object': object}
-        
-class GithubEventSerializer(PostSerializer):
-
-    pass
-
-class GithubEventToPostAdapter():
-
-    pass
