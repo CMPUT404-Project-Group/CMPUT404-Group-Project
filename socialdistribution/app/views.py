@@ -199,7 +199,6 @@ def view_other_user(request, other_user_id):
             if (res.status_code==200):
                 break
         other_user = json.loads(res.content.decode('utf-8'))['data'][0]
-        print(other_user)
         return render(request, 'profile/view_other_user.html', {'other_user': other_user})
 
     if other_user==request.user: 
