@@ -137,8 +137,6 @@ class Author(APIView):
             'size', openapi.IN_QUERY, description='The size of the page to be returned', type=openapi.TYPE_INTEGER)
     ])
 @ api_view(["GET"])
-@authentication_classes([BasicAuthentication, TokenAuthentication])
-@permission_classes([IsAuthenticated])
 def authors(request):
     """
     GETs and returns a paginated list of all Authors on the server. 
