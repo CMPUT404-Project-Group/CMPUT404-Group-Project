@@ -1,5 +1,7 @@
+from requests import api
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post, Node
+from src.url_decorator import URLDecorator
 import datetime
 import json
 import os
@@ -141,9 +143,10 @@ def post(request, post_id):
     post_obj = get_object_or_404(Post, pk=post_id)
     post = PostSerializer(post_obj).data
     user = request.user
+    post_author = post_obj.author
 
     is_author = False
-    if post_obj.author == user:
+    if post_author == user:
         is_author = True
 
     context = {
@@ -153,6 +156,10 @@ def post(request, post_id):
     if request.method == 'GET':
         if (request.GET.get('like-button')):
             like_post(request, post_id)
+        if (post_obj.visibility == 'private_to_author' and not is_author):
+            return HttpResponseForbidden()
+        elif (post_obj.visibility == 'private_to_friend' and not (is_author or Friend.objects.are_friends(request.user, post_author))):
+            return HttpResponseForbidden()
         return render(request, 'posts/view_post.html', context)
 
     elif request.method == 'POST':
@@ -165,21 +172,6 @@ def post(request, post_id):
             return HttpResponseBadRequest("Something unexpected has occured!")
 
         return redirect('app:index')
-
-def view_post(request, post_id):
-    post_obj = get_object_or_404(Post, pk=post_id)
-    post = PostSerializer(post_obj).data
-    if (post.shared_post != None):
-        original_post_obj = get_object_or_404(Post, pk=post_obj.shared_post.post.id)
-        original_post = PostSerializer(original_post_obj).data
-        context = {
-            'shared_post': post,
-            'original_post': original_post}
-        return render(request, 'posts/view_shared_post.html', context)
-    else:
-        context = {'post': post}
-        return render(request, 'posts/view_post.html', context)
-
       
 @login_required
 def view_profile(request):
@@ -396,13 +388,27 @@ class PostListView(generic.ListView):
         queryset = Post.objects.filter(visibility="public", unlisted=False)[:20]
         serializer = PostSerializer(queryset, many=True)
 
+        ###TEMP
+        api_endpoint = 'https://glowing-palm-tree1.herokuapp.com/service'
+        author_url = URLDecorator.authors_url(api_endpoint)
+        foreign_authors_request = requests.get(author_url)
+        foreign_authors = json.loads(foreign_authors_request.content.decode('utf-8'))['data']
+        foreign_posts = []
+
+        for author in foreign_authors:
+            author_posts_url = f"{author['id']}/posts"
+            author_posts_request = requests.get(author_posts_url)
+            author_posts = json.loads(author_posts_request.content.decode('utf-8'))['data']
+            for post in author_posts:
+                foreign_posts.append(post)
+
         for post in serializer.data:
             post_id = post['id']
             url = f'{HOST_URL}/app/posts/{post_id}'
             post['source'] = url
             post['origin'] = url
         
-        return render(request, self.template_name, {'post_list': serializer.data})
+        return render(request, self.template_name, {'post_list': serializer.data, 'foreign_post_list': foreign_posts})
       
 @login_required
 def sync_github_activity(request):
