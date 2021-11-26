@@ -13,6 +13,8 @@ def commonmark(value):
 
 @register.filter(name="getID")
 def get_ID(value):
+    if not type(value) is str:
+        return value
     return value.split('/')[-1]
 
 @register.filter(name="getNav")
