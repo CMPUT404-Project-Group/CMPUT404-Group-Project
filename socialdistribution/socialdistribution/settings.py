@@ -28,7 +28,7 @@ GITHUB_URL = os.environ.get("GITHUB_URL")
 HOST_API_URL = os.environ.get("HOST_API_URL")
 HOST_URL = os.environ.get("HOST_URL")
 API_TOKEN = os.environ.get("API_TOKEN")
-
+TEAM_12_TOKEN = os.environ.get("TEAM_12_TOKEN")
 ALLOWED_HOSTS = ['*']
 
 
