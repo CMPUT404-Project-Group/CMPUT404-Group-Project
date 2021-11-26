@@ -552,7 +552,19 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
             pass
         elif type == 'like':
             # create this like on the given post
-            pass
+            post_id = item['post']
+            author = item['author']
+            if not User.objects.filter(displayName=author['displayName']).exists():
+                user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
+                User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1])
+                user = User.objects.get(id=author['id'].split('/')[-1])
+            else:
+                user = User.objects.get(id=author['id'].split('/')[-1])
+            post = Post.objects.get(id=post_id)
+            Like.objects.create_like(
+                author=user,
+                content_object=post
+            )
         elif type == 'comment':
             # create this comment on the given post
             comment = item['comment']
