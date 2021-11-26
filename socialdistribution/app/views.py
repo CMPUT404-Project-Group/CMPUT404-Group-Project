@@ -141,9 +141,10 @@ def post(request, post_id):
     post_obj = get_object_or_404(Post, pk=post_id)
     post = PostSerializer(post_obj).data
     user = request.user
+    post_author = post_obj.author
 
     is_author = False
-    if post_obj.author == user:
+    if post_author == user:
         is_author = True
 
     context = {
@@ -153,6 +154,10 @@ def post(request, post_id):
     if request.method == 'GET':
         if (request.GET.get('like-button')):
             like_post(request, post_id)
+        if (post_obj.visibility == 'private_to_author' and not is_author):
+            return HttpResponseForbidden()
+        elif (post_obj.visibility == 'private_to_friend' and not (is_author or Friend.objects.are_friends(request.user, post_author))):
+            return HttpResponseForbidden()
         return render(request, 'posts/view_post.html', context)
 
     elif request.method == 'POST':
@@ -169,6 +174,10 @@ def post(request, post_id):
 def view_post(request, post_id):
     post_obj = get_object_or_404(Post, pk=post_id)
     post = PostSerializer(post_obj).data
+
+    if (post.visibility == 'private_to_author'):
+        return HttpResponseForbidden()
+
     if (post.shared_post != None):
         original_post_obj = get_object_or_404(Post, pk=post_obj.shared_post.post.id)
         original_post = PostSerializer(original_post_obj).data
