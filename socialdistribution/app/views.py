@@ -190,8 +190,18 @@ def view_profile(request):
     
 @login_required
 def view_other_user(request, other_user_id):
-    if  User.objects.filter(id=other_user_id).exists:
+    if User.objects.filter(id=other_user_id).exists():
         other_user = User.objects.get(id=other_user_id)
+    else:
+        for node in Node.objects.get_queryset():
+            url = str(node) + 'author/' + other_user_id
+            res = requests.get(url, headers={})
+            if (res.status_code==200):
+                break
+        other_user = json.loads(res.content.decode('utf-8'))['data'][0]
+        print(other_user)
+        return render(request, 'profile/view_other_user.html', {'other_user': other_user})
+
     if other_user==request.user: 
         return redirect('app:view-profile')
 
