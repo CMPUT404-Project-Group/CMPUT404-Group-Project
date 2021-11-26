@@ -1,5 +1,6 @@
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post, Node
+from src.url_decorator import URLDecorator
 import datetime
 import json
 import os
@@ -395,6 +396,15 @@ class PostListView(generic.ListView):
     def get(self, request):
         queryset = Post.objects.filter(visibility="public", unlisted=False)[:20]
         serializer = PostSerializer(queryset, many=True)
+
+        ###TEMP
+        api_endpoint = 'https://glowing-palm-tree1.herokuapp.com/service'
+        url = URLDecorator.author_posts_url(api_endpoint, '8858baa4-cd0b-4641-a025-09f625fad385')
+        
+        foreign_posts = requests.get(url)
+        post = json.loads(foreign_posts.content.decode('utf-8'))['data']
+
+        foreign_serializer = PostSerializer(post, many=True)
 
         for post in serializer.data:
             post_id = post['id']

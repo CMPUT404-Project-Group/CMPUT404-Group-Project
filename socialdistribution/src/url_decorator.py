@@ -19,7 +19,7 @@ class URLDecorator():
         url_pointing_to_author = URLDecorator.author_id_url(url, author_id)
         return f"{url_pointing_to_author}/inbox"
     
-    def posts_id_url(url, author_id):
+    def author_posts_url(url, author_id):
         url_pointing_to_author = URLDecorator.author_id_url(url, author_id)
         return f"{url_pointing_to_author}/posts"
     
