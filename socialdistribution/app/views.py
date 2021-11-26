@@ -1,5 +1,5 @@
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
-from api.models import User, Post
+from api.models import User, Post, Node
 import datetime
 import json
 import os
@@ -190,7 +190,16 @@ def view_profile(request):
     
 @login_required
 def view_other_user(request, other_user_id):
-    other_user = User.objects.get(id=other_user_id)
+    if User.objects.filter(id=other_user_id).exists():
+        other_user = User.objects.get(id=other_user_id)
+    else:
+        for node in Node.objects.get_queryset():
+            url = str(node) + 'author/' + other_user_id
+            res = requests.get(url, headers={})
+            if (res.status_code==200):
+                break
+        other_user = json.loads(res.content.decode('utf-8'))['data'][0]
+        return render(request, 'profile/view_other_user.html', {'other_user': other_user})
 
     if other_user==request.user: 
         return redirect('app:view-profile')
@@ -215,6 +224,7 @@ def view_followers(request):
 
 @login_required
 def explore_authors(request):
+    # get local authors
     headers = {'Authorization': 'Token %s' % API_TOKEN}
     res = requests.get(HOST_URL+reverse('api:authors'), headers=headers)
     data = json.loads(res.content.decode('utf-8'))
@@ -222,7 +232,16 @@ def explore_authors(request):
     for author in local_authors:
         if author.get('displayName') == request.user.displayName: # remove current user from list
             local_authors.remove(author)
-    return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': {} })
+    
+    # get remote authors
+    nodes = Node.objects.get_queryset()
+    for node in nodes:
+        try:
+            res = requests.get(str(node)+'authors/', headers={})
+            remote_authors = json.loads(res.content.decode('utf-8'))['data']
+        except:
+            remote_authors = {}
+    return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': remote_authors })
 
 
 @login_required
@@ -315,7 +334,11 @@ def comments(request, post_id):
     if (request.GET.get('like-button')):
         like_comment(request, request.GET.get('like-button'))
 
-    return render(request, "comments/comments.html", context)
+    # Only public posts have comments that are visible to other users
+    if (post.visibility != "public" and post.author != request.user):
+        return HttpResponseForbidden()
+    else:
+        return render(request, "comments/comments.html", context)
 
 @login_required
 def like_post(request, post_id):

@@ -36,18 +36,22 @@
           </ul>
         </div>
         <h4 id="remoteAuthors">Remote Authors</h4>
-        <ul>
-          {% for author in remote_authors %}
-          <li class="py-2" style="list-style: none">
-            <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0; width: 25rem;">
-              <div class="card-header d-inline-flex justify-content-between" style="border-radius: 0.5rem; border: 0;">
-                <h5>{{author.displayName}}</h5>
-                <a href="{% url 'app:view-other-user' author.id|getID %}" class="btn btn-sm btn-primary float-end">View
-                  Profile</a>
-              </div>
-          </li>
-          {% endfor %}
-        </ul>
+        <div class="d-flex justify-content-center">
+          <ul class='ps-0'>
+            {% for author in remote_authors %}
+            <li class="py-2" style="list-style: none">
+              <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0; width: 25rem;">
+                <div class="card-header d-inline-flex justify-content-between"
+                  style="border-radius: 0.5rem; border: 0;">
+                  <h5>{{author.displayName}}</h5>
+                  <a href="{% url 'app:view-other-user' author.id|getID %}"
+                    class="btn btn-sm btn-primary float-end">View
+                    Profile</a>
+                </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
       </div>
     </div>
   </div>

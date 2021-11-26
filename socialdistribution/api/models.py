@@ -53,7 +53,7 @@ class UserManager(BaseUserManager):
             id=uuid,
             host=host,
             displayName=displayName,
-            url=host+ '/author/' + str(uuid),
+            url=host+ 'author/' + str(uuid),
             github=github,
             email=self.normalize_email(email),
         )
@@ -420,6 +420,9 @@ class Inbox(models.Model):
 class Node(models.Model):
     url = models.URLField(max_length=255, unique=False, null=False, blank=False)
     is_active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return self.url
 
 class GithubAccessDataManager(models.Manager):
     def create(self, user):
