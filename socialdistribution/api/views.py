@@ -591,65 +591,65 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
 
         Send an item to {author_id}'s inbox.
         """
-        # try:
-        item = request.data
-        type = item['type']
-        if type == 'follow':
-            # create this follow object
-            author = User.objects.get(id=author_id) 
-            foreign_author = item['actor']
-            if not User.objects.filter(displayName=foreign_author['displayName']).exists():
-                user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=foreign_author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
-                User.objects.filter(id=user.id).update(id=foreign_author['id'].split('/')[-1])
-                user = User.objects.get(id=foreign_author['id'].split('/')[-1])
-            else:
-                user = User.objects.get(id=foreign_author['id'].split('/')[-1])
-            Follow.objects.add_follower(user, author)
-            if (FriendshipRequest.objects.filter(from_user=author, to_user=user).exists()):
-                friend_request = FriendshipRequest.objects.get(from_user=author, to_user=user)
-                friend_request.accept()
-            else:
-                # send a friend request
-                Friend.objects.add_friend(user, author)
-        elif type == 'like':
-            # create this like on the given post
-            post_id = item['post']
-            author = item['author']
-            if not User.objects.filter(displayName=author['displayName']).exists():
-                user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
-                User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1])
-                user = User.objects.get(id=author['id'].split('/')[-1])
-            else:
-                user = User.objects.get(id=author['id'].split('/')[-1])
-            post = Post.objects.get(id=post_id)
-            Like.objects.create_like(
-                author=user,
-                content_object=post
-            )
-        elif type == 'comment':
-            # create this comment on the given post
-            comment = item['comment']
-            post_id = item['post']
-            author = item['author']
-            if not User.objects.filter(displayName=author['displayName']).exists():
-                user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
-                User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1])
-                user = User.objects.get(id=author['id'].split('/')[-1])
-            else:
-                user = User.objects.get(id=author['id'].split('/')[-1])
-            post = Post.objects.get(id=post_id)
-            Comment.objects.create_comment(author=user, comment=comment, post=post)
-        elif type == 'post':
-            # I don't think we need to actually create the post?
-            # they will just send us the post object for us to view in the inbox?
-            pass
+        try:
+            item = request.data
+            type = item['type']
+            if type == 'follow':
+                # create this follow object
+                author = User.objects.get(id=author_id) 
+                foreign_author = item['actor']
+                if not User.objects.filter(displayName=foreign_author['displayName']).exists():
+                    user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=foreign_author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
+                    User.objects.filter(id=user.id).update(id=foreign_author['id'].split('/')[-1])
+                    user = User.objects.get(id=foreign_author['id'].split('/')[-1])
+                else:
+                    user = User.objects.get(id=foreign_author['id'].split('/')[-1])
+                Follow.objects.add_follower(user, author)
+                if (FriendshipRequest.objects.filter(from_user=author, to_user=user).exists()):
+                    friend_request = FriendshipRequest.objects.get(from_user=author, to_user=user)
+                    friend_request.accept()
+                else:
+                    # send a friend request
+                    Friend.objects.add_friend(user, author)
+            elif type == 'like':
+                # create this like on the given post
+                post_id = item['post']
+                author = item['author']
+                if not User.objects.filter(displayName=author['displayName']).exists():
+                    user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
+                    User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1])
+                    user = User.objects.get(id=author['id'].split('/')[-1])
+                else:
+                    user = User.objects.get(id=author['id'].split('/')[-1])
+                post = Post.objects.get(id=post_id)
+                Like.objects.create_like(
+                    author=user,
+                    content_object=post
+                )
+            elif type == 'comment':
+                # create this comment on the given post
+                comment = item['comment']
+                post_id = item['post']
+                author = item['author']
+                if not User.objects.filter(displayName=author['displayName']).exists():
+                    user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
+                    User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1])
+                    user = User.objects.get(id=author['id'].split('/')[-1])
+                else:
+                    user = User.objects.get(id=author['id'].split('/')[-1])
+                post = Post.objects.get(id=post_id)
+                Comment.objects.create_comment(author=user, comment=comment, post=post)
+            # elif type == 'post':
+            #     # I don't think we need to actually create the post?
+            #     # they will just send us the post object for us to view in the inbox?
+            #     pass
 
-        # then we send the notification to the inbox
-        author = User.objects.get(id=author_id)
-        InboxItem.objects.create(author_id=author.id, item=item)
-        return Response(status=status.HTTP_204_NO_CONTENT)
-        # except:
-        #     return Response(status=status.HTTP_400_BAD_REQUEST)
+            # then we send the notification to the inbox
+            author = User.objects.get(id=author_id)
+            InboxItem.objects.create(author_id=author.id, item=item)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @ swagger_auto_schema(
         responses={
