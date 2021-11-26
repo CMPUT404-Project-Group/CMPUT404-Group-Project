@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'friendship',
     'crispy_forms',
-    'drf_yasg'
+    'drf_yasg',
+    'corsheaders',
 ]
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
@@ -59,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'socialdistribution.urls'
@@ -146,6 +148,6 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_ALLOW_ALL = True
 
 django_on_heroku.settings(locals(), test_runner=False) # bottom of the file
