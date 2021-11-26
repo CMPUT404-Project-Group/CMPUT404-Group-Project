@@ -212,10 +212,3 @@ class AuthorsTest(TestCase):
 
         # Assert
         self.assertEqual(response.status_code, 405)
-
-    def test_unauthorized_user(self):
-        # Act
-        response = self.client.delete(reverse('api:authors'))
-
-        # Assert
-        self.assertEqual(response.status_code, 401)
