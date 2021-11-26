@@ -170,25 +170,6 @@ def post(request, post_id):
             return HttpResponseBadRequest("Something unexpected has occured!")
 
         return redirect('app:index')
-
-def view_post(request, post_id):
-    post_obj = get_object_or_404(Post, pk=post_id)
-    post = PostSerializer(post_obj).data
-
-    if (post.visibility == 'private_to_author'):
-        return HttpResponseForbidden()
-
-    if (post.shared_post != None):
-        original_post_obj = get_object_or_404(Post, pk=post_obj.shared_post.post.id)
-        original_post = PostSerializer(original_post_obj).data
-        context = {
-            'shared_post': post,
-            'original_post': original_post}
-        return render(request, 'posts/view_shared_post.html', context)
-    else:
-        context = {'post': post}
-        return render(request, 'posts/view_post.html', context)
-
       
 @login_required
 def view_profile(request):
