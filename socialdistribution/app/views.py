@@ -357,9 +357,9 @@ def inbox(request, author_id):
         req = requests.get(url)
         res = json.loads(req.content.decode('utf-8'))
         res['author'] = request.path.split('/')[3]
-        return render(request, 'app/inbox.html', {'res': res})
+        return render(request, 'app/inbox.html', {'res': res, 'token': API_TOKEN})
     elif request.method == "DELETE":
-        req = requests.delete(url)
+        req = requests.delete(url, headers={'Authorization': 'Token %s' % API_TOKEN})
         return HttpResponse(status=req.status_code)
     else:
         return HttpResponseNotAllowed
