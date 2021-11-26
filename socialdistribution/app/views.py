@@ -402,7 +402,7 @@ class PostListView(generic.ListView):
             post['source'] = url
             post['origin'] = url
         
-        return render(request, self.template_name, {'post_list': serializer.data})
+        return render(request, self.template_name, {'post_list': serializer.data, 'foreign_post_list': foreign_posts})
       
 @login_required
 def sync_github_activity(request):

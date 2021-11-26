@@ -1,4 +1,5 @@
 import os
+from src.url_decorator import URLDecorator
 from re import I
 from typing import OrderedDict
 from dotenv import load_dotenv
@@ -58,6 +59,8 @@ class PostSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         post = super().to_representation(instance)
+
+        post['id'] = URLDecorator.post_id_url(HOST_API_URL, post['author'], post['id'])
         post['categories'] = post['categories'].split(',')
 
         author_id = post['author']
@@ -65,6 +68,7 @@ class PostSerializer(serializers.ModelSerializer):
         author_serializer = UserSerializer(author)
 
         post['author'] = author_serializer.data
+        
         return post
 
 
@@ -92,7 +96,7 @@ class LikeSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         like = super().to_representation(instance)
-
+        
         like['@context'] = like.pop('context')
         like['object'] = like.pop('content_object').id
 
@@ -131,6 +135,9 @@ class CommentSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         comment = super().to_representation(instance)
+
+        comment['id'] = URLDecorator.comment_id_url(
+            HOST_API_URL, comment['author'], comment['post'], comment['id'])
 
         author_id = comment['author']
         author = User.objects.get(id=author_id)
