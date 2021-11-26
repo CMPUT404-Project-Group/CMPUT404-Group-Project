@@ -290,7 +290,7 @@ class Post(models.Model):
     count = models.IntegerField(
         unique=False, null=False, blank=False, default=0)
     size = models.IntegerField(unique=False, null=False, blank=False)
-    comment_page = models.CharField(
+    comments = models.CharField(
         max_length=255, unique=False, null=False, blank=False)
     # comments could potentially be done at serialization to avoid data duplication
     # (get all comments which have this post_id within their comment_id)
