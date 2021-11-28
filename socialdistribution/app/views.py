@@ -399,7 +399,7 @@ class PostListView(generic.ListView):
         serializer = PostSerializer(queryset, many=True)
 
         for post in serializer.data:
-            post_id = post['id'].split('/')[-3]
+            post_id = post['id'].split('/')[-1]
             url = f'{HOST_URL}/app/posts/{post_id}'
             post['id'] = post_id
             post['source'] = url
