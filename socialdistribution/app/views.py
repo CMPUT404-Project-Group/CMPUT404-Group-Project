@@ -66,7 +66,8 @@ def index(request):
     stream_posts = PostSerializer(stream_posts_obj, many=True).data
     
     for post in stream_posts:
-            post_id = post['id']
+            post_id = post['id'].split('/')[-1]
+            post['id'] = post_id
             url = f'{HOST_URL}/app/posts/{post_id}'
             post['source'] = url
             post['origin'] = url
@@ -140,6 +141,7 @@ def delete_post(request, post_id):
 def post(request, post_id):
     post_obj = get_object_or_404(Post, pk=post_id)
     post = PostSerializer(post_obj).data
+    post['id'] = post['id'].split('/')[-1]
     user = request.user
 
     is_author = False
@@ -397,12 +399,13 @@ class PostListView(generic.ListView):
         serializer = PostSerializer(queryset, many=True)
 
         for post in serializer.data:
-            post_id = post['id']
+            post_id = post['id'].split('/')[-3]
             url = f'{HOST_URL}/app/posts/{post_id}'
+            post['id'] = post_id
             post['source'] = url
             post['origin'] = url
         
-        return render(request, self.template_name, {'post_list': serializer.data, 'foreign_post_list': foreign_posts})
+        return render(request, self.template_name, {'post_list': serializer.data})
       
 @login_required
 def sync_github_activity(request):

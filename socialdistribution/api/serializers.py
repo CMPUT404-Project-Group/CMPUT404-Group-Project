@@ -1,6 +1,6 @@
 import os
 from src.url_decorator import URLDecorator
-from re import I
+from re import I, X
 from typing import OrderedDict
 from dotenv import load_dotenv
 from friendship.models import Follow, Friend
@@ -98,7 +98,12 @@ class LikeSerializer(serializers.ModelSerializer):
         like = super().to_representation(instance)
         
         like['@context'] = like.pop('context')
-        like['object'] = like.pop('content_object').id
+
+        content_object = like.pop('content_object')
+        if content_object.type == 'post':
+            like['object'] = URLDecorator.post_likes_url(HOST_API_URL[:-1], content_object.author.id, content_object.id)
+        else:
+            like['object'] = URLDecorator.comment_likes_url(HOST_API_URL[:-1], like['author'], content_object.post.id, content_object.id)
 
         author_id = like['author']
         author = User.objects.get(id=author_id)
