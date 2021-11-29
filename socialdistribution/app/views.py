@@ -22,6 +22,7 @@ from django.urls import reverse
 from dotenv import load_dotenv
 import logging
 from django.views import generic
+from rest_framework.authtoken.models import Token
 
 from django.conf import settings
 HOST_URL = settings.HOST_URL
@@ -229,10 +230,10 @@ def explore_authors(request):
     nodes = Node.objects.get_queryset()
     for node in nodes:
         try:
-            res = requests.get(str(node)+'authors/', headers={})
+            res = requests.get(str(node)+'authors/', headers={'Authorization': '%s' % node.token})
             remote_authors = json.loads(res.content.decode('utf-8'))['data']
         except:
-            remote_authors = {}
+            continue
     return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': remote_authors })
 
 
