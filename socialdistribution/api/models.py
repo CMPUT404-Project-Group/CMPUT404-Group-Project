@@ -420,6 +420,7 @@ class Inbox(models.Model):
 class Node(models.Model):
     url = models.URLField(max_length=255, unique=False, null=False, blank=False)
     is_active = models.BooleanField(default=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     
     def __str__(self):
         return self.url
