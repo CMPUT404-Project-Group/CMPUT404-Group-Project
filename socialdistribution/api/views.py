@@ -168,7 +168,7 @@ def authors(request):
     return Response(data, status=status.HTTP_200_OK)
 
 class PostsAPI(APIView):
-    authentication_classes = [BasicAuthentication]
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     @swagger_auto_schema(tags=['posts'])
@@ -220,7 +220,7 @@ class PostsAPI(APIView):
 
 class PostAPI(APIView):
 
-    authentication_classes = [BasicAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     @swagger_auto_schema(tags=['post'])
@@ -247,14 +247,11 @@ class PostAPI(APIView):
         post_id = kwargs.get('post_id')
         request.data['id'] = post_id
 
-        if not str(request.user.id) == request.data['author']:
-            return Response("Authenticated user id does not match author id of post being PUT", status.HTTP_401_UNAUTHORIZED)
-
         serializer = PostSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
-            return HttpResponse("Sucessfully created post\n")
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -694,6 +691,8 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     400: openapi.Response(description="Bad Request")
 })
 @api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def followers(request, author_id):
     """
     GETs a list of authors who are following {author_id}
@@ -703,7 +702,7 @@ def followers(request, author_id):
     try:
         queryset = Follow.objects.filter(followee_id=author_id)
         serializer = FollowersSerializer(queryset, many=True)
-        data = {'type': 'followers', 'items': serializer.data}
+        data = {'type': 'followers', 'data': serializer.data}
 
         return Response(data, status=status.HTTP_200_OK)
     except:
