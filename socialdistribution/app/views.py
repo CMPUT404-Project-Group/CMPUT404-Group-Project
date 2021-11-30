@@ -24,7 +24,8 @@ from django.urls import reverse
 from dotenv import load_dotenv
 import logging
 from django.views import generic
-
+from rest_framework.authtoken.models import Token
+import base64
 from django.conf import settings
 HOST_URL = settings.HOST_URL
 HOST_API_URL = settings.HOST_API_URL
@@ -204,7 +205,7 @@ def view_other_user(request, other_user_id):
     if User.objects.filter(id=other_user_id).exists():
         other_user = User.objects.get(id=other_user_id)
     else:
-        for node in Node.objects.get_queryset():
+        for node in Node.objects.get_queryset().filter(is_active=True):
             url = str(node) + 'author/' + other_user_id
             res = requests.get.get(url, headers={})
             if (res.status_code==200):
@@ -245,13 +246,14 @@ def explore_authors(request):
             local_authors.remove(author)
     
     # get remote authors
-    nodes = Node.objects.get_queryset()
+    nodes = Node.objects.get_queryset().filter(is_active=True)
     for node in nodes:
+        print(node)
         try:
-            res = requests.get(str(node)+'authors/', headers={})
+            res = requests.get(str(node)+'authors/', headers={'Authorization': '%s' % node.token})
             remote_authors = json.loads(res.content.decode('utf-8'))['data']
         except:
-            remote_authors = {}
+            continue
     return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': remote_authors })
 
 
@@ -374,7 +376,8 @@ def like_comment(request, comment_id):
 @login_required
 def inbox(request, author_id):
     url = HOST_URL+reverse('api:inbox', kwargs={'author_id': author_id})
-    print(url)
+    token, _ = Token.objects.get_or_create(user=request.user) # create token
+    headers = {'Authorization': 'Token %s' % token}
     if request.method == 'GET':
         try:
             page = request.GET.get('page')
@@ -388,12 +391,14 @@ def inbox(request, author_id):
         if size:
             url += '&size=%s' % size
 
-        req = requests.get(url)
+        req = requests.get(url, headers=headers, params={'user': 'a'})
+        Token.objects.get(user=request.user).delete() # clean token
         res = json.loads(req.content.decode('utf-8'))
         res['author'] = request.path.split('/')[3]
         return render(request, 'app/inbox.html', {'res': res, 'token': API_TOKEN})
     elif request.method == "DELETE":
-        req = requests.delete(url, headers={'Authorization': 'Token %s' % API_TOKEN})
+        req = requests.delete(url, headers=headers)
+        Token.objects.get(user=request.user).delete() # clean token
         return HttpResponse(status=req.status_code)
     else:
         return HttpResponseNotAllowed
