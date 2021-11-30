@@ -5,65 +5,157 @@
 {% block content%}
 {% include "app/includes/navbar.html" %}
 
+{% block javascript %}
+<script>
+    const createPost = async () => {
+        const url = `{{user.url}}/posts/{{uuid}}`
+        const headers = { 'Content-Type': 'application/json', 'Authorization': 'Token {{token}}' }
+        values = $("form").serializeArray()
+        const body = {
+            title: values[1].value,
+            source: url,
+            origin: url,
+            description: values[2].value,
+            contentType: 'text/plain',
+            content: values[2].value,
+            image_link: values[3].value,
+            categories: values[4].value,
+            visibility: values[5].value,
+            author: '{{user.id}}',
+            size: '0',
+            comment_page: '{{user.url}}/posts/{{uuid}}/comments/'
+        }
+        var req = new Request(url, { method: 'PUT', body: JSON.stringify(body), headers })
+        const res = await fetch(req)
+        return res.json()
+    }
+
+    const sendPost = async () => {
+        const post = await createPost();
+        // send post to users inbox
+        const select = document.getElementById('private_to_author');
+        const value = select.options[select.selectedIndex].value;
+        const author = JSON.parse(value.replace(/'/g, '"'));
+
+        const url = `${author.url}/inbox/`;
+        const headers = { 'Content-Type': 'application/json', 'Authorization': `Token ${author.token}` }
+        var req = new Request(url, { method: 'POST', body: JSON.stringify(post), headers })
+
+        const res = await fetch(req)
+        if (res.status === 204) {
+            $('#modalMessage').html(`Post succesffully sent to ${author.displayName}`)
+            $('#modal').modal('toggle');
+        } else {
+            $('#modalMessage').html('Something went wrong. Try sending this post again later.')
+            $('#modal').modal('toggle');
+        }
+    }
+
+    const closeModal = () => {
+        window.location.reload()
+    }
+
+</script>
+{% endblock %}
+
+<div class="modal fade" id="modal" tabindex="-1" aria-labelledby="modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal">Friend Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalMessage">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="closeModal()">
+                    Ok
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="container py-5 ">
     <div class="row d-felx justify-content-center align-items-center h-100">
-        <div class="col-8 col-md-8 col-lg-6 col-xl-5" >
+        <div class="col-8 col-md-8 col-lg-6 col-xl-5">
             <div class="card-header shadow p-3">
                 Create a post
-              </div>
-              
-              <div class="card shadow p-3" style="border-bottom-left-radius: 0.5rem;border-bottom-right-radius: 0.5rem; border-top-left-radius: 0rem;border-top-right-radius: 0rem;border: 0;">
+            </div>
+            <div class="card shadow p-3"
+                style="border-bottom-left-radius: 0.5rem;border-bottom-right-radius: 0.5rem; border-top-left-radius: 0rem;border-top-right-radius: 0rem;border: 0;">
                 <div class="card-body text-center">
-                    <form action="{% url 'app:create-post' %}" method='POST' enctype = 'multipart/form-data' class="box">
+                    <form action="{% url 'app:create-post' %}" method='POST' enctype='multipart/form-data' class="box">
                         {% csrf_token %}
                         <div class="form-outline mb-2 text-start">
                             <label for="id_title" class="form-label h6">Title</label>
-                            <input id="id_title" class="form-control" type="text" name="title" maxlength="300" required=""></input>
+                            <input id="id_title" class="form-control" type="text" name="title" maxlength="300"
+                                required=""></input>
                         </div>
                         <div class="form-outline mb-2 text-start">
                             <label for="id_text_content" class="form-label h6">Body</label>
-                            <textarea id="id_text_content" class="form-control" cols="40" rows="4" name="text_content"></textarea>
+                            <textarea id="id_text_content" class="form-control" cols="40" rows="4"
+                                name="text_content"></textarea>
                         </div>
-                        <div class="form-outline mb-2">
-                            <label for="id_image_content" class="form-label h6">Image Attachment</label>
-                            <input id="id_image_content" class="form-control" type="file" accept="image/*" name="image_content"></input>
                         <div class="form-outline mb-2 text-start">
-                            <label for="id_image_link" class="form-label h6">Image Link</label>
-                            <input id="id_image_link" class="form-control" type="text" name="image_link" maxlength="300"></input>
+                            <label for="id_image_content" class="form-label h6">Image Attachment</label>
+                            <input id="id_image_content" class="form-control" type="file" accept="image/*"
+                                name="image_content"></input>
+                        </div>
+                        <div class="form-outline mb-2 text-start">
+                            <label for="id_image_link" class="form-label h6 mt-3">Image Link</label>
+                            <input id="id_image_link" class="form-control" type="text" name="image_link"
+                                maxlength="300"></input>
                         </div>
                         <div class="form-outline mb-2 text-start">
                             <label for="id_categories" class="form-label h6">Tags (Comma Seperated)</label>
-                            <textarea id="id_categories" class="form-control" cols="40" rows="4" name="categories"  ></textarea>
+                            <textarea id="id_categories" class="form-control" cols="40" rows="1"
+                                name="categories"></textarea>
                         </div>
-                        <div class="form-outline mb-2">
+                        <div class="form-outline mb-2 text-start">
                             <label for="id_visibility" class="form-label h6">Post Visibility</label>
                             <select id="id_visibility" class="form-select" name="visibility" onchange="showDiv(this)">
                                 <option value="public">Public</option>
                                 <option value="private_to_author">Private to Author</option>
-                                <option value="private_to_friend">Private to Friend</option>
+                                <option value="private_to_friend">Private to Friends</option>
                             </select>
                         </div>
-                        <textarea id="private_to_author" class="form-control" rows="1" style="display:none;" placeholder="Enter author account"></textarea>
-                        <textarea id="private_to_friend" class="form-control" rows="1" style="display:none;" placeholder="Enter friend account"></textarea>
+                        <select id="private_to_author" class="form-select form-select-sm"
+                            aria-label=".form-select-sm example" style="display:none;">
+                            <option selected>Select an author</option>
+                            {% for friend in friends %}
+                            <option value="{{friend}}">{{friend.displayName}}</option>
+                            {% endfor %}
+                        </select>
                         <script type="text/javascript">
-                            function showDiv(select){
-                                if(select.value=="private_to_author"){
-                                document.getElementById('private_to_author').style.display = "block";
-                                document.getElementById('private_to_friend').style.display = "none";
-                                } 
-                                else if(select.value=="private_to_friend"){
-                                    document.getElementById('private_to_friend').style.display = "block";
+                            function showDiv(select) {
+                                if (select.value == "private_to_author") {
+                                    document.getElementById('private_to_author').style.display = "block";
+                                    document.getElementById('create_post_button').style.display = "none";
+                                    document.getElementById('send_post_button').style.display = "block";
+                                } else {
                                     document.getElementById('private_to_author').style.display = "none";
+                                    document.getElementById('create_post_button').style.display = "block";
+                                    document.getElementById('send_post_button').style.display = "none";
                                 }
-                            } 
+                            }
                         </script>
                         <div class="form-outline mb-2">
-                            <label for="id_unlisted" class="form-label h6">Unlisted</label>
+                            <label for="id_unlisted" class="form-label h6 mt-5">Unlisted</label>
                             <input type="checkbox" id="id_unlisted" name="unlisted" value="unlisted">
                         </div>
                         <div class="form-outline mb-2">
-                            <button class="btn btn-primary shadow mt-5 w-100" type="submit">Create Post</button>
-                            <a href="{% url 'app:index' %}"><button type="button" class="btn btn-outline-primary shadow mt-3 w-100">Discard</button></a>
+                            <div id='create_post_button' style="display:block;">
+                                <button class="btn btn-primary shadow mt-3 w-100" type="submit">Create Post</button>
+                            </div>
+                            <div id='send_post_button' style="display:none;">
+                                <button class="btn btn-primary shadow mt-3 w-100" type="button"
+                                    onclick="sendPost()">Create
+                                    Post</button>
+                            </div>
+                            <a href="{% url 'app:index' %}"><button type="button"
+                                    class="btn btn-outline-primary shadow mt-3 w-100">Discard</button></a>
                         </div>
                     </form>
                 </div>
@@ -71,5 +163,4 @@
         </div>
     </div>
 </div>
-
 {% endblock %}

@@ -1,6 +1,8 @@
 import os
 from src.url_decorator import URLDecorator
 from re import I, X
+import requests
+import json
 from typing import OrderedDict
 from dotenv import load_dotenv
 from friendship.models import Follow, Friend
@@ -51,7 +53,7 @@ class PostSerializer(serializers.ModelSerializer):
             'categories',
             'count',
             'size',
-            'comment_page',
+            'comments',
             'published',
             'visibility',
             'unlisted'
@@ -66,6 +68,14 @@ class PostSerializer(serializers.ModelSerializer):
         author_id = post['author']
         author = User.objects.get(id=author_id)
         author_serializer = UserSerializer(author)
+
+        comments_list_paginated = json.loads(requests.get(post['comments']).text)
+        post['comments'] = {
+            'comment_page': post['comments'], 
+            'comments': comments_list_paginated['data']
+        }
+
+        post['size'] = comments_list_paginated['size']
 
         post['author'] = author_serializer.data
         

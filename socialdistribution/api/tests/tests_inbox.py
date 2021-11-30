@@ -22,6 +22,7 @@ class InboxTest(TestCase):
         author_id = self.user.id
 
         # Act
+        self.client.force_authenticate(user=User.objects.get(displayName=self.user.displayName))
         response = self.client.get(
             reverse('api:inbox', kwargs={'author_id': author_id}))
 
@@ -35,6 +36,7 @@ class InboxTest(TestCase):
         author_id = self.user.id
 
         # Act
+        self.client.force_authenticate(user=User.objects.get(displayName=self.user.displayName))
         response = self.client.get(
             reverse('api:inbox', kwargs={'author_id': author_id}) + '?page=1&size=5')
 
@@ -52,7 +54,19 @@ class InboxTest(TestCase):
             len(loads(response.content)['items']), 1)
 
     def get_inbox_no_auth(self):
-        pass
+        # Arrange
+        author_id = self.user.id
+
+        content_object = TestUtils.get_test_post(
+            author=User.objects.get(id=author_id), text_content="This is a test post post!")
+
+        # Act
+        response = self.client.post(
+            reverse('api:inbox', kwargs={'author_id': 1}), {'type': 'post', 'object_id': content_object.id}, format='json')
+
+        # Assert
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Inbox.objects.count(), self.num_inbox)
 
     def test_post_inbox(self):
         # Arrange
@@ -62,8 +76,9 @@ class InboxTest(TestCase):
             author=User.objects.get(id=author_id), text_content="This is a test post post!")
 
         # Act
+        self.client.force_authenticate(user=User.objects.get(displayName=self.user.displayName))
         response = self.client.post(
-            reverse('api:inbox', kwargs={'author_id': author_id}), {'content_type': 'post', 'object_id': content_object.id}, format='json')
+            reverse('api:inbox', kwargs={'author_id': author_id}), {'type': 'post', 'object_id': content_object.id}, format='json')
 
         # Assert
         self.assertEqual(response.status_code, 204)
@@ -77,8 +92,9 @@ class InboxTest(TestCase):
             author=User.objects.get(id=author_id), text_content="This is a test post post!")
 
         # Act
+        self.client.force_authenticate(user=User.objects.get(displayName=self.user.displayName))
         response = self.client.post(
-            reverse('api:inbox', kwargs={'author_id': 1}), {'content_type': 'post', 'object_id': content_object.id}, format='json')
+            reverse('api:inbox', kwargs={'author_id': 1}), {'type': 'post', 'object_id': content_object.id}, format='json')
 
         # Assert
         self.assertEqual(response.status_code, 400)
@@ -89,6 +105,7 @@ class InboxTest(TestCase):
         author_id = self.user.id
 
         # Act
+        self.client.force_authenticate(user=User.objects.get(displayName=self.user.displayName))
         response = self.client.delete(
             reverse('api:inbox', kwargs={'author_id': author_id}))
 
@@ -96,14 +113,23 @@ class InboxTest(TestCase):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(Inbox.objects.count(), 0)
 
-    def _post_delete_inbox_no_auth(self):
-        pass
+    def test_post_delete_inbox_no_auth(self):
+        # Arrange
+        author_id = self.user.id
+
+        # Act
+        response = self.client.delete(
+            reverse('api:inbox', kwargs={'author_id': author_id}))
+
+        # Assert
+        self.assertEqual(response.status_code, 401)
 
     def test_post_bad_request(self):
         # Arrange
         author_id = self.user.id
 
         # Act
+        self.client.force_authenticate(user=User.objects.get(displayName=self.user.displayName))
         response = self.client.put(
             reverse('api:inbox', kwargs={'author_id': author_id}))
 

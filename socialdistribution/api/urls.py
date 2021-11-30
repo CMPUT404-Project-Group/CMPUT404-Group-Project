@@ -8,7 +8,7 @@ from . import views
 schema_view = get_schema_view(
     openapi.Info(
         title="SocialDistribution API Documentation - Team 10",
-        default_version='v1',
+        default_version='v2',
         description="API Documentation for Team 10's Social Distribution App for CMPUT 404, F2021",
         license=openapi.License(name="Apache 2.0")
     ),

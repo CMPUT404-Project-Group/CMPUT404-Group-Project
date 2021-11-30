@@ -1,5 +1,9 @@
+from uuid import uuid4
+from requests import api
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post, Node
+from src.url_decorator import URLDecorator
+from src.Node import Node_Interface
 import datetime
 import json
 import os
@@ -20,7 +24,8 @@ from django.urls import reverse
 from dotenv import load_dotenv
 import logging
 from django.views import generic
-
+from rest_framework.authtoken.models import Token
+import base64
 from django.conf import settings
 HOST_URL = settings.HOST_URL
 HOST_API_URL = settings.HOST_API_URL
@@ -89,8 +94,12 @@ def create_post(request):
             return redirect('app:index')
     else:
         form = PostCreationForm()
-
-    return render(request, 'posts/create_post.html', {'form': form})
+    friends = Node_Interface.get_followers(request.user.url)
+    for friend in friends:
+        # get the auth token
+        token = Node.objects.get(url=friend['host']).auth_token
+        friend['token'] = token
+    return render(request, 'posts/create_post.html', {'form': form, 'friends': friends, 'token': API_TOKEN, 'uuid': uuid4()})
 
 @login_required
 def edit_post(request, post_id):
@@ -143,9 +152,10 @@ def post(request, post_id):
     post = PostSerializer(post_obj).data
     post['id'] = post['id'].split('/')[-1]
     user = request.user
+    post_author = post_obj.author
 
     is_author = False
-    if post_obj.author == user:
+    if post_author == user:
         is_author = True
 
     context = {
@@ -155,6 +165,10 @@ def post(request, post_id):
     if request.method == 'GET':
         if (request.GET.get('like-button')):
             like_post(request, post_id)
+        if (post_obj.visibility == 'private_to_author' and not is_author):
+            return HttpResponseForbidden()
+        elif (post_obj.visibility == 'private_to_friend' and not (is_author or Friend.objects.are_friends(request.user, post_author))):
+            return HttpResponseForbidden()
         return render(request, 'posts/view_post.html', context)
 
     elif request.method == 'POST':
@@ -168,19 +182,15 @@ def post(request, post_id):
 
         return redirect('app:index')
 
-def view_post(request, post_id):
-    post_obj = get_object_or_404(Post, pk=post_id)
-    post = PostSerializer(post_obj).data
-    if (post.shared_post != None):
-        original_post_obj = get_object_or_404(Post, pk=post_obj.shared_post.post.id)
-        original_post = PostSerializer(original_post_obj).data
-        context = {
-            'shared_post': post,
-            'original_post': original_post}
-        return render(request, 'posts/view_shared_post.html', context)
-    else:
-        context = {'post': post}
-        return render(request, 'posts/view_post.html', context)
+@login_required
+def foreign_post(request):
+    data = request.POST.dict()
+    post = Node_Interface.get_post(data['post'])
+    context = {
+        'post': post,
+        'is_author': False
+    }
+    return render(request, 'posts/view_foreign_post.html', context)
 
       
 @login_required
@@ -195,7 +205,7 @@ def view_other_user(request, other_user_id):
     if User.objects.filter(id=other_user_id).exists():
         other_user = User.objects.get(id=other_user_id)
     else:
-        for node in Node.objects.get_queryset():
+        for node in Node.objects.get_queryset().filter(is_active=True):
             url = str(node) + 'author/' + other_user_id
             res = requests.get(url, headers={})
             if (res.status_code==200):
@@ -236,13 +246,14 @@ def explore_authors(request):
             local_authors.remove(author)
     
     # get remote authors
-    nodes = Node.objects.get_queryset()
+    nodes = Node.objects.get_queryset().filter(is_active=True)
+    remote_authors = []
     for node in nodes:
         try:
-            res = requests.get(str(node)+'authors/', headers={})
-            remote_authors = json.loads(res.content.decode('utf-8'))['data']
+            res = requests.get(str(node)+'authors/', headers={'Authorization': '%s' % node.auth_token})
+            remote_authors.extend(json.loads(res.content.decode('utf-8'))['data'])
         except:
-            remote_authors = {}
+            continue
     return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': remote_authors })
 
 
@@ -365,7 +376,8 @@ def like_comment(request, comment_id):
 @login_required
 def inbox(request, author_id):
     url = HOST_URL+reverse('api:inbox', kwargs={'author_id': author_id})
-    print(url)
+    token, _ = Token.objects.get_or_create(user=request.user) # create token
+    headers = {'Authorization': 'Token %s' % token}
     if request.method == 'GET':
         try:
             page = request.GET.get('page')
@@ -379,12 +391,14 @@ def inbox(request, author_id):
         if size:
             url += '&size=%s' % size
 
-        req = requests.get(url)
+        req = requests.get(url, headers=headers, params={'user': 'a'})
+        Token.objects.get(user=request.user).delete() # clean token
         res = json.loads(req.content.decode('utf-8'))
         res['author'] = request.path.split('/')[3]
-        return render(request, 'app/inbox.html', {'res': res})
+        return render(request, 'app/inbox.html', {'res': res, 'token': API_TOKEN})
     elif request.method == "DELETE":
-        req = requests.delete(url)
+        req = requests.delete(url, headers=headers)
+        Token.objects.get(user=request.user).delete() # clean token
         return HttpResponse(status=req.status_code)
     else:
         return HttpResponseNotAllowed
@@ -392,11 +406,19 @@ def inbox(request, author_id):
 
 class PostListView(generic.ListView):
     model = Post
-    template_name = 'posts/post_list.html'
+    template_name = 'posts/public_posts.html'
     
     def get(self, request):
         queryset = Post.objects.filter(visibility="public", unlisted=False)[:20]
         serializer = PostSerializer(queryset, many=True)
+
+        posts = []
+
+        for node in Node.objects.get_queryset().filter(is_active=True):
+            authors = Node_Interface.get_authors(node)
+            for author in authors:
+                author_posts = Node_Interface.get_author_posts(author['id'])
+                posts.extend(author_posts)
 
         for post in serializer.data:
             post_id = post['id'].split('/')[-1]
@@ -404,8 +426,10 @@ class PostListView(generic.ListView):
             post['id'] = post_id
             post['source'] = url
             post['origin'] = url
-        
-        return render(request, self.template_name, {'post_list': serializer.data})
+            post['local'] = True
+            posts.append(post)
+
+        return render(request, self.template_name, {'post_list': sorted(posts, key=lambda i: i['published'], reverse=True)})
       
 @login_required
 def sync_github_activity(request):
@@ -448,12 +472,27 @@ def sync_github_activity(request):
 
 def github_event_to_post_adapter(author, event):
     type = Post.ContentType.PLAIN
-    title = f"Github Event of type {event['type']}"
+    title = f"Github: {event['type']}"
     categories = f"github, {event['type']}"
+    try:
+        head = str(event['payload']['head'])
+    except KeyError:
+        head = "N/A"
+    try:
+        messages = []
+        for commit in event['payload']['commits']:
+            messages.append(commit['message'])
+        messages = ", ".join(messages)
+    except KeyError:
+        messages = "N/A"
     text_content = f"""
-    id: {str(event['id'])}\n
-    repository: {str(event['repo'])}\n
-    Payload: {str(event['payload'])}\n"""
+    Repository: {str(event['repo']['name'])}\n
+    URL: https://github.com/{str(event['repo']['name'])}\n
+    Payload:\n
+    \t head: {head}\n
+    \t messages when commiting: \n
+    \t\t\t\t{messages}\n
+    """
 
 
     post = Post.objects.create_post(
