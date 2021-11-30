@@ -1,3 +1,4 @@
+from uuid import uuid4
 from requests import api
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post, Node
@@ -91,8 +92,14 @@ def create_post(request):
             return redirect('app:index')
     else:
         form = PostCreationForm()
-
-    return render(request, 'posts/create_post.html', {'form': form})
+    url = f'{request.user.url}/followers/'
+    res = requests.get(url, headers={'Authorization': f'Token {API_TOKEN}'})
+    friends = json.loads(res.content.decode('utf-8'))['data']
+    for friend in friends:
+        # get the auth token
+        token = Node.objects.get(url=friend['host']).auth_token
+        friend['token'] = token
+    return render(request, 'posts/create_post.html', {'form': form, 'friends': friends, 'token': API_TOKEN, 'uuid': uuid4()})
 
 @login_required
 def edit_post(request, post_id):
@@ -199,7 +206,7 @@ def view_other_user(request, other_user_id):
     else:
         for node in Node.objects.get_queryset():
             url = str(node) + 'author/' + other_user_id
-            res = requests.get(url, headers={})
+            res = requests.get.get(url, headers={})
             if (res.status_code==200):
                 break
         other_user = json.loads(res.content.decode('utf-8'))['data'][0]
