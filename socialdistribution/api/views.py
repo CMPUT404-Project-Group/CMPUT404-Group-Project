@@ -699,7 +699,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
 })
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def followers(request, author_id):
     """
     GETs a list of authors who are following {author_id}

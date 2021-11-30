@@ -93,9 +93,7 @@ def create_post(request):
             return redirect('app:index')
     else:
         form = PostCreationForm()
-    url = f'{request.user.url}/followers/'
-    res = requests.get(url, headers={'Authorization': f'Token {API_TOKEN}'})
-    friends = json.loads(res.content.decode('utf-8'))['data']
+    friends = Node_Interface.get_followers(request.user.url)
     for friend in friends:
         # get the auth token
         token = Node.objects.get(url=friend['host']).auth_token
@@ -247,10 +245,11 @@ def explore_authors(request):
     
     # get remote authors
     nodes = Node.objects.get_queryset().filter(is_active=True)
+    remote_authors = []
     for node in nodes:
         try:
             res = requests.get(str(node)+'authors/', headers={'Authorization': '%s' % node.auth_token})
-            remote_authors = json.loads(res.content.decode('utf-8'))['data']
+            remote_authors.extend(json.loads(res.content.decode('utf-8'))['data'])
         except:
             continue
     return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': remote_authors })
@@ -413,7 +412,7 @@ class PostListView(generic.ListView):
 
         posts = []
 
-        for node in Node.objects.get_queryset():
+        for node in Node.objects.get_queryset().filter(is_active=True):
             authors = Node_Interface.get_authors(node)
             for author in authors:
                 author_posts = Node_Interface.get_author_posts(author['id'])
