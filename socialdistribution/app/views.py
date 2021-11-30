@@ -430,14 +430,14 @@ def github_event_to_post_adapter(author, event):
     categories = f"github, {event['type']}"
     try:
         head = str(event['payload']['head'])
-    except:
+    except KeyError:
         head = "N/A"
     try:
         messages = []
         for commit in event['payload']['commits']:
             messages.append(commit['message'])
         messages = ", ".join(messages)
-    except:
+    except KeyError:
         messages = "N/A"
     text_content = f"""
     Repository: {str(event['repo']['name'])}\n
