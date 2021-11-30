@@ -207,7 +207,7 @@ def view_other_user(request, other_user_id):
     else:
         for node in Node.objects.get_queryset().filter(is_active=True):
             url = str(node) + 'author/' + other_user_id
-            res = requests.get.get(url, headers={})
+            res = requests.get(url, headers={})
             if (res.status_code==200):
                 break
         other_user = json.loads(res.content.decode('utf-8'))['data'][0]
@@ -248,9 +248,8 @@ def explore_authors(request):
     # get remote authors
     nodes = Node.objects.get_queryset().filter(is_active=True)
     for node in nodes:
-        print(node)
         try:
-            res = requests.get(str(node)+'authors/', headers={'Authorization': '%s' % node.token})
+            res = requests.get(str(node)+'authors/', headers={'Authorization': '%s' % node.auth_token})
             remote_authors = json.loads(res.content.decode('utf-8'))['data']
         except:
             continue
