@@ -142,7 +142,7 @@ class NodeCreationForm(forms.ModelForm):
 class NodeAdmin(admin.ModelAdmin):
     form = NodeChangeForm
     add_form = NodeCreationForm
-
+    actions = [make_active, make_inactive]
     fieldsets = (
         (None, {'fields': ('team', 'url', 'token', 'is_active')}),
     )
