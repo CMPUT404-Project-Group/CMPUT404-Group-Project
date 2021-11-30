@@ -375,7 +375,7 @@ def inbox(request, author_id):
         Token.objects.get(user=request.user).delete() # clean token
         res = json.loads(req.content.decode('utf-8'))
         res['author'] = request.path.split('/')[3]
-        return render(request, 'app/inbox.html', {'res': res})
+        return render(request, 'app/inbox.html', {'res': res, 'token': API_TOKEN})
     elif request.method == "DELETE":
         req = requests.delete(url, headers=headers)
         Token.objects.get(user=request.user).delete() # clean token

@@ -13,7 +13,7 @@
 
   const clearInbox = () => {
     $.ajaxSetup({
-      headers: { "X-CSRFToken": "{{csrf_token}}" },
+      headers: { "X-CSRFToken": "{{csrf_token}}", "Authorization": "Token {{token}} " },
     });
     $.ajax({
       type: "DELETE",
@@ -170,6 +170,44 @@
                   onclick="followBack(this.id)">Follow {{item.actor.displayName}}</button>
                 <a href="{% url 'app:view-other-user' item.actor.id|getID %}"
                   class="btn btn-sm btn-outline-primary float-start mt-4">View Profile</a>
+              </div>
+            </div>
+          </div>
+        </li>
+        {% elif item.type == 'comment' %}
+        <li class="py-2" style="list-style: none">
+          <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
+            <div class="card-header d-inline-flex justify-content-between" style="
+                border-radius: 0.5rem;
+                border: 0;
+              ">
+              <h5>{{item.author.displayName}} commented on your post.</h5>
+              <input class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#postData{{item.id}}"
+                aria-expanded="false" aria-controls="postData{{item.id}}" value="Show" id="#postData{{item.id}}"
+                onclick="changeLabel(this.id)" />
+            </div>
+            <div class="collapse" id="postData{{item.id}}">
+              <div class="card-body">
+                <h6 class="card-text">{{item.comment}}.</h6>
+              </div>
+            </div>
+          </div>
+        </li>
+        {% elif item.type == 'like' %}
+        <li class="py-2" style="list-style: none">
+          <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
+            <div class="card-header d-inline-flex justify-content-between" style="
+                border-radius: 0.5rem;
+                border: 0;
+              ">
+              <h5>{{item.author.displayName}} liked your post.</h5>
+              <input class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#postData{{item.id}}"
+                aria-expanded="false" aria-controls="postData{{item.id}}" value="Show" id="#postData{{item.id}}"
+                onclick="changeLabel(this.id)" />
+            </div>
+            <div class="collapse" id="postData{{item.id}}">
+              <div class="card-body">
+                <h6 class="card-text">{{item.comment}}.</h6>
               </div>
             </div>
           </div>
