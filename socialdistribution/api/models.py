@@ -138,7 +138,7 @@ class PostBuilder():
         self.source = None
         self.origin = None
         self.count = 0
-        self.comment_page = None
+        self.comments = None
 
         self.title = None
         self.description = None
@@ -188,7 +188,7 @@ class PostBuilder():
             categories=self.categories,
             count=self.count,
             size=self.size,
-            comment_page=self.comment_page,
+            comments=self.comments,
             visibility=self.visibility,
             unlisted=self.unlisted,
             shared_post = self.shared_post
@@ -219,7 +219,7 @@ class PostBuilder():
         
         self.origin = post_url
         self.source = post_url
-        self.comment_page = f"{post_url}/comments"
+        self.comments = f"{post_url}/comments"
 
 
     # TODO: Figure out size of post dynamically (possibly iterate through attributes adding size)
@@ -290,11 +290,8 @@ class Post(models.Model):
     count = models.IntegerField(
         unique=False, null=False, blank=False, default=0)
     size = models.IntegerField(unique=False, null=False, blank=False)
-    comment_page = models.CharField(
+    comments = models.CharField(
         max_length=255, unique=False, null=False, blank=False)
-    # comments could potentially be done at serialization to avoid data duplication
-    # (get all comments which have this post_id within their comment_id)
-    # If we do this size may also have to be done at serialization although I think this may be easier anyways
     published = models.DateTimeField(
         unique=False, blank=False, null=False, auto_now_add=True)
     visibility = models.CharField(
