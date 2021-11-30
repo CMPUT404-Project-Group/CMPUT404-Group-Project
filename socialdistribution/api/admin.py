@@ -128,7 +128,7 @@ class NodeChangeForm(forms.ModelForm):
     """
     class Meta:
         model = Node
-        fields = ('url', 'team', 'token',)
+        fields = ('url', 'team', 'auth_token',)
 
 
 class NodeCreationForm(forms.ModelForm):
@@ -137,23 +137,23 @@ class NodeCreationForm(forms.ModelForm):
     """
     class Meta:
         model = Node
-        fields = ('url', 'team', 'token',)
+        fields = ('url', 'team', 'auth_token',)
 
 class NodeAdmin(admin.ModelAdmin):
     form = NodeChangeForm
     add_form = NodeCreationForm
     actions = [make_active, make_inactive]
     fieldsets = (
-        (None, {'fields': ('team', 'url', 'token', 'is_active')}),
+        (None, {'fields': ('team', 'url', 'auth_token', 'is_active')}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('team', 'url', 'token', 'is_active' ),
+            'fields': ('team', 'url', 'auth_token', 'is_active' ),
         }),
     )
 
-    list_display = ('team', 'url', 'token', 'is_active' )
+    list_display = ('team', 'url', 'auth_token', 'is_active' )
     list_filter = ()
     ordering = ('team',)
     filter_horizontal = ()

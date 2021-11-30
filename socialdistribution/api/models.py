@@ -421,8 +421,7 @@ class Node(models.Model):
     url = models.URLField(max_length=255, unique=False, null=False, blank=False)
     auth_token = models.CharField(max_length=255, unique=True, null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    token = models.CharField(max_length=255, unique=True, blank=True, null=True)
-    team = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    team = models.CharField(max_length=255, null=True, blank=True)    
     def __str__(self):
         return self.url
 
