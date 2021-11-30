@@ -60,7 +60,7 @@ class PostSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         post = super().to_representation(instance)
 
-        post['id'] = URLDecorator.post_id_url(HOST_API_URL[:-1], post['author'], post['id'])
+        post['id'] = f"{HOST_API_URL[:-1]}/author/{post['author']}/posts/{post['id']}"
         post['categories'] = post['categories'].split(',')
 
         author_id = post['author']
@@ -86,7 +86,6 @@ class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
         fields = [
-            'id',
             'context',
             'summary',
             'type',
