@@ -4,6 +4,7 @@ import json
 from drf_yasg import openapi
 import uuid
 from django.db.models import aggregates, query
+import requests
 import rest_framework.status as status
 from django.shortcuts import get_object_or_404
 from dotenv import load_dotenv
@@ -502,6 +503,8 @@ class Comment_API(generics.ListCreateAPIView):
 
 class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = InboxSerializer
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
         responses={200: openapi.Response(description='Successfully get inbox items.',
@@ -554,8 +557,12 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
 
         Pagination settings are passed as url parameters: ~/author/{author_id}/inbox/?page=1&size=5
         """
+        author_id = self.kwargs.get('author_id') # only the user can see their inbox
+        if not str(request.user.id) == author_id:
+            return Response("Users do not matchh", status.HTTP_401_UNAUTHORIZED)
+
+
         paginator = PageNumberPaginationWithCount()
-        author_id = self.kwargs.get('author_id')
         query_set = InboxItem.objects.filter(author_id=author_id)
         size = request.query_params.get('size', 10)
         page = request.query_params.get('page', 1)
@@ -609,6 +616,8 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         """
         try:
             author_id = self.kwargs.get('author_id')
+            if not str(request.user.id) == author_id: # only th user can delete their inbox items
+                return Response("Users do not matchh", status.HTTP_401_UNAUTHORIZED)
             inbox = InboxItem.objects.filter(author_id=author_id)
             inbox.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)

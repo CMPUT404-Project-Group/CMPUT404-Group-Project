@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 import logging
 from django.views import generic
 from rest_framework.authtoken.models import Token
-
+import base64
 from django.conf import settings
 HOST_URL = settings.HOST_URL
 HOST_API_URL = settings.HOST_API_URL
@@ -356,7 +356,8 @@ def like_comment(request, comment_id):
 @login_required
 def inbox(request, author_id):
     url = HOST_URL+reverse('api:inbox', kwargs={'author_id': author_id})
-    print(url)
+    token, _ = Token.objects.get_or_create(user=request.user) # create token
+    headers = {'Authorization': 'Token %s' % token}
     if request.method == 'GET':
         try:
             page = request.GET.get('page')
@@ -370,12 +371,14 @@ def inbox(request, author_id):
         if size:
             url += '&size=%s' % size
 
-        req = requests.get(url)
+        req = requests.get(url, headers=headers, params={'user': 'a'})
+        Token.objects.get(user=request.user).delete() # clean token
         res = json.loads(req.content.decode('utf-8'))
         res['author'] = request.path.split('/')[3]
         return render(request, 'app/inbox.html', {'res': res})
     elif request.method == "DELETE":
-        req = requests.delete(url)
+        req = requests.delete(url, headers=headers)
+        Token.objects.get(user=request.user).delete() # clean token
         return HttpResponse(status=req.status_code)
     else:
         return HttpResponseNotAllowed
