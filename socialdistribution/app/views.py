@@ -187,7 +187,11 @@ def foreign_post(request):
     post = Node_Interface.get_post(data['post'])
     context = {
         'post': post,
-        'is_author': False
+        'is_author': False,
+        'user' : request.user,
+        'token' : API_TOKEN,
+        #???
+        'author_token' : None
     }
     return render(request, 'posts/view_foreign_post.html', context)
 
