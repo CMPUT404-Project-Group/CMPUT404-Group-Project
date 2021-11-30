@@ -451,12 +451,27 @@ def sync_github_activity(request):
 
 def github_event_to_post_adapter(author, event):
     type = Post.ContentType.PLAIN
-    title = f"Github Event of type {event['type']}"
+    title = f"Github: {event['type']}"
     categories = f"github, {event['type']}"
+    try:
+        head = str(event['payload']['head'])
+    except KeyError:
+        head = "N/A"
+    try:
+        messages = []
+        for commit in event['payload']['commits']:
+            messages.append(commit['message'])
+        messages = ", ".join(messages)
+    except KeyError:
+        messages = "N/A"
     text_content = f"""
-    id: {str(event['id'])}\n
-    repository: {str(event['repo'])}\n
-    Payload: {str(event['payload'])}\n"""
+    Repository: {str(event['repo']['name'])}\n
+    URL: https://github.com/{str(event['repo']['name'])}\n
+    Payload:\n
+    \t head: {head}\n
+    \t messages when commiting: \n
+    \t\t\t\t{messages}\n
+    """
 
 
     post = Post.objects.create_post(
