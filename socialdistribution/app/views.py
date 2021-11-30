@@ -2,6 +2,7 @@ from requests import api
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post, Node
 from src.url_decorator import URLDecorator
+from src.Node import Node_Interface
 import datetime
 import json
 import os
@@ -172,6 +173,17 @@ def post(request, post_id):
             return HttpResponseBadRequest("Something unexpected has occured!")
 
         return redirect('app:index')
+
+@login_required
+def foreign_post(request):
+    data = request.POST.dict()
+    post = Node_Interface.get_post(data['post'])
+    context = {
+        'post': post,
+        'is_author': False
+    }
+    return render(request, 'posts/view_foreign_post.html', context)
+
       
 @login_required
 def view_profile(request):
@@ -382,33 +394,29 @@ def inbox(request, author_id):
 
 class PostListView(generic.ListView):
     model = Post
-    template_name = 'posts/post_list.html'
+    template_name = 'posts/public_posts.html'
     
     def get(self, request):
         queryset = Post.objects.filter(visibility="public", unlisted=False)[:20]
         serializer = PostSerializer(queryset, many=True)
 
-        ###TEMP
-        api_endpoint = 'https://glowing-palm-tree1.herokuapp.com/service'
-        author_url = URLDecorator.authors_url(api_endpoint)
-        foreign_authors_request = requests.get(author_url)
-        foreign_authors = json.loads(foreign_authors_request.content.decode('utf-8'))['data']
-        foreign_posts = []
+        posts = []
 
-        for author in foreign_authors:
-            author_posts_url = f"{author['id']}/posts"
-            author_posts_request = requests.get(author_posts_url)
-            author_posts = json.loads(author_posts_request.content.decode('utf-8'))['data']
-            for post in author_posts:
-                foreign_posts.append(post)
+        for node in Node.objects.get_queryset():
+            authors = Node_Interface.get_authors(node)
+            for author in authors:
+                author_posts = Node_Interface.get_author_posts(author['id'])
+                posts.extend(author_posts)
 
         for post in serializer.data:
             post_id = post['id']
             url = f'{HOST_URL}/app/posts/{post_id}'
             post['source'] = url
             post['origin'] = url
-        
-        return render(request, self.template_name, {'post_list': serializer.data, 'foreign_post_list': foreign_posts})
+            post['local'] = True
+            posts.append(post)
+
+        return render(request, self.template_name, {'post_list': sorted(posts, key=lambda i: i['published'], reverse=True)})
       
 @login_required
 def sync_github_activity(request):
