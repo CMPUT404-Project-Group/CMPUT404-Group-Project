@@ -1,7 +1,4 @@
-{% extends "base.html" %}
-{% block title%}Post List{% endblock %}
 {% block content %}
-{% include "app/includes/navbar.html" %}
 {% if post_list %}
 
   <ul>
@@ -26,7 +23,15 @@
                   <span class="badge bg-dark">{{ c }}</span>
                   {% endfor %}
                 </div>
-                <a href="{{post.source}}" class="btn btn-primary shadow mt-5">View Post</a>
+                {% if post.local %}
+                  <a href="{{post.source}}" class="btn btn-primary shadow mt-5">View Post</a>
+                {% else %}
+                  <form action="{% url 'app:foreign_posts' %}" method='POST'>
+                    {% csrf_token %}
+                    <input type="hidden" name="post" value={{post.id}}>
+                    <button class="btn btn-primary shadow mt-5" type="submit">View Post</button>
+                  </form>
+                {% endif %}
               </div>
             </div>
           </div>

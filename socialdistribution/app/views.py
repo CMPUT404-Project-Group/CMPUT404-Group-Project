@@ -173,6 +173,17 @@ def post(request, post_id):
             return HttpResponseBadRequest("Something unexpected has occured!")
 
         return redirect('app:index')
+
+@login_required
+def foreign_post(request):
+    data = request.POST.dict()
+    post = Node_Interface.get_post(data['post'])
+    context = {
+        'post': post,
+        'is_author': False
+    }
+    return render(request, 'posts/view_foreign_post.html', context)
+
       
 @login_required
 def view_profile(request):
@@ -383,7 +394,7 @@ def inbox(request, author_id):
 
 class PostListView(generic.ListView):
     model = Post
-    template_name = 'posts/post_list.html'
+    template_name = 'posts/public_posts.html'
     
     def get(self, request):
         queryset = Post.objects.filter(visibility="public", unlisted=False)[:20]
@@ -402,9 +413,10 @@ class PostListView(generic.ListView):
             url = f'{HOST_URL}/app/posts/{post_id}'
             post['source'] = url
             post['origin'] = url
+            post['local'] = True
             posts.append(post)
-        
-        return render(request, self.template_name, {'post_list': posts})
+
+        return render(request, self.template_name, {'post_list': sorted(posts, key=lambda i: i['published'], reverse=True)})
       
 @login_required
 def sync_github_activity(request):

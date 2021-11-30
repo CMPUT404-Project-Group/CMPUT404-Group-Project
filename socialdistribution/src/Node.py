@@ -18,3 +18,6 @@ class Node_Interface():
         uri = URLDecorator.author_posts_url(author_id)
         return Node_Interface.__get_response__(uri)
     
+    def get_post(uri):
+        return Node_Interface.__get_response__(uri)[0]
+    
