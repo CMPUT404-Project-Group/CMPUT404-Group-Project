@@ -308,11 +308,9 @@ def explore_authors(request):
     nodes = Node.objects.get_queryset().filter(is_active=True)
     remote_authors = []
     for node in nodes:
-        try:
-            res = requests.get(str(node)+'/authors/', headers={'Authorization': '%s' % node.auth_token})
-            remote_authors.extend(json.loads(res.content.decode('utf-8'))['data'])
-        except:
-            continue
+        node_interface = Node_Interface_Factory.get_interface(node)
+        remote_authors.extend(node_interface.get_authors(node))
+        
     return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': remote_authors })
 
 
@@ -517,7 +515,7 @@ class PostListView(generic.ListView):
             node_interface = Node_Interface_Factory.get_interface(node)
             authors = node_interface.get_authors(node)
             for author in authors:
-                author_posts = node_interface.get_author_posts(author['id'])
+                author_posts = node_interface.get_author_posts(node, author['id'])
                 posts.extend(author_posts)
 
         for post in serializer.data:
