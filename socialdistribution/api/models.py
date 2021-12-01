@@ -206,13 +206,28 @@ class PostBuilder():
         if self.text_content:
             self.description += f": {self.text_content[0:50]}..."
 
-    # TODO: Content type just defaults to plain text at the moment
+    #TODO: Application XORG
     def __set_content_type__(self):
-        self.content_type = Post.ContentType.PLAIN
+        if self.text_content:
+            self.__set_content_type_text__()
+        else:
+            self.__set_content_type_image__()
+    
+    def __set_content_type_text__(self):
         marked_down_text = markdown.Markdown().convert(self.text_content)
         tag_stipped_text = marked_down_text.strip('<p>').strip('</p>')
-        if tag_stipped_text != self.text_content:
+
+        if tag_stipped_text == self.text_content:
+            self.content_type = Post.ContentType.PLAIN
+        else:
             self.content_type = Post.ContentType.MARKDOWN
+    
+    def __set_content_type_image__(self):
+        if self.image_content[:3] == "/9g=":
+            self.content_type = Post.ContentType.JPG
+        else:
+            self.content_type = Post.ContentType.PNG
+
     
     def __set_urls__(self):
         post_url = f"{HOST_API_URL}author/{self.author.id}/posts/{self.id}"
@@ -301,6 +316,11 @@ class Post(models.Model):
     shared_post = models.ForeignKey("api.Post", null=True, on_delete=CASCADE)
 
     objects = PostManager()
+
+    def get_content(self):
+        if not self.text_content:
+            return self.image_content
+        return self.text_content
 
     def __str__(self):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"

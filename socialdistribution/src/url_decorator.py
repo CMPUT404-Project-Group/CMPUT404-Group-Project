@@ -30,8 +30,10 @@ class URLDecorator():
         url_pointing_to_author = URLDecorator.author_id_url(url, author_id)
         return f"{url_pointing_to_author}/liked"
     
-    def author_followers_url(url, author_id):
-        url_pointing_to_author = URLDecorator.author_id_url(url, author_id)
+    def author_followers_url(url, author_id=None):
+        url_pointing_to_author = url
+        if author_id:
+            url_pointing_to_author = URLDecorator.author_id_url(url, author_id)
         return f"{url_pointing_to_author}/followers"
     
     def author_follower_url(url, author_id, follower_id):

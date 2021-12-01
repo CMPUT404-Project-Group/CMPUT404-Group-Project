@@ -71,7 +71,8 @@ def index(request):
     stream_posts = PostSerializer(stream_posts_obj, many=True).data
     
     for post in stream_posts:
-            post_id = post['id']
+            post_id = post['id'].split('/')[-1]
+            post['id'] = post_id
             url = f'{HOST_URL}/app/posts/{post_id}'
             post['source'] = url
             post['origin'] = url
@@ -93,14 +94,12 @@ def create_post(request):
             return redirect('app:index')
     else:
         form = PostCreationForm()
-    url = f'{request.user.url}/followers/'
-    res = requests.get(url, headers={'Authorization': f'Token {API_TOKEN}'})
-    friends = json.loads(res.content.decode('utf-8'))['data']
+    friends = Node_Interface.get_followers(request.user.url)
     for friend in friends:
         # get the auth token
         token = Node.objects.get(url=friend['host']).auth_token
         friend['token'] = token
-    return render(request, 'posts/create_post.html', {'form': form, 'friends': friends, 'token': API_TOKEN, 'uuid': uuid4()})
+    return render(request, 'posts/create_post.html', {'form': form, 'friends': friends, 'token': API_TOKEN})
 
 @login_required
 def edit_post(request, post_id):
@@ -151,6 +150,7 @@ def delete_post(request, post_id):
 def post(request, post_id):
     post_obj = get_object_or_404(Post, pk=post_id)
     post = PostSerializer(post_obj).data
+    post['id'] = post['id'].split('/')[-1]
     user = request.user
     post_author = post_obj.author
 
@@ -228,11 +228,13 @@ def view_other_user(request, other_user_id):
 
 @login_required
 def view_followers(request):
+    headers = {'Authorization': 'Token %s' % API_TOKEN}
     user = request.user
     url = HOST_API_URL + 'author/%s/followers/' % user.id
-    res = requests.get(url)
+    res = requests.get(url, headers=headers)
     data = json.loads(res.content.decode('utf-8'))
-    return render(request, 'profile/view_followers.html', {'data': data.get('items')})
+    print(data)
+    return render(request, 'profile/view_followers.html', {'data': data.get('data')})
 
 @login_required
 def explore_authors(request):
@@ -247,10 +249,11 @@ def explore_authors(request):
     
     # get remote authors
     nodes = Node.objects.get_queryset().filter(is_active=True)
+    remote_authors = []
     for node in nodes:
         try:
             res = requests.get(str(node)+'authors/', headers={'Authorization': '%s' % node.auth_token})
-            remote_authors = json.loads(res.content.decode('utf-8'))['data']
+            remote_authors.extend(json.loads(res.content.decode('utf-8'))['data'])
         except:
             continue
     return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': remote_authors })
@@ -413,15 +416,16 @@ class PostListView(generic.ListView):
 
         posts = []
 
-        for node in Node.objects.get_queryset():
+        for node in Node.objects.get_queryset().filter(is_active=True):
             authors = Node_Interface.get_authors(node)
             for author in authors:
                 author_posts = Node_Interface.get_author_posts(author['id'])
                 posts.extend(author_posts)
 
         for post in serializer.data:
-            post_id = post['id']
+            post_id = post['id'].split('/')[-1]
             url = f'{HOST_URL}/app/posts/{post_id}'
+            post['id'] = post_id
             post['source'] = url
             post['origin'] = url
             post['local'] = True
