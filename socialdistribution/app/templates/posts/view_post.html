@@ -3,7 +3,6 @@
 {% block content %}
 {% include "app/includes/navbar.html" %}
 {% load filters %}
-{% autoescape off %}
 
 <div>
   <div class="container py-2 h-100 mt-3">
@@ -12,38 +11,23 @@
         <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
           <div class="card-body">
             <div class="d-flex justify-content-between">
-              <h4>
-                {% if post.contentType == 'text/markdown'%}
-                {{ post.title | commonmark}}
-                {% else %}
-                {{ post.title }}
-                {% endif %}
-              </h4>
+              {% include "app/includes/post_title.html" %}
               {% if is_author %}
-              <div>
-                <a href="{% url 'app:delete-post' post.id %}">
-                  <button class="btn btn-sm btn-outline-danger float-end me-3">Delete</button>
-                </a>
-                <a href="{% url 'app:edit-post' post.id %}">
-                  <button class="btn btn-sm btn-outline-secondary float-end me-3">Edit</button>
-                </a>
-              </div>
+                <div>
+                  <a href="{% url 'app:delete-post' post.id %}">
+                    <button class="btn btn-sm btn-outline-danger float-end me-3">Delete</button>
+                  </a>
+                  <a href="{% url 'app:edit-post' post.id %}">
+                    <button class="btn btn-sm btn-outline-secondary float-end me-3">Edit</button>
+                  </a>
+                </div>
               {% endif %}
             </div>
             <span class="text-muted">
               {{ post.author.displayName }} <br />
               <span style="font-style: italic">{{ post.published }}</span>
             </span>
-            <p class="card-text mt-4">
-              {% if post.contentType == 'text/markdown'%}
-              {{ post.content | commonmark}}
-              {% else %}
-              {{ post.content }}
-              {% endif %}
-            </p>
-            {% if post.image_content %}
-            <img alt="User uploaded image" src="{{ post.image_content }}"></img>
-            {% endif %}
+            {% include "app/includes/post_content.html" %}
             <div class="category">
               {% for c in post.categories %}
               <span class="badge bg-dark">{{ c }}</span>
@@ -71,6 +55,4 @@
   </div>
 </div>
 
-
-{% endautoescape %}
 {% endblock %}

@@ -1,0 +1,14 @@
+{% load filters %}
+{% if post.contentType == 'text/plain' %}
+  <p class="card-text mt-4">{{ post.content }}</p>
+{% elif post.contentType == 'text/markdown' %}
+  {% autoescape off %}
+    <p class="card-text mt-4">{{ post.content | commonmark}}</p>
+  {% endautoescape %}
+{% elif post.contentType == "image/png;base64" %}
+  <img alt="User uploaded image" src="{{post.content}}" style="width:20%"></img>
+{% elif post.contentType == "image/jpeg;base64" %}
+  <img alt="User uploaded image" src="{{post.content}}" style="width:20%"></img>
+{% else %}
+  <p>{{ post.contentType }} failed to display</p>
+{% endif %}
