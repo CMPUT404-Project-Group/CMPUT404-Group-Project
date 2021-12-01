@@ -10,7 +10,7 @@ from django.db.models.deletion import CASCADE
 from django.db.models.manager import BaseManager
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-
+import base64
 from dotenv import load_dotenv
 import markdown
 import os
@@ -153,12 +153,21 @@ class PostBuilder():
         self.shared_post = None
 
     def set_post_content(self, title, categories, text_content=None, image_content=None, shared_post=None, image_link=None):
+        if image_content:
+            image_data = image_content.read()
+            encoded_image = str(base64.b64encode(image_data))
+            if image_content.content_type == 'image/jpeg':
+                self.image_content = f"data:image/jpeg;base64, {encoded_image}"
+            elif image_content.content_type == 'image/png':
+                self.image_content = f"data:image/png;base64, {encoded_image}"
+
         self.title = title
         self.categories = categories
         self.text_content = text_content
-        self.image_content = image_content
         self.shared_post = shared_post
         self.image_link = image_link
+
+        
 
     # TODO: Description is not very descriptive
     def set_post_metadata(self, author, visibility, unlisted):

@@ -41,12 +41,8 @@ class PostCreationForm(forms.ModelForm):
         if "user" in kwargs:
             self.user = kwargs.pop("user")
 
-        if "data" in kwargs and "image" in kwargs['data']:
-            self.image = kwargs['data']['image_content']
-
         super(PostCreationForm, self).__init__(*args, **kwargs)
 
-    # TODO: Unlisted always false
     def save(self, commit=True):
         logging.error(self.cleaned_data)
         return Post.objects.create_post(
