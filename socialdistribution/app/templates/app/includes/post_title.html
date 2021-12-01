@@ -1,0 +1,8 @@
+{% load filters %}
+{% if post.contentType == 'text/markdown'%}
+    {% autoescape off %}
+        {{ post.title | commonmark}}
+    {% endautoescape %}
+{% else %}
+    <h4>{{ post.title }}</h4>
+{% endif %}

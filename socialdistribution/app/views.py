@@ -252,7 +252,7 @@ def explore_authors(request):
     remote_authors = []
     for node in nodes:
         try:
-            res = requests.get(str(node)+'authors/', headers={'Authorization': '%s' % node.auth_token})
+            res = requests.get(str(node)+'/authors/', headers={'Authorization': '%s' % node.auth_token})
             remote_authors.extend(json.loads(res.content.decode('utf-8'))['data'])
         except:
             continue

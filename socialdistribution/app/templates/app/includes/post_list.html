@@ -9,15 +9,12 @@
           <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 100%">
             <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
               <div class="card-body">
-                <h4 class="card-title">{{ post.title }}</h4>
+                {% include "app/includes/post_title.html" %}
                 <span class="text-muted">
                   {{ post.author.displayName }} <br />
                   <span style="font-style: italic">{{ post.published }}</span>
                 </span>
-                <p class="card-text mt-4">{{ post.content }}</p>
-                  {% if post.image_content %}
-                    <img alt="User uploaded image" src="{{ post.image_content }}" style="width:20%"></img>
-                  {% endif %}
+                {% include "app/includes/post_content.html" %}
                 <div class="category">
                   {% for c in post.categories %}
                   <span class="badge bg-dark">{{ c }}</span>
