@@ -185,7 +185,7 @@ def post(request, post_id):
 def foreign_post(request):
     data = request.POST.dict()
     post = Node_Interface.get_post(data['post'])
-    token = Node.objects.get(url=post.author.url]).auth_token
+    token = Node.objects.get(url=post.author.url).auth_token
     context = {
         'post': post,
         'is_author': False,
