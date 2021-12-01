@@ -133,11 +133,12 @@
                 border: 0;
               ">
               <h5>{{item.author.displayName}} sent you a post.</h5>
-              <input class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#postData{{item.id}}"
-                aria-expanded="false" aria-controls="postData{{item.id}}" value="Show" id="#postData{{item.id}}"
+              <input class="btn btn-light" type="button" data-bs-toggle="collapse"
+                data-bs-target="#postData{{item.id|getID}}" aria-expanded="false"
+                aria-controls="postData{{item.id|getID}}" value="Show" id="#postData{{item.id|getID}}"
                 onclick="changeLabel(this.id)" />
             </div>
-            <div class="collapse" id="postData{{item.id}}">
+            <div class="collapse" id="postData{{item.id|getID}}">
               <div class="card-body">
                 <h6 class="card-text">{{item.title}}</h6>
                 <p class="card-text">{{item.content}}</p>
@@ -159,11 +160,12 @@
                 border: 0;
               ">
               <h5>{{item.actor.displayName}} sent you a friend request.</h5>
-              <input class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#postData{{item.id}}"
-                aria-expanded="false" aria-controls="postData{{item.id}}" value="Show" id="#postData{{item.id}}"
+              <input class="btn btn-light" type="button" data-bs-toggle="collapse"
+                data-bs-target="#postData{{item.id|getID}}" aria-expanded="false"
+                aria-controls="postData{{item.id|getID}}" value="Show" id="#postData{{item.id|getID}}"
                 onclick="changeLabel(this.id)" />
             </div>
-            <div class="collapse" id="postData{{item.id}}">
+            <div class="collapse" id="postData{{item.id|getID}}">
               <div class="card-body">
                 <h6 class="card-text">{{item.summary}}.</h6>
                 <button type="button" id="{{item}}" class="btn btn-sm btn-primary float-start mt-4 me-3"
@@ -182,11 +184,12 @@
                 border: 0;
               ">
               <h5>{{item.author.displayName}} commented on your post.</h5>
-              <input class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#postData{{item.id}}"
-                aria-expanded="false" aria-controls="postData{{item.id}}" value="Show" id="#postData{{item.id}}"
+              <input class="btn btn-light" type="button" data-bs-toggle="collapse"
+                data-bs-target="#postData{{item.id|getID}}" aria-expanded="false"
+                aria-controls="postData{{item.id|getID}}" value="Show" id="#postData{{item.id|getID}}"
                 onclick="changeLabel(this.id)" />
             </div>
-            <div class="collapse" id="postData{{item.id}}">
+            <div class="collapse" id="postData{{item.id|getID}}">
               <div class="card-body">
                 <h6 class="card-text">{{item.comment}}.</h6>
               </div>
@@ -201,11 +204,12 @@
                 border: 0;
               ">
               <h5>{{item.author.displayName}} liked your post.</h5>
-              <input class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#postData{{item.id}}"
-                aria-expanded="false" aria-controls="postData{{item.id}}" value="Show" id="#postData{{item.id}}"
+              <input class="btn btn-light" type="button" data-bs-toggle="collapse"
+                data-bs-target="#postData{{item.id|getID}}" aria-expanded="false"
+                aria-controls="postData{{item.id|getID}}" value="Show" id="#postData{{item.id|getID}}"
                 onclick="changeLabel(this.id)" />
             </div>
-            <div class="collapse" id="postData{{item.id}}">
+            <div class="collapse" id="postData{{item.id|getID}}">
               <div class="card-body">
                 <h6 class="card-text">{{item.comment}}.</h6>
               </div>
