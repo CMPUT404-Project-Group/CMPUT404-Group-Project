@@ -221,8 +221,11 @@ def foreign_post(request):
     This is different to local posts to handle with the origin urls, commenting, liking, etc.
     """
     data = request.POST.dict()
-    post = Node_Interface.get_post(data['post'])
-    token = Node.objects.get(url=post.author.url).auth_token
+    url = data['post'].split('/author')[0]
+    node = Node.objects.get(url=url)
+    node_interface = Node_Interface_Factory.get_interface(node)
+    post = node_interface.get_post(node, data['post'])
+    #token = Node.objects.get(url=post.author.url).auth_token
     context = {
         'post': post,
         'is_author': False,
