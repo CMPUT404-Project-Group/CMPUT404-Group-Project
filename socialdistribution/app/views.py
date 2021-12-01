@@ -254,11 +254,14 @@ def view_other_user(request, other_user_id):
         other_user = User.objects.get(id=other_user_id)
     else:
         for node in Node.objects.get_queryset().filter(is_active=True):
-            url = str(node) + 'author/' + other_user_id
+            url = str(node) + '/author/' + other_user_id
             res = requests.get(url, headers={})
             if (res.status_code==200):
                 break
-        other_user = json.loads(res.content.decode('utf-8'))['data'][0]
+        try:
+            other_user = json.loads(res.content.decode('utf-8'))['data'][0]
+        except:
+            other_user = json.loads(res.content.decode('utf-8'))
         return render(request, 'profile/view_other_user.html', {'other_user': other_user})
 
     if other_user==request.user: 
@@ -284,7 +287,6 @@ def view_followers(request):
     url = HOST_API_URL + 'author/%s/followers/' % user.id
     res = requests.get(url, headers=headers)
     data = json.loads(res.content.decode('utf-8'))
-    print(data)
     return render(request, 'profile/view_followers.html', {'data': data.get('data')})
 
 @login_required
@@ -306,7 +308,8 @@ def explore_authors(request):
     remote_authors = []
     for node in nodes:
         try:
-            res = requests.get(str(node)+'/authors/', headers={'Authorization': '%s' % node.auth_token})
+            res = requests.get(str(node)+'/authors', headers={'Authorization': '%s' % node.auth_token})
+            print(res, node)
             remote_authors.extend(json.loads(res.content.decode('utf-8'))['data'])
         except:
             continue

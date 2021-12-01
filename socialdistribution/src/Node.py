@@ -6,16 +6,19 @@ import requests
 class Node_Interface():
 
     def __get_response__(uri):
-        response = requests.get(uri)
-        data = []
-        
-        if response.ok:
-            try:
-                content = json.loads(response.content.decode('utf-8'))
-                data = content['data']
-            except KeyError:
-                data = []
-        return data
+        try:
+            response = requests.get(uri)
+            data = []
+            
+            if response.ok:
+                try:
+                    content = json.loads(response.content.decode('utf-8'))
+                    data = content['data']
+                except KeyError:
+                    data = []
+            return data
+        except:
+            return []
 
     def get_authors(node):
         uri = URLDecorator.authors_url(str(node))
