@@ -98,7 +98,7 @@ def create_post(request):
         # get the auth token
         token = Node.objects.get(url=friend['host']).auth_token
         friend['token'] = token
-    return render(request, 'posts/create_post.html', {'form': form, 'friends': friends, 'token': API_TOKEN, 'uuid': uuid4()})
+    return render(request, 'posts/create_post.html', {'form': form, 'friends': friends, 'token': API_TOKEN})
 
 @login_required
 def edit_post(request, post_id):
@@ -226,11 +226,13 @@ def view_other_user(request, other_user_id):
 
 @login_required
 def view_followers(request):
+    headers = {'Authorization': 'Token %s' % API_TOKEN}
     user = request.user
     url = HOST_API_URL + 'author/%s/followers/' % user.id
-    res = requests.get(url)
+    res = requests.get(url, headers=headers)
     data = json.loads(res.content.decode('utf-8'))
-    return render(request, 'profile/view_followers.html', {'data': data.get('items')})
+    print(data)
+    return render(request, 'profile/view_followers.html', {'data': data.get('data')})
 
 @login_required
 def explore_authors(request):

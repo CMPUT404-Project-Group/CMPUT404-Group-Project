@@ -47,7 +47,6 @@ class PostSerializer(serializers.ModelSerializer):
             'description',
             'contentType',
             'content',
-            'image_content',
             'author',
             'categories',
             'count',

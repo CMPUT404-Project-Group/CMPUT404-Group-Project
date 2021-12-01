@@ -31,6 +31,7 @@ from friendship.models import Follow, FriendshipRequest, Friend
 from .models import Inbox as InboxItem
 from .models import Post, User, Like, Comment
 from .serializers import LikeSerializer, LikedSerializer, InboxSerializer, PostSerializer, UserSerializer, CommentSerializer
+from django.forms.models import model_to_dict
 
 from django.conf import settings
 HOST_API_URL = settings.HOST_API_URL
@@ -209,15 +210,22 @@ class PostsAPI(APIView):
     
     @swagger_auto_schema(tags=['posts'])
     def post(self, request, *args, **kwargs):
-        id = str(uuid.uuid4())
-        request.data['id'] = id
-        serializer = PostSerializer(data=request.data)
-        
-        if serializer.is_valid():
-            serializer.save()
-            return HttpResponse("Sucessfully created post\n")
-
-        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            author = User.objects.get(id=request.data['author'])
+            p = Post.objects.create_post(
+                author=author,
+                categories=request.data['categories'],
+                text_content=request.data['content'],
+                title=request.data['title'],
+                visibility=request.data['visibility'], 
+                image_content='',
+                unlisted=False,
+            )
+            post = get_object_or_404(Post, pk=p.id)
+            serializer = PostSerializer(post)
+            return JsonResponse(serializer.data)
+        except:
+            return Response('Something went wrong while creating the post.', status=status.HTTP_400_BAD_REQUEST)
 
 class PostAPI(APIView):
 
