@@ -1,3 +1,4 @@
+from requests.models import InvalidURL, MissingSchema
 from src.url_decorator import URLDecorator
 import json
 import requests
@@ -17,7 +18,7 @@ class Node_Interface():
                 except KeyError:
                     data = []
             return data
-        except:
+        except MissingSchema:
             return []
 
     def get_authors(node):
