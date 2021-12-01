@@ -28,3 +28,26 @@ All routes will be prefixed with our heroku domain: `https://social-distribution
 | `/author/<str:author_id>/inbox/`       | Allows the user to view and manage their inbox. To clear the inbox, and ajax DELETE request is sent to the API.                                                                |
 | `/posts/`                              | Allows user to view all public posts (local and foreign).                                                                                                                      |
 | `/authors/`                            | Allows user to view alll authors (local and foreign).                                                                                                                          |
+
+<h1>Server Administration</h1>
+Server administration functions are handled through the default django administration site. From here, server-admins can create, edit, and delete:
+
+- users
+- user friendships
+- posts
+- nodes
+- authentication tokens (for nodes)
+
+<h2> Adding and Connecting Nodes </h2>
+
+To add a new node to connect to, server-admins simply have to add a new node through the administration site. They can enter the _Team_ name, _url_ to their serivce, and the _authentication token_ provided by the other server. Nodes can be toggled as active or inactive with the _is_active_ option. If the node is set to `is_active=False`, the server will not make any requests to that server and will not collect any of their data (users, posts, etc).
+
+<h2> Authenticating Nodes </h2>
+
+To allow other nodes to connect to the server requires three steps:
+
+1. Create a new user with `type=NODE` and `is_active=True`. The remaining fields can be set to anything.
+2. Create a new Auth Token for the user created in step 1.
+3. Provide the remote server with the token generaetd in step 2.
+
+To disable a remote node from connecting, we can simply change `is_active=False` for the desired node. They can be reactivated at any time by changing `is_active=True`.
