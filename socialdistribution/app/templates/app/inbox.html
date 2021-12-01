@@ -204,15 +204,6 @@
                 border: 0;
               ">
               <h5>{{item.author.displayName}} liked your post.</h5>
-              <input class="btn btn-light" type="button" data-bs-toggle="collapse"
-                data-bs-target="#postData{{item.id|getID}}" aria-expanded="false"
-                aria-controls="postData{{item.id|getID}}" value="Show" id="#postData{{item.id|getID}}"
-                onclick="changeLabel(this.id)" />
-            </div>
-            <div class="collapse" id="postData{{item.id|getID}}">
-              <div class="card-body">
-                <h6 class="card-text">{{item.comment}}.</h6>
-              </div>
             </div>
           </div>
         </li>
