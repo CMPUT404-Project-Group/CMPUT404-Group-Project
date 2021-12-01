@@ -222,9 +222,12 @@ def foreign_post(request):
     """
     data = request.POST.dict()
     post = Node_Interface.get_post(data['post'])
+    token = Node.objects.get(url=post.author.url).auth_token
     context = {
         'post': post,
-        'is_author': False
+        'is_author': False,
+        'user' : request.user,
+        'token' : API_TOKEN
     }
     return render(request, 'posts/view_foreign_post.html', context)
 
