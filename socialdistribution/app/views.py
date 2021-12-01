@@ -220,19 +220,16 @@ def foreign_post(request):
 
     This is different to local posts to handle with the origin urls, commenting, liking, etc.
     """
-    if request.POST.dict() != {}:
-        data = request.POST.dict()
-        post = Node_Interface.get_post(data['post'])
-        host=post['author']['host']
-        token = Node.objects.get(url__contains=host).auth_token
-        context = {
-            'post': post,
-            'is_author': False,
-            'user' : request.user,
-            'token' : token
-        }
-    else:
-        context = {}
+    data = request.POST.dict()
+    post = Node_Interface.get_post(data['post'])
+    host=post['author']['host']
+    token = Node.objects.get(url__contains=host).auth_token
+    context = {
+        'post': post,
+        'is_author': False,
+        'user' : request.user,
+        'token' : token
+    }
 
     return render(request, 'posts/view_foreign_post.html', context)
 
