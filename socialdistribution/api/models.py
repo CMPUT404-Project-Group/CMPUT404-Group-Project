@@ -155,11 +155,14 @@ class PostBuilder():
     def set_post_content(self, title, categories, text_content=None, image_content=None, shared_post=None, image_link=None):
         if image_content:
             image_data = image_content.read()
-            encoded_image = str(base64.b64encode(image_data))
+            encoded_image = base64.b64encode(image_data)
+            string_encoded_image = str(encoded_image)
+            formatted_encoded_image = string_encoded_image[2:len(string_encoded_image)-1]
+
             if image_content.content_type == 'image/jpeg':
-                self.image_content = f"data:image/jpeg;base64, {encoded_image}"
+                self.image_content = f"data:image/jpeg;base64,{formatted_encoded_image}"
             elif image_content.content_type == 'image/png':
-                self.image_content = f"data:image/png;base64, {encoded_image}"
+                self.image_content = f"data:image/png;base64,{formatted_encoded_image}"
 
         self.title = title
         self.categories = categories
@@ -289,7 +292,7 @@ class Post(models.Model):
         PLAIN = "text/plain"
         APPLICATION = "application/base64"
         PNG = "image/png;base64"
-        JPG = "image/jpg;base64"
+        JPG = "image/jpeg;base64"
 
     type = models.CharField(max_length=255, unique=False,
                             null=False, blank=False, default="post")
