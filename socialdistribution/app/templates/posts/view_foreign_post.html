@@ -54,7 +54,7 @@
               <a href=""><button
                   class="btn btn-sm btn-outline-primary float-start mt-4 me-3">View
                   Comments</button></a>
-              <a href=""><button
+              <a href="{% url 'app:create-foreign-comment' post.id %}"><button
                   class="btn btn-sm btn-outline-primary float-start mt-4 me-3">Add
                   Comment</button></a>
               <form action="#" method="get">

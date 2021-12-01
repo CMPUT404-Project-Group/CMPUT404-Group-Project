@@ -341,7 +341,8 @@ def create_foreign_comment(request, post_id):
     token = Node.objects.get(url=post.author.url).auth_token
     context = {
         'post': post,
-        'is_author': False
+        'is_author': False,
+        'user' : request.user
     }
 
     return render(request, 'comments/create_foreign_comment.html', context)
