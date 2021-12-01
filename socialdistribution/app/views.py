@@ -279,7 +279,7 @@ def manage_profile(request):
 def follow(request, other_user_id):
     if request.method == 'POST':
         other_user = User.objects.get(id=other_user_id)
-
+        headers = {'Authorization': 'Token %s' % API_TOKEN}
         try: 
             # send a friend request
             friend_request = Friend.objects.add_friend(
@@ -289,7 +289,7 @@ def follow(request, other_user_id):
             # send request to object user's inbox
             serializer = FriendRequestSerializer(friend_request).data
             inboxURL = serializer.get('object', {}).get('url') + '/inbox/'
-            requests.post(inboxURL, json=serializer)
+            requests.post(inboxURL, json=serializer, headers=headers)
 
             Follow.objects.add_follower(request.user, other_user)  # follow
             messages.success(request,f'Your friend request has been sent!')
