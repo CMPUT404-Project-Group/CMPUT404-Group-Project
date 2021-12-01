@@ -1,5 +1,6 @@
 from uuid import uuid4
 from requests import api
+
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post, Node
 from src.url_decorator import URLDecorator
@@ -30,6 +31,12 @@ from django.conf import settings
 HOST_URL = settings.HOST_URL
 HOST_API_URL = settings.HOST_API_URL
 API_TOKEN = settings.API_TOKEN
+TEAM_12_TOKEN = settings.TEAM_12_TOKEN
+TEAM_18_TOKEN = settings.TEAM_18_TOKEN
+TEAM_02_TOKEN = settings.TEAM_02_TOKEN
+
+TEST_TOKEN = settings.TEST_TOKEN
+
 
 def register(request):
     """
@@ -343,6 +350,18 @@ def follow(request, other_user_id):
     if request.method == 'POST':
         other_user = User.objects.get(id=other_user_id)
         headers = {'Authorization': 'Token %s' % API_TOKEN}
+
+        if other_user.type == 'foreign-author': 
+            host = other_user.url.split('/')[2]
+            if host == 'glowing-palm-tree1.herokuapp.com':
+                token = TEAM_12_TOKEN
+            elif host == 'cmput404-socialdistributio-t18.herokuapp.com':
+                token = TEAM_18_TOKEN
+            elif host == 'ourbackend.herokuapp.com':
+                token = TEAM_02_TOKEN
+            
+            headers = {'Authorization': 'Token %s' % token}
+
         try: 
             # send a friend request
             friend_request = Friend.objects.add_friend(
