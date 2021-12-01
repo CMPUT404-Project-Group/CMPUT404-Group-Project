@@ -15,7 +15,6 @@ class Node_Interface():
                 data = content['data']
             except KeyError:
                 data = []
-
         return data
 
     def get_authors(node):
@@ -31,5 +30,5 @@ class Node_Interface():
     
     def get_followers(author_id):
         uri = URLDecorator.author_followers_url(author_id)
-        return Node_Interface.__get_response__(author_id)
+        return Node_Interface.__get_response__(uri)
     

@@ -8,24 +8,17 @@
 {% block javascript %}
 <script>
     const createPost = async () => {
-        const url = `{{user.url}}/posts/{{uuid}}`
+        const url = `{{user.url}}/posts/`
         const headers = { 'Content-Type': 'application/json', 'Authorization': 'Token {{token}}' }
         values = $("form").serializeArray()
         const body = {
-            title: values[1].value,
-            source: url,
-            origin: url,
-            description: values[2].value,
-            contentType: 'text/plain',
-            content: values[2].value,
-            image_link: values[3].value,
-            categories: values[4].value,
-            visibility: values[5].value,
             author: '{{user.id}}',
-            size: '0',
-            comment_page: '{{user.url}}/posts/{{uuid}}/comments/'
+            categories: values[4].value,
+            content: values[2].value,
+            title: values[1].value,
+            visibility: values[5].value,
         }
-        var req = new Request(url, { method: 'PUT', body: JSON.stringify(body), headers })
+        var req = new Request(url, { method: 'POST', body: JSON.stringify(body), headers })
         const res = await fetch(req)
         return res.json()
     }
