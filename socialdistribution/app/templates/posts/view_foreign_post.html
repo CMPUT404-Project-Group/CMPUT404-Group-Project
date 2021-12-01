@@ -12,6 +12,7 @@
         const like = {
             summary : '{{user.displayName}} likes your post',
             author : '{{post.author}}',
+            type : "Like",
             object : '{{post.author.url}}/posts/{{post.id}}'
         }
 
@@ -19,37 +20,6 @@
 
         const url = `{{post.author.url}}/inbox/`;
         const headers = { 'Content-Type': 'application/json', 'Authorization': `Token {{token}}` }
-        var req = new Request(url, { method: 'POST', body: JSON.stringify(like), headers })
-
-        const res = await fetch(req)
-        if (res.status === 204) {
-            $('#modalMessage').html(`Like successfully sent to ${author.displayName}`)
-            $('#modal').modal('toggle');
-        } else {
-            $('#modalMessage').html('Something went wrong. Try sending this like again later.')
-            $('#modal').modal('toggle');
-        }
-    }
-
-    const createComment = async () => {
-        const headers = { 'Content-Type': 'application/json', 'Authorization': 'Token {{token}}' }
-        values = $("form").serializeArray()
-        const body = {
-            summary: '{{user.displayName}} likes your post',
-            author: '{{post.author}}',
-            object: '{{post.author.url}}/posts/{{post.id}}'
-        }
-        var req = new Request(url, { method: 'PUT', body: JSON.stringify(body), headers})
-        const res = await fetch(req)
-        return res.json()
-    }
-
-    const sendComment = async () => {
-        const like = await createLike();
-        // send like to users inbox
-
-        const url = `{{post.author.url}}/inbox/`;
-        const headers = { 'Content-Type': 'application/json', 'Authorization': `Token {{author_token}}` }
         var req = new Request(url, { method: 'POST', body: JSON.stringify(like), headers })
 
         const res = await fetch(req)
