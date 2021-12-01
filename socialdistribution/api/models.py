@@ -167,6 +167,8 @@ class PostBuilder():
         self.shared_post = shared_post
         self.image_link = image_link
 
+        self.__set_content_type__(image_content)
+
         
 
     # TODO: Description is not very descriptive
@@ -177,7 +179,6 @@ class PostBuilder():
         self.unlisted = unlisted
 
         self.__set_description__()
-        self.__set_content_type__()
         self.__set_urls__()
         self.__set_size__()
 
@@ -216,11 +217,12 @@ class PostBuilder():
             self.description += f": {self.text_content[0:50]}..."
 
     #TODO: Application XORG
-    def __set_content_type__(self):
-        if self.text_content:
-            self.__set_content_type_text__()
+    def __set_content_type__(self, image_content):
+        if self.image_content:
+            self.__set_content_type_image__(image_content)
         else:
-            self.__set_content_type_image__()
+            self.__set_content_type_text__()
+            
     
     def __set_content_type_text__(self):
         marked_down_text = markdown.Markdown().convert(self.text_content)
@@ -231,8 +233,8 @@ class PostBuilder():
         else:
             self.content_type = Post.ContentType.MARKDOWN
     
-    def __set_content_type_image__(self):
-        if self.image_content[:3] == "/9g=":
+    def __set_content_type_image__(self, image_content):
+        if image_content.content_type == 'image/jpeg':
             self.content_type = Post.ContentType.JPG
         else:
             self.content_type = Post.ContentType.PNG
