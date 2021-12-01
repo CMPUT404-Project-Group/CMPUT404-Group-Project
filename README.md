@@ -5,11 +5,14 @@ Group Project for CMPUT404; A distributed social networking webapp.
 LICENSE'D under the Apache license by Anthony Ma, Dalton Ronan, Xueying Luo, Chase Warwick, Zijian Zhou.
 
 ## Connecting
-App (frontend) URL: https://social-distribution-t10.herokuapp.com/app/ 
+
+App (frontend) URL: https://social-distribution-t10.herokuapp.com/app/
 
 Api (backend service) URL: https://social-distribution-t10.herokuapp.com/api/
 
 Api documentation: https://social-distribution-t10.herokuapp.com/api/swagger/
+
+Frontend documentation: [here](FrontendDocumentation)
 
 ## Development
 
@@ -26,15 +29,17 @@ and install the libraries included in `requirements.txt`.
 
 ```
 python -m pip install -r requirements.txt
-``` 
+```
 
 Before beginning local development, make sure your database schema is up to date by pulling and running the latest migrations from the `integration` branch.
+
 ```
 git pull origin integration
 python manage.py migrate
 ```
 
 To run the development server on `localhost:8000`, run the command
+
 ```
 python manage.py runserver
 ```
@@ -52,9 +57,7 @@ Swagger API documentation can be found at `localhost:8000/api/swagger/`
 <br>
 <br>
 
-
-CMPUT404-project-socialdistribution
-===================================
+# CMPUT404-project-socialdistribution
 
 CMPUT404-project-socialdistribution
 
@@ -62,13 +65,11 @@ See project.org (plain-text/org-mode) for a description of the project.
 
 Make a distributed social network!
 
-Contributing
-============
+# Contributing
 
 Send a pull request and be sure to update this file with your name.
 
-Contributors / Licensing
-========================
+# Contributors / Licensing
 
 Generally everything is LICENSE'D under the Apache 2 license by Abram Hindle.
 
@@ -85,7 +86,7 @@ Contributors:
     Erin Torbiak
     Abram Hindle
     Braedy Kuzma
-    Nhan Nguyen 
+    Nhan Nguyen
     Anthony Ma
     Xueying Luo
     Zijian Zhou
