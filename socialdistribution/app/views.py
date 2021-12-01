@@ -3,7 +3,7 @@ from requests import api
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post, Node
 from src.url_decorator import URLDecorator
-from src.Node import Node_Interface
+from src.Node import Node_Interface_Factory, Abstract_Node_Interface
 import datetime
 import json
 import os
@@ -514,9 +514,10 @@ class PostListView(generic.ListView):
         posts = []
 
         for node in Node.objects.get_queryset().filter(is_active=True):
-            authors = Node_Interface.get_authors(node)
+            node_interface = Node_Interface_Factory.get_interface(node)
+            authors = node_interface.get_authors(node)
             for author in authors:
-                author_posts = Node_Interface.get_author_posts(author['id'])
+                author_posts = node_interface.get_author_posts(author['id'])
                 posts.extend(author_posts)
 
         for post in serializer.data:
@@ -526,6 +527,8 @@ class PostListView(generic.ListView):
             post['source'] = url
             post['origin'] = url
             post['local'] = True
+            content = post['content'].strip(' ')
+            post['content'] = content
             posts.append(post)
 
         return render(request, self.template_name, {'post_list': sorted(posts, key=lambda i: i['published'], reverse=True)})
