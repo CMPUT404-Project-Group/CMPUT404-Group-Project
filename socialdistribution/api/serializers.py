@@ -1,7 +1,8 @@
 import os
+from src.url_decorator import URLDecorator
+from re import I, X
 import requests
 import json
-from re import I
 from typing import OrderedDict
 from dotenv import load_dotenv
 from friendship.models import Follow, Friend
@@ -34,7 +35,7 @@ class UserSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
 
     contentType = serializers.CharField(source='content_type')
-    content = serializers.CharField(source='text_content')
+    content = serializers.CharField(source='get_content')
    
     class Meta:
         model = Post
@@ -60,6 +61,8 @@ class PostSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         post = super().to_representation(instance)
+
+        post['id'] = f"{HOST_API_URL[:-1]}/author/{post['author']}/posts/{post['id']}"
         post['categories'] = post['categories'].split(',')
 
         author_id = post['author']
@@ -75,6 +78,7 @@ class PostSerializer(serializers.ModelSerializer):
         post['size'] = comments_list_paginated['size']
 
         post['author'] = author_serializer.data
+        
         return post
 
 
@@ -92,7 +96,6 @@ class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
         fields = [
-            'id',
             'context',
             'summary',
             'type',
@@ -102,9 +105,14 @@ class LikeSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         like = super().to_representation(instance)
-
+        
         like['@context'] = like.pop('context')
-        like['object'] = like.pop('content_object').id
+
+        content_object = like.pop('content_object')
+        if content_object.type == 'post':
+            like['object'] = URLDecorator.post_likes_url(HOST_API_URL[:-1], content_object.author.id, content_object.id)
+        else:
+            like['object'] = URLDecorator.comment_likes_url(HOST_API_URL[:-1], like['author'], content_object.post.id, content_object.id)
 
         author_id = like['author']
         author = User.objects.get(id=author_id)
@@ -142,6 +150,9 @@ class CommentSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         comment = super().to_representation(instance)
 
+        comment['id'] = URLDecorator.comment_id_url(
+            HOST_API_URL[:-1], comment['author'], comment['post'], comment['id'])
+
         author_id = comment['author']
         author = User.objects.get(id=author_id)
         author_serializer = UserSerializer(author)
@@ -174,11 +185,3 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         object_obj = User.objects.get(id=request.get('to_user'))
         object = UserSerializer(object_obj).data
         return {'type': 'Follow', 'summary': actor.get('displayName') + ' wants to follow ' + object.get('displayName'), 'actor': actor, 'object': object}
-        
-class GithubEventSerializer(PostSerializer):
-
-    pass
-
-class GithubEventToPostAdapter():
-
-    pass

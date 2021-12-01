@@ -71,7 +71,8 @@ def index(request):
     stream_posts = PostSerializer(stream_posts_obj, many=True).data
     
     for post in stream_posts:
-            post_id = post['id']
+            post_id = post['id'].split('/')[-1]
+            post['id'] = post_id
             url = f'{HOST_URL}/app/posts/{post_id}'
             post['source'] = url
             post['origin'] = url
@@ -149,6 +150,7 @@ def delete_post(request, post_id):
 def post(request, post_id):
     post_obj = get_object_or_404(Post, pk=post_id)
     post = PostSerializer(post_obj).data
+    post['id'] = post['id'].split('/')[-1]
     user = request.user
     post_author = post_obj.author
 
@@ -419,8 +421,9 @@ class PostListView(generic.ListView):
                 posts.extend(author_posts)
 
         for post in serializer.data:
-            post_id = post['id']
+            post_id = post['id'].split('/')[-1]
             url = f'{HOST_URL}/app/posts/{post_id}'
+            post['id'] = post_id
             post['source'] = url
             post['origin'] = url
             post['local'] = True
