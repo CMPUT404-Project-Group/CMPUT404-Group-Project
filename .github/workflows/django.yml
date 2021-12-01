@@ -31,4 +31,4 @@ jobs:
           pip install -r requirements.txt
       - name: Run Tests
         run: |
-          python socialdistribution/manage.py test socialdistribution/api/tests
+          python socialdistribution/manage.py test
