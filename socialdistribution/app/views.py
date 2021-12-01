@@ -107,7 +107,9 @@ def create_post(request):
             return redirect('app:index')
     else:
         form = PostCreationForm()
-    friends = Node_Interface.get_followers(request.user.url)
+    node = Node.objects.get(team="LOCAL")
+    node_interface = Node_Interface_Factory.get_interface(node)
+    friends = node_interface.get_followers(node, request.user.url)
     for friend in friends:
         # get the auth token
         token = Node.objects.get(url=friend['host']).auth_token
@@ -225,12 +227,11 @@ def foreign_post(request):
     node = Node.objects.get(url=url)
     node_interface = Node_Interface_Factory.get_interface(node)
     post = node_interface.get_post(node, data['post'])
-    #token = Node.objects.get(url=post.author.url).auth_token
     context = {
         'post': post,
         'is_author': False,
         'user' : request.user,
-        'token' : API_TOKEN
+        'token' : node.auth_token
     }
     return render(request, 'posts/view_foreign_post.html', context)
 
