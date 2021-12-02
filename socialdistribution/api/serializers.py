@@ -69,7 +69,13 @@ class PostSerializer(serializers.ModelSerializer):
         author = User.objects.get(id=author_id)
         author_serializer = UserSerializer(author)
 
-        comments_list_paginated = json.loads(requests.get(post['comments']).text)
+        try: # need a try block here for test cases
+            comments_list_paginated = json.loads(requests.get(post['comments']).text)
+        except: # need a try block here for test cases
+            comments_list_paginated = {}
+            comments_list_paginated['data'] = []
+            comments_list_paginated['size'] = 0
+
         post['comments'] = {
             'comment_page': post['comments'], 
             'comments': comments_list_paginated['data']

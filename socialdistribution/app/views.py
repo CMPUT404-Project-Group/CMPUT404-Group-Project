@@ -235,6 +235,7 @@ def foreign_post(request):
         'user' : request.user,
         'token' : node.auth_token
     }
+
     return render(request, 'posts/view_foreign_post.html', context)
 
       
