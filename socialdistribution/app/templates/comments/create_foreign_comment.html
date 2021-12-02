@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title%}Comment on the Post{% endblock %}
+
+{% block content%}
+{% include "app/includes/navbar.html" %}
+
+{% block javascript %}
+<script>
+    const sendComment = async () => {
+
+        const comment = {
+            type : "comment",
+            comment : document.getElementById("id_text_content").value,
+            author : "user",
+            contentType : "text/plain",
+            published : Date.now(),
+            id : "{{post.author.url}}/posts/{{post.id}}/comments/"
+        }
+
+        const url = `{{post.author.url}}/inbox/`;
+        const headers = { 'Content-Type': 'application/json', 'Authorization': `Token {{token}}` }
+        var req = new Request(url, { method: 'POST', body: JSON.stringify(comment), headers })
+
+        const res = await fetch(req)
+        if (res.status === 204) {
+            $('#modalMessage').html(`Comment successfully added to post {{post.id}}`)
+            $('#modal').modal('toggle');
+        } else {
+            $('#modalMessage').html('Something went wrong. Try sending this comment again later.')
+            $('#modal').modal('toggle');
+        }
+    }
+
+    const closeModal = () => {
+        window.location.reload()
+    }
+
+</script>
+{% endblock %}
+<div class="container py-5 mt-5">
+    <div class="row d-felx justify-content-center align-items-center h-100">
+        <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 45%">
+            <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0;">
+                <div class="card-body text-center">
+                    <form method='post' class="box">
+                        {% csrf_token %}
+                        <h3 class="mb-3">Create a Comment</h3>
+                        <div class="form-outline mb-2 text-start">
+                            <label for="id_text_content" class="form-label h6">Comment</label>
+                            <textarea id="id_text_content" class="form-control" cols="40" rows="10" name="comment"></textarea>
+                        </div>
+                        <div class="form-outline mb-2">
+                            <button class="btn btn-primary shadow mt-5 w-100" onclick="sendComment()" type="submit">Create Comment</button>
+                        </div>
+                          <a href="{% url 'app:index' %}"
+                            ><button type="button" class="btn btn-primary shadow mt-3 w-100">
+                                    Back
+                            </button></a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

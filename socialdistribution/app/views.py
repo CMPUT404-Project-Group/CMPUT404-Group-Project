@@ -434,6 +434,18 @@ def create_comment(request, post_id):
 
     return render(request, 'comments/create_comment.html', {'form': form})
 
+@login_required
+def create_foreign_comment(request, post_id):
+    post = Node_Interface.get_post(data['post'])
+    token = Node.objects.get(url=post.author.url).auth_token
+    context = {
+        'post': post,
+        'is_author': False,
+        'user' : request.user
+    }
+
+    return render(request, 'comments/create_foreign_comment.html', context)
+
 def comments(request, post_id):
     """
     Displays all of the comments for the post given by post_id.

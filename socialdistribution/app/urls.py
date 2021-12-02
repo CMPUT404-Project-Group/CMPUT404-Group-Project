@@ -11,6 +11,7 @@ urlpatterns = [
     path('posts/delete-post/<str:post_id>', views.delete_post, name="delete-post"),
     path('posts/<str:post_id>', views.post, name="posts"),
     path('posts/view/foreign-post', views.foreign_post, name="foreign_posts"),
+    path('posts/view/foreign-post/<str:post_id>/create-comment', views.create_foreign_comment, name="create-foreign-comment"),
     path('posts/<str:post_id>/create-comment', views.create_comment, name='create-comment'),
     path('posts/<str:post_id>/comments', views.comments, name='comments'),
     path('profile/', views.view_profile, name="view-profile"),
