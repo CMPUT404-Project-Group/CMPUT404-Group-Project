@@ -1,9 +1,10 @@
 from uuid import uuid4
 from requests import api
+
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post, Node
 from src.url_decorator import URLDecorator
-from src.Node import Node_Interface
+from src.Node import Node_Interface_Factory, Abstract_Node_Interface
 import datetime
 import json
 import os
@@ -30,8 +31,17 @@ from django.conf import settings
 HOST_URL = settings.HOST_URL
 HOST_API_URL = settings.HOST_API_URL
 API_TOKEN = settings.API_TOKEN
+TEAM_12_TOKEN = settings.TEAM_12_TOKEN
+TEAM_18_TOKEN = settings.TEAM_18_TOKEN
+TEAM_02_TOKEN = settings.TEAM_02_TOKEN
+
+TEST_TOKEN = settings.TEST_TOKEN
+
 
 def register(request):
+    """
+    Form for new users to register. If request is POST, we use the default django auth to create the user.
+    """
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
@@ -52,6 +62,11 @@ def register(request):
 
 @login_required
 def index(request):
+    """
+    Home page for a logged in and authenticated user.
+
+    Renders the user's "stream", pulling in all of the public and user's own posts.
+    """
     #Get all posts from yourself (besides unlisted ones)
     user_posts = Post.objects.all().order_by('-published').filter(author=request.user, unlisted=False)
 
@@ -85,6 +100,11 @@ def index(request):
 
 @login_required
 def create_post(request):
+    """
+    From to create a new post. Uses the PostCreationForm. 
+    
+    If the post is succesfully created, redirects to the user's stream.
+    """
     # https://stackoverflow.com/questions/43347566/how-to-pass-user-object-to-forms-in-django
     if request.method == 'POST':
         user = request.user
@@ -94,15 +114,22 @@ def create_post(request):
             return redirect('app:index')
     else:
         form = PostCreationForm()
-    friends = Node_Interface.get_followers(request.user.url)
+    node = Node.objects.get(team="LOCAL")
+    node_interface = Node_Interface_Factory.get_interface(node)
+    friends = node_interface.get_followers(node, request.user.url)
     for friend in friends:
         # get the auth token
         token = Node.objects.get(url=friend['host']).auth_token
         friend['token'] = token
-    return render(request, 'posts/create_post.html', {'form': form, 'friends': friends, 'token': API_TOKEN, 'uuid': uuid4()})
+    return render(request, 'posts/create_post.html', {'form': form, 'friends': friends, 'token': API_TOKEN})
 
 @login_required
 def edit_post(request, post_id):
+    """
+    Renders a form with the post data given by post_id.
+
+    Only an author can edit their own post, otherwise it returns a 403.
+    """
     post = get_object_or_404(Post, pk=post_id)
     user = request.user
     is_author = False
@@ -119,6 +146,9 @@ def edit_post(request, post_id):
 
 @login_required
 def share_post(request, post_id):
+    """
+    From to allow a user to share another user's post given by post_id.
+    """
     post = get_object_or_404(Post, pk=post_id)
     context = {
         'post': post}
@@ -135,6 +165,11 @@ def share_post(request, post_id):
 
 
 def delete_post(request, post_id):
+    """
+    Allows the user to delete the post given by post_id.
+
+    Only an author can edit their own post, otherwise it returns a 403.
+    """
     post = get_object_or_404(Post, pk=post_id)
     user = request.user
 
@@ -148,6 +183,11 @@ def delete_post(request, post_id):
 
 @login_required
 def post(request, post_id):
+    """
+    Allows the user to view the details of the post given by post_id.
+
+    It only displays posts that are public and listed, otherwise it returns 403.
+    """
     post_obj = get_object_or_404(Post, pk=post_id)
     post = PostSerializer(post_obj).data
     post['id'] = post['id'].split('/')[-1]
@@ -184,17 +224,36 @@ def post(request, post_id):
 
 @login_required
 def foreign_post(request):
+    """
+    Allows users to view posts from foreign servers.
+
+    This is different to local posts to handle with the origin urls, commenting, liking, etc.
+    """
     data = request.POST.dict()
-    post = Node_Interface.get_post(data['post'])
+    if request.method == 'POST':
+        url = data['post'].split('/author')[0]
+        node = Node.objects.get(url=url)
+        node_interface = Node_Interface_Factory.get_interface(node)
+        post = node_interface.get_post(node, data['post'])
+        
     context = {
         'post': post,
-        'is_author': False
+        'is_author': False,
+        'user' : request.user,
+        'token' : node.auth_token
     }
+
     return render(request, 'posts/view_foreign_post.html', context)
 
       
 @login_required
 def view_profile(request):
+    """
+    Allows user to view their own profile details.
+
+    If the github-sync-button is pressed, it will trigger the sync_github_activity view to 
+    pull the users github activity into thier stream.
+    """
     user = request.user
     if request.GET.get('github-sync-button'):
         sync_github_activity(request)
@@ -202,16 +261,23 @@ def view_profile(request):
     
 @login_required
 def view_other_user(request, other_user_id):
+    """
+    Allows the user to view another users profile, and send them follow/friend requests.
+
+    Depending on what the relationship is between the user and other_user_id, different
+    templates will be rendered.
+    """
     if User.objects.filter(id=other_user_id).exists():
         other_user = User.objects.get(id=other_user_id)
     else:
         for node in Node.objects.get_queryset().filter(is_active=True):
-            url = str(node) + 'author/' + other_user_id
-            res = requests.get(url, headers={})
-            if (res.status_code==200):
-                break
-        other_user = json.loads(res.content.decode('utf-8'))['data'][0]
-        return render(request, 'profile/view_other_user.html', {'other_user': other_user})
+            node_interface = Node_Interface_Factory.get_interface(node)
+            author = node_interface.get_author(node, other_user_id)
+            if len(author) > 0:
+                return render(request, 'profile/view_other_user.html', {'other_user': author})
+        return render(HttpResponse('User not found'))
+
+        
 
     if other_user==request.user: 
         return redirect('app:view-profile')
@@ -228,14 +294,22 @@ def view_other_user(request, other_user_id):
 
 @login_required
 def view_followers(request):
+    """
+    Allows the user to view all of the other users that are following them, and will receive their posts.
+    """
+    headers = {'Authorization': 'Token %s' % API_TOKEN}
     user = request.user
     url = HOST_API_URL + 'author/%s/followers/' % user.id
-    res = requests.get(url)
+    res = requests.get(url, headers=headers)
     data = json.loads(res.content.decode('utf-8'))
-    return render(request, 'profile/view_followers.html', {'data': data.get('items')})
+    print(data)
+    return render(request, 'profile/view_followers.html', {'data': data.get('data')})
 
 @login_required
 def explore_authors(request):
+    """
+    Allows the user to view all of the authors (local and foreign) that are available for them to follow and view.
+    """
     # get local authors
     headers = {'Authorization': 'Token %s' % API_TOKEN}
     res = requests.get(HOST_URL+reverse('api:authors'), headers=headers)
@@ -249,16 +323,17 @@ def explore_authors(request):
     nodes = Node.objects.get_queryset().filter(is_active=True)
     remote_authors = []
     for node in nodes:
-        try:
-            res = requests.get(str(node)+'authors/', headers={'Authorization': '%s' % node.auth_token})
-            remote_authors.extend(json.loads(res.content.decode('utf-8'))['data'])
-        except:
-            continue
+        node_interface = Node_Interface_Factory.get_interface(node)
+        remote_authors.extend(node_interface.get_authors(node))
+        
     return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': remote_authors })
 
 
 @login_required
 def manage_profile(request):
+    """
+    Allows the user to edit and update thier profile information.
+    """
     if request.method == 'POST':
         form = ManageProfileForm(request.POST, instance=request.user)
 
@@ -275,8 +350,26 @@ def manage_profile(request):
 
 @login_required
 def follow(request, other_user_id):
+    """
+    A view that creates new friendship relationships between users.
+
+    If they are sending other_user_id a friend request, it posts the follow
+    object to the other user's inbox.
+    """
     if request.method == 'POST':
         other_user = User.objects.get(id=other_user_id)
+        headers = {'Authorization': 'Token %s' % API_TOKEN}
+
+        if other_user.type == 'foreign-author': 
+            host = other_user.url.split('/')[2]
+            if host == 'glowing-palm-tree1.herokuapp.com':
+                token = TEAM_12_TOKEN
+            elif host == 'cmput404-socialdistributio-t18.herokuapp.com':
+                token = TEAM_18_TOKEN
+            elif host == 'ourbackend.herokuapp.com':
+                token = TEAM_02_TOKEN
+            
+            headers = {'Authorization': 'Token %s' % token}
 
         try: 
             # send a friend request
@@ -287,7 +380,7 @@ def follow(request, other_user_id):
             # send request to object user's inbox
             serializer = FriendRequestSerializer(friend_request).data
             inboxURL = serializer.get('object', {}).get('url') + '/inbox/'
-            requests.post(inboxURL, json=serializer)
+            requests.post(inboxURL, json=serializer, headers=headers)
 
             Follow.objects.add_follower(request.user, other_user)  # follow
             messages.success(request,f'Your friend request has been sent!')
@@ -309,6 +402,9 @@ def follow(request, other_user_id):
 
 @login_required
 def unfollow(request, other_user_id):
+    """
+    Allows the user to unfollow the user given by other_user_id.
+    """
     if request.method == 'POST':
         other_user = User.objects.get(id=other_user_id)
         Follow.objects.remove_follower(request.user, other_user)  # unfollow 
@@ -321,6 +417,9 @@ def unfollow(request, other_user_id):
 
 @login_required
 def create_comment(request, post_id):
+    """
+    Displays a text form to allow the user to add a comment to the post given by post_id.
+    """
     if request.method == 'POST':
         user = request.user
         post = get_object_or_404(Post, pk=post_id)
@@ -348,6 +447,11 @@ def create_foreign_comment(request, post_id):
     return render(request, 'comments/create_foreign_comment.html', context)
 
 def comments(request, post_id):
+    """
+    Displays all of the comments for the post given by post_id.
+
+    If the request has button, it also adds a like to that comment.
+    """
     post = get_object_or_404(Post, pk=post_id)
     comments = Comment.objects.all().filter(post=post)
 
@@ -367,6 +471,9 @@ def comments(request, post_id):
 
 @login_required
 def like_post(request, post_id):
+    """
+    View that adds a like to the post given by post_id.
+    """
     user = request.user
     post = get_object_or_404(Post, pk=post_id)
 
@@ -377,6 +484,11 @@ def like_post(request, post_id):
 
 @login_required
 def like_comment(request, comment_id):
+    """
+    A view that adds a like to the comment given by comment_id.
+
+    Typically triggered by a GET request to `comments` view.
+    """
     user = request.user
     comment = get_object_or_404(Comment, pk=comment_id)
 
@@ -387,6 +499,15 @@ def like_comment(request, comment_id):
 
 @login_required
 def inbox(request, author_id):
+    """
+    A view to manage and display the inbox for the author given by author_id.
+
+    If the request is GET, it renders the paginated list of inbox items by sending a
+    request to the inbox API endpoint.
+
+    If the request is DELETE, it clears the author's inbox by sending a delete request
+    to the inbox API endpoint
+    """
     url = HOST_URL+reverse('api:inbox', kwargs={'author_id': author_id})
     token, _ = Token.objects.get_or_create(user=request.user) # create token
     headers = {'Authorization': 'Token %s' % token}
@@ -417,6 +538,9 @@ def inbox(request, author_id):
 
 
 class PostListView(generic.ListView):
+    """
+    Renders a list of all th public posts (foreign and local) available to the user.
+    """
     model = Post
     template_name = 'posts/public_posts.html'
     
@@ -427,9 +551,10 @@ class PostListView(generic.ListView):
         posts = []
 
         for node in Node.objects.get_queryset().filter(is_active=True):
-            authors = Node_Interface.get_authors(node)
+            node_interface = Node_Interface_Factory.get_interface(node)
+            authors = node_interface.get_authors(node)
             for author in authors:
-                author_posts = Node_Interface.get_author_posts(author['id'])
+                author_posts = node_interface.get_author_posts(node, author['id'])
                 posts.extend(author_posts)
 
         for post in serializer.data:
@@ -439,12 +564,19 @@ class PostListView(generic.ListView):
             post['source'] = url
             post['origin'] = url
             post['local'] = True
+            content = post['content'].strip(' ')
+            post['content'] = content
             posts.append(post)
 
         return render(request, self.template_name, {'post_list': sorted(posts, key=lambda i: i['published'], reverse=True)})
       
 @login_required
 def sync_github_activity(request):
+    """
+    A view the pulls in the users github activity into their stream.
+
+    Typically triggered from the `view_profile` view.
+    """
     user = request.user
     if user.github:
         github_username = user.github
@@ -483,6 +615,10 @@ def sync_github_activity(request):
 
 
 def github_event_to_post_adapter(author, event):
+    """
+    a utility function to convert raw github API response into a post
+    that our frontend can handle and display.
+    """
     type = Post.ContentType.PLAIN
     title = f"Github: {event['type']}"
     categories = f"github, {event['type']}"

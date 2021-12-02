@@ -29,7 +29,11 @@ HOST_API_URL = os.environ.get("HOST_API_URL")
 HOST_URL = os.environ.get("HOST_URL")
 API_TOKEN = os.environ.get("API_TOKEN")
 TEAM_12_TOKEN = os.environ.get("TEAM_12_TOKEN")
+TEAM_18_TOKEN = os.environ.get("TEAM_18_TOKEN")
+TEAM_02_TOKEN = os.environ.get("TEAM_02_TOKEN")
 ALLOWED_HOSTS = ['*']
+
+TEST_TOKEN = os.environ.get("TEST_TOKEN")
 
 
 # Application definition
