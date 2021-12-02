@@ -179,7 +179,7 @@ def delete_post(request, post_id):
         return HttpResponseForbidden()
     else:
         post.delete()
-        return render(request, 'app/index.html')
+        return redirect('app:index')
 
 @login_required
 def post(request, post_id):
