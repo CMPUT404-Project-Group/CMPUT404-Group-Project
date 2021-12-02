@@ -297,7 +297,7 @@ def view_followers(request):
     """
     Allows the user to view all of the other users that are following them, and will receive their posts.
     """
-    headers = {'Authorization': 'Token %s' % API_TOKEN}
+    headers = {'Authorization': 'Basic %s' % API_TOKEN}
     user = request.user
     url = HOST_API_URL + 'author/%s/followers/' % user.id
     res = requests.get(url, headers=headers)
@@ -311,7 +311,7 @@ def explore_authors(request):
     Allows the user to view all of the authors (local and foreign) that are available for them to follow and view.
     """
     # get local authors
-    headers = {'Authorization': 'Token %s' % API_TOKEN}
+    headers = {'Authorization': 'Basic %s' % API_TOKEN}
     res = requests.get(HOST_URL+reverse('api:authors'), headers=headers)
     data = json.loads(res.content.decode('utf-8'))
     local_authors = data.get('data')
@@ -358,7 +358,7 @@ def follow(request, other_user_id):
     """
     if request.method == 'POST':
         other_user = User.objects.get(id=other_user_id)
-        headers = {'Authorization': 'Token %s' % API_TOKEN}
+        headers = {'Authorization': 'Basic %s' % API_TOKEN}
 
         if other_user.type == 'foreign-author': 
             host = other_user.url.split('/')[2]
@@ -369,7 +369,7 @@ def follow(request, other_user_id):
             elif host == 'ourbackend.herokuapp.com':
                 token = TEAM_02_TOKEN
             
-            headers = {'Authorization': 'Token %s' % token}
+            headers = {'Authorization': 'Basic %s' % token}
 
         try: 
             # send a friend request
@@ -510,7 +510,7 @@ def inbox(request, author_id):
     """
     url = HOST_URL+reverse('api:inbox', kwargs={'author_id': author_id})
     token, _ = Token.objects.get_or_create(user=request.user) # create token
-    headers = {'Authorization': 'Token %s' % token}
+    headers = {'Authorization': 'Basic %s' % token}
     if request.method == 'GET':
         try:
             page = request.GET.get('page')

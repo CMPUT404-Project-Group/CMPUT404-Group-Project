@@ -13,7 +13,7 @@
 
   const clearInbox = () => {
     $.ajaxSetup({
-      headers: { "X-CSRFToken": "{{csrf_token}}", "Authorization": "Token {{token}}" },
+      headers: { "X-CSRFToken": "{{csrf_token}}", "Authorization": "Basic {{token}}" },
     });
     $.ajax({
       type: "DELETE",
@@ -51,7 +51,7 @@
     if (res.status === 204) {
       // this looks confusing, but we swap the roles when sending a friend request back.
       const body = { 'type': 'Follow', 'summary': `${object.displayName} wants to follow ${actor.displayName}`, 'actor': object, 'object': actor }
-      req = new Request(actorURL + '/inbox/', { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json', 'Authorization': 'Token {{token}}', 'X-CSRFToken': '{{csrf_token}}' } });
+      req = new Request(actorURL + '/inbox/', { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic {{token}}', 'X-CSRFToken': '{{csrf_token}}' } });
       const res = await fetch(req) // POST follow to authors inbox
       if (res.status === 204) {
         $('#followModalMessage').html('Friend Request sent. You are now following this author.')

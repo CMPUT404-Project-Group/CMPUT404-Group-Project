@@ -15,7 +15,7 @@ class Node_Interface_Factory():
 class Abstract_Node_Interface(ABC):
 
     def __get_response__(node, uri):
-        headers = {'Authorization': f'Token {node.auth_token}'}
+        headers = {'Authorization': f'Basic {node.auth_token}'}
         response = requests.get(uri, headers=headers)
         content = []
         

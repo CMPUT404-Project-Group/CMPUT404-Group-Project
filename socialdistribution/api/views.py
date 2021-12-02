@@ -229,7 +229,7 @@ class PostsAPI(APIView):
 
 class PostAPI(APIView):
 
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     @swagger_auto_schema(tags=['post'])
@@ -510,7 +510,7 @@ class Comment_API(generics.ListCreateAPIView):
 
 class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = InboxSerializer
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
@@ -706,7 +706,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     400: openapi.Response(description="Bad Request")
 })
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([BasicAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def followers(request, author_id):
     """
