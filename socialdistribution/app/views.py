@@ -3,7 +3,7 @@ from requests import api
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post, Node
 from src.url_decorator import URLDecorator
-from src.Node import Node_Interface
+from src.Node import Node_Interface_Factory, Abstract_Node_Interface
 import datetime
 import json
 import os
@@ -107,7 +107,9 @@ def create_post(request):
             return redirect('app:index')
     else:
         form = PostCreationForm()
-    friends = Node_Interface.get_followers(request.user.url)
+    node = Node.objects.get(team="LOCAL")
+    node_interface = Node_Interface_Factory.get_interface(node)
+    friends = node_interface.get_followers(node, request.user.url)
     for friend in friends:
         # get the auth token
         token = Node.objects.get(url=friend['host']).auth_token
@@ -221,14 +223,17 @@ def foreign_post(request):
     This is different to local posts to handle with the origin urls, commenting, liking, etc.
     """
     data = request.POST.dict()
-    post = Node_Interface.get_post(data['post'])
-    host=post['author']['host']
-    token = Node.objects.get(url__contains=host).auth_token
+    if request.method == 'POST':
+        url = data['post'].split('/author')[0]
+        node = Node.objects.get(url=url)
+        node_interface = Node_Interface_Factory.get_interface(node)
+        post = node_interface.get_post(node, data['post'])
+        
     context = {
         'post': post,
         'is_author': False,
         'user' : request.user,
-        'token' : token
+        'token' : node.auth_token
     }
 
     return render(request, 'posts/view_foreign_post.html', context)
@@ -259,12 +264,13 @@ def view_other_user(request, other_user_id):
         other_user = User.objects.get(id=other_user_id)
     else:
         for node in Node.objects.get_queryset().filter(is_active=True):
-            url = str(node) + 'author/' + other_user_id
-            res = requests.get(url, headers={})
-            if (res.status_code==200):
-                break
-        other_user = json.loads(res.content.decode('utf-8'))['data'][0]
-        return render(request, 'profile/view_other_user.html', {'other_user': other_user})
+            node_interface = Node_Interface_Factory.get_interface(node)
+            author = node_interface.get_author(node, other_user_id)
+            if len(author) > 0:
+                return render(request, 'profile/view_other_user.html', {'other_user': author})
+        return render(HttpResponse('User not found'))
+
+        
 
     if other_user==request.user: 
         return redirect('app:view-profile')
@@ -310,11 +316,9 @@ def explore_authors(request):
     nodes = Node.objects.get_queryset().filter(is_active=True)
     remote_authors = []
     for node in nodes:
-        try:
-            res = requests.get(str(node)+'/authors/', headers={'Authorization': '%s' % node.auth_token})
-            remote_authors.extend(json.loads(res.content.decode('utf-8'))['data'])
-        except:
-            continue
+        node_interface = Node_Interface_Factory.get_interface(node)
+        remote_authors.extend(node_interface.get_authors(node))
+        
     return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': remote_authors })
 
 
@@ -516,9 +520,10 @@ class PostListView(generic.ListView):
         posts = []
 
         for node in Node.objects.get_queryset().filter(is_active=True):
-            authors = Node_Interface.get_authors(node)
+            node_interface = Node_Interface_Factory.get_interface(node)
+            authors = node_interface.get_authors(node)
             for author in authors:
-                author_posts = Node_Interface.get_author_posts(author['id'])
+                author_posts = node_interface.get_author_posts(node, author['id'])
                 posts.extend(author_posts)
 
         for post in serializer.data:
@@ -528,6 +533,8 @@ class PostListView(generic.ListView):
             post['source'] = url
             post['origin'] = url
             post['local'] = True
+            content = post['content'].strip(' ')
+            post['content'] = content
             posts.append(post)
 
         return render(request, self.template_name, {'post_list': sorted(posts, key=lambda i: i['published'], reverse=True)})
