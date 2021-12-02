@@ -5,6 +5,40 @@
 {% load filters %}
 {% autoescape off %}
 
+
+{% block javascript %}
+<script>
+    const sendLike = async () => {
+        const like = {
+            summary : '{{user.displayName}} likes your post',
+            author : post.author,
+            type : "Like",
+            object : '{{post.author.url}}/posts/{{post.id}}'
+        }
+
+        // send like to users inbox
+
+        const url = `{{post.author.url}}/inbox/`;
+        const headers = { 'Content-Type': 'application/json', 'Authorization': `Token {{token}}` }
+        var req = new Request(url, { method: 'POST', body: JSON.stringify(like), headers })
+        const res = await fetch(req)
+        console.log(res)
+        if (res.status === 204) {
+            $('#modalMessage').html(`Like successfully sent to ${author.displayName}`)
+            $('#modal').modal('toggle');
+        } else {
+            $('#modalMessage').html('Something went wrong. Try sending this like again later.')
+            $('#modal').modal('toggle');
+        }
+    }
+
+    const closeModal = () => {
+        window.location.reload()
+    }
+
+</script>
+{% endblock %}
+
 <div>
   <div class="container py-2 h-100 mt-3">
     <div class="row d-felx justify-content-center align-items-center h-100">
@@ -36,18 +70,10 @@
             </div>
             <hr>
             <div>
-              <a href=""><button
-                  class="btn btn-sm btn-outline-primary float-start mt-4 me-3">View
-                  Comments</button></a>
-              <a href=""><button
-                  class="btn btn-sm btn-outline-primary float-start mt-4 me-3">Add
-                  Comment</button></a>
               <form action="#" method="get">
-                <button class="btn btn-sm btn-outline-primary float-start mt-4 me-3" type="submit" id="like-button"
-                  name='like-button' value="pressed">Like</button>
+                <button class="btn btn-sm btn-outline-primary float-start mt-4 me-3" type='button' id="like-button"
+                  name='like-button'  onclick="sendLike()" value="pressed">Like</button>
               </form>
-              <a href=""><button
-                  class="btn btn-sm btn-outline-primary float-start mt-4 me-3">Share</button></a>
             </div>
           </div>
         </div>

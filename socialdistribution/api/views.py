@@ -229,7 +229,7 @@ class PostsAPI(APIView):
 
 class PostAPI(APIView):
 
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     @swagger_auto_schema(tags=['post'])
@@ -510,7 +510,7 @@ class Comment_API(generics.ListCreateAPIView):
 
 class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = InboxSerializer
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
@@ -603,14 +603,14 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         """
         try:
             item = request.data
-            type = item['type']
+            type = item['type'].lower()
             if type == 'follow':
                 # create this follow object
                 author = User.objects.get(id=author_id) 
                 foreign_author = item['actor']
                 if not User.objects.filter(displayName=foreign_author['displayName']).exists():
                     user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=foreign_author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
-                    User.objects.filter(id=user.id).update(id=foreign_author['id'].split('/')[-1])
+                    User.objects.filter(id=user.id).update(id=foreign_author['id'].split('/')[-1], url=foreign_author['id'])
                     user = User.objects.get(id=foreign_author['id'].split('/')[-1])
                 else:
                     user = User.objects.get(id=foreign_author['id'].split('/')[-1])
@@ -627,7 +627,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
                 author = item['author']
                 if not User.objects.filter(displayName=author['displayName']).exists():
                     user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
-                    User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1])
+                    User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1], url=author['id'])
                     user = User.objects.get(id=author['id'].split('/')[-1])
                 else:
                     user = User.objects.get(id=author['id'].split('/')[-1])
@@ -643,7 +643,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
                 author = item['author']
                 if not User.objects.filter(displayName=author['displayName']).exists():
                     user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
-                    User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1])
+                    User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1], url=author['id'])
                     user = User.objects.get(id=author['id'].split('/')[-1])
                 else:
                     user = User.objects.get(id=author['id'].split('/')[-1])
@@ -706,7 +706,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
     400: openapi.Response(description="Bad Request")
 })
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
+@authentication_classes([BasicAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def followers(request, author_id):
     """

@@ -10,7 +10,7 @@ from django.db.models.deletion import CASCADE
 from django.db.models.manager import BaseManager
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-
+import base64
 from dotenv import load_dotenv
 import markdown
 import os
@@ -153,12 +153,26 @@ class PostBuilder():
         self.shared_post = None
 
     def set_post_content(self, title, categories, text_content=None, image_content=None, shared_post=None, image_link=None):
+        if image_content:
+            image_data = image_content.read()
+            encoded_image = base64.b64encode(image_data)
+            string_encoded_image = str(encoded_image)
+            formatted_encoded_image = string_encoded_image[2:len(string_encoded_image)-1]
+
+            if image_content.content_type == 'image/jpeg':
+                self.image_content = f"data:image/jpeg;base64,{formatted_encoded_image}"
+            elif image_content.content_type == 'image/png':
+                self.image_content = f"data:image/png;base64,{formatted_encoded_image}"
+
         self.title = title
         self.categories = categories
         self.text_content = text_content
-        self.image_content = image_content
         self.shared_post = shared_post
         self.image_link = image_link
+
+        self.__set_content_type__(image_content)
+
+        
 
     # TODO: Description is not very descriptive
     def set_post_metadata(self, author, visibility, unlisted):
@@ -168,7 +182,6 @@ class PostBuilder():
         self.unlisted = unlisted
 
         self.__set_description__()
-        self.__set_content_type__()
         self.__set_urls__()
         self.__set_size__()
 
@@ -207,11 +220,12 @@ class PostBuilder():
             self.description += f": {self.text_content[0:50]}..."
 
     #TODO: Application XORG
-    def __set_content_type__(self):
-        if self.text_content:
-            self.__set_content_type_text__()
+    def __set_content_type__(self, image_content):
+        if self.image_content:
+            self.__set_content_type_image__(image_content)
         else:
-            self.__set_content_type_image__()
+            self.__set_content_type_text__()
+            
     
     def __set_content_type_text__(self):
         marked_down_text = markdown.Markdown().convert(self.text_content)
@@ -222,8 +236,8 @@ class PostBuilder():
         else:
             self.content_type = Post.ContentType.MARKDOWN
     
-    def __set_content_type_image__(self):
-        if self.image_content[:3] == "/9g=":
+    def __set_content_type_image__(self, image_content):
+        if image_content.content_type == 'image/jpeg':
             self.content_type = Post.ContentType.JPG
         else:
             self.content_type = Post.ContentType.PNG
@@ -278,7 +292,7 @@ class Post(models.Model):
         PLAIN = "text/plain"
         APPLICATION = "application/base64"
         PNG = "image/png;base64"
-        JPG = "image/jpg;base64"
+        JPG = "image/jpeg;base64"
 
     type = models.CharField(max_length=255, unique=False,
                             null=False, blank=False, default="post")
