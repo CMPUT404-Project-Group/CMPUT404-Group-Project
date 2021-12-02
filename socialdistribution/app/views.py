@@ -223,10 +223,12 @@ def foreign_post(request):
     This is different to local posts to handle with the origin urls, commenting, liking, etc.
     """
     data = request.POST.dict()
-    url = data['post'].split('/author')[0]
-    node = Node.objects.get(url=url)
-    node_interface = Node_Interface_Factory.get_interface(node)
-    post = node_interface.get_post(node, data['post'])
+    if request.method == 'POST':
+        url = data['post'].split('/author')[0]
+        node = Node.objects.get(url=url)
+        node_interface = Node_Interface_Factory.get_interface(node)
+        post = node_interface.get_post(node, data['post'])
+        
     context = {
         'post': post,
         'is_author': False,
@@ -261,12 +263,13 @@ def view_other_user(request, other_user_id):
         other_user = User.objects.get(id=other_user_id)
     else:
         for node in Node.objects.get_queryset().filter(is_active=True):
-            url = str(node) + 'author/' + other_user_id
-            res = requests.get(url, headers={})
-            if (res.status_code==200):
-                break
-        other_user = json.loads(res.content.decode('utf-8'))['data'][0]
-        return render(request, 'profile/view_other_user.html', {'other_user': other_user})
+            node_interface = Node_Interface_Factory.get_interface(node)
+            author = node_interface.get_author(node, other_user_id)
+            if len(author) > 0:
+                return render(request, 'profile/view_other_user.html', {'other_user': author})
+        return render(HttpResponse('User not found'))
+
+        
 
     if other_user==request.user: 
         return redirect('app:view-profile')

@@ -24,11 +24,14 @@ class Abstract_Node_Interface(ABC):
                 content = json.loads(response.content.decode('utf-8'))
             except KeyError:
                 pass
-            finally:
-                return content
+        return content
 
     @abstractmethod
     def get_authors(node):
+        pass
+
+    @abstractmethod
+    def get_author(node, author_id):
         pass
 
     @abstractmethod
@@ -49,6 +52,14 @@ class Node_Interface(Abstract_Node_Interface):
         uri = URLDecorator.authors_url(str(node))
         return Node_Interface.__get_response__(node, uri)['data']
     
+    def get_author(node, author_id):
+        uri = URLDecorator.author_id_url(node, author_id)
+        response = Node_Interface.__get_response__(node, uri)
+        if response == []:
+            return []
+        else:
+            return response['data'][0]
+    
     def get_author_posts(node, author_id):
         uri = URLDecorator.author_posts_url(author_id)
         return Node_Interface.__get_response__(node, uri)['data']
@@ -67,6 +78,11 @@ class Team_2_Interface(Abstract_Node_Interface):
         return Team_2_Interface.__format_authors__(
             node, Node_Interface.__get_response__(node, uri)['authors'])
     
+    def get_author(node, author_id):
+        uri = f"{URLDecorator.author_id_url(node, author_id)}/"
+        return Team_2_Interface.__format_author__(
+            node, Node_Interface.__get_response__(node, uri))
+    
     def get_author_posts(node, author_id):
         uri = f"{URLDecorator.author_posts_url(author_id)}/"
         return Node_Interface.__get_response__(node, uri)['posts']
@@ -80,5 +96,9 @@ class Team_2_Interface(Abstract_Node_Interface):
 
     def __format_authors__(node, authors):
         for author in authors:
-            author['id'] = f"{node.url}/author/{author.pop('author_id')}"
+            author = Team_2_Interface.__format_author__(node, author)
         return authors
+    
+    def __format_author__(node, author):
+        author['id'] = f"{node.url}/author/{author.pop('author_id')}"
+        return author
