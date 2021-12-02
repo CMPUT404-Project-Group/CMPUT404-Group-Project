@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}View Post{% endblock %}
+{% block content %}
+{% include "app/includes/navbar.html" %}
+{% load filters %}
+{% autoescape off %}
+
+
+{% block javascript %}
+<script>
+    const sendLike = async () => {
+        const like = {
+            summary : '{{user.displayName}} likes your post',
+            author : post.author,
+            type : "Like",
+            object : '{{post.author.url}}/posts/{{post.id}}'
+        }
+
+        // send like to users inbox
+
+        const url = `{{post.author.url}}/inbox/`;
+        const headers = { 'Content-Type': 'application/json', 'Authorization': `Token {{token}}` }
+        var req = new Request(url, { method: 'POST', body: JSON.stringify(like), headers })
+        const res = await fetch(req)
+        console.log(res)
+        if (res.status === 204) {
+            $('#modalMessage').html(`Like successfully sent to ${author.displayName}`)
+            $('#modal').modal('toggle');
+        } else {
+            $('#modalMessage').html('Something went wrong. Try sending this like again later.')
+            $('#modal').modal('toggle');
+        }
+    }
+
+    const closeModal = () => {
+        window.location.reload()
+    }
+
+</script>
+{% endblock %}
+
+<div>
+  <div class="container py-2 h-100 mt-3">
+    <div class="row d-felx justify-content-center align-items-center h-100">
+      <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 100%">
+        <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
+          <div class="card-body">
+            <div class="d-flex justify-content-between">
+              {% include "app/includes/post_title.html" %}
+              {% if is_author %}
+              <div>
+                <a href="{% url 'app:delete-post' post.id %}">
+                  <button class="btn btn-sm btn-outline-danger float-end me-3">Delete</button>
+                </a>
+                <a href="{% url 'app:edit-post' post.id %}">
+                  <button class="btn btn-sm btn-outline-secondary float-end me-3">Edit</button>
+                </a>
+              </div>
+              {% endif %}
+            </div>
+            <span class="text-muted">
+              {{ post.author.displayName }} <br />
+              <span style="font-style: italic">{{ post.published }}</span>
+            </span>
+            {% include "app/includes/post_content.html" %}
+            <div class="category">
+              {% for c in post.categories %}
+              <span class="badge bg-dark">{{ c }}</span>
+              {% endfor %}
+            </div>
+            <hr>
+            <div>
+              <form action="#" method="get">
+                <button class="btn btn-sm btn-outline-primary float-start mt-4 me-3" type='button' id="like-button"
+                  name='like-button'  onclick="sendLike()" value="pressed">Like</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endautoescape %}
+{% endblock %}

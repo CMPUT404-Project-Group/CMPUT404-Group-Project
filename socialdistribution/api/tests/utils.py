@@ -58,5 +58,4 @@ class TestUtils():
             post = TestUtils.get_test_post(
                 author=User.objects.get(id=author_id), text_content="Inbox Post %s" % i)
             item = PostSerializer(post).data
-            Inbox.objects.create(author_id=author_id,
-                                 item=item)
+            Inbox.objects.create(author_id=author_id, item=item)

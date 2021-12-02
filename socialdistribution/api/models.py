@@ -10,7 +10,7 @@ from django.db.models.deletion import CASCADE
 from django.db.models.manager import BaseManager
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-
+import base64
 from dotenv import load_dotenv
 import markdown
 import os
@@ -138,7 +138,7 @@ class PostBuilder():
         self.source = None
         self.origin = None
         self.count = 0
-        self.comment_page = None
+        self.comments = None
 
         self.title = None
         self.description = None
@@ -153,12 +153,26 @@ class PostBuilder():
         self.shared_post = None
 
     def set_post_content(self, title, categories, text_content=None, image_content=None, shared_post=None, image_link=None):
+        if image_content:
+            image_data = image_content.read()
+            encoded_image = base64.b64encode(image_data)
+            string_encoded_image = str(encoded_image)
+            formatted_encoded_image = string_encoded_image[2:len(string_encoded_image)-1]
+
+            if image_content.content_type == 'image/jpeg':
+                self.image_content = f"data:image/jpeg;base64,{formatted_encoded_image}"
+            elif image_content.content_type == 'image/png':
+                self.image_content = f"data:image/png;base64,{formatted_encoded_image}"
+
         self.title = title
         self.categories = categories
         self.text_content = text_content
-        self.image_content = image_content
         self.shared_post = shared_post
         self.image_link = image_link
+
+        self.__set_content_type__(image_content)
+
+        
 
     # TODO: Description is not very descriptive
     def set_post_metadata(self, author, visibility, unlisted):
@@ -168,7 +182,6 @@ class PostBuilder():
         self.unlisted = unlisted
 
         self.__set_description__()
-        self.__set_content_type__()
         self.__set_urls__()
         self.__set_size__()
 
@@ -188,7 +201,7 @@ class PostBuilder():
             categories=self.categories,
             count=self.count,
             size=self.size,
-            comment_page=self.comment_page,
+            comments=self.comments,
             visibility=self.visibility,
             unlisted=self.unlisted,
             shared_post = self.shared_post
@@ -206,20 +219,36 @@ class PostBuilder():
         if self.text_content:
             self.description += f": {self.text_content[0:50]}..."
 
-    # TODO: Content type just defaults to plain text at the moment
-    def __set_content_type__(self):
-        self.content_type = Post.ContentType.PLAIN
+    #TODO: Application XORG
+    def __set_content_type__(self, image_content):
+        if self.image_content:
+            self.__set_content_type_image__(image_content)
+        else:
+            self.__set_content_type_text__()
+            
+    
+    def __set_content_type_text__(self):
         marked_down_text = markdown.Markdown().convert(self.text_content)
         tag_stipped_text = marked_down_text.strip('<p>').strip('</p>')
-        if tag_stipped_text != self.text_content:
+
+        if tag_stipped_text == self.text_content:
+            self.content_type = Post.ContentType.PLAIN
+        else:
             self.content_type = Post.ContentType.MARKDOWN
+    
+    def __set_content_type_image__(self, image_content):
+        if image_content.content_type == 'image/jpeg':
+            self.content_type = Post.ContentType.JPG
+        else:
+            self.content_type = Post.ContentType.PNG
+
     
     def __set_urls__(self):
         post_url = f"{HOST_API_URL}author/{self.author.id}/posts/{self.id}"
         
         self.origin = post_url
         self.source = post_url
-        self.comment_page = f"{post_url}/comments"
+        self.comments = f"{post_url}/comments"
 
 
     # TODO: Figure out size of post dynamically (possibly iterate through attributes adding size)
@@ -263,7 +292,7 @@ class Post(models.Model):
         PLAIN = "text/plain"
         APPLICATION = "application/base64"
         PNG = "image/png;base64"
-        JPG = "image/jpg;base64"
+        JPG = "image/jpeg;base64"
 
     type = models.CharField(max_length=255, unique=False,
                             null=False, blank=False, default="post")
@@ -290,11 +319,8 @@ class Post(models.Model):
     count = models.IntegerField(
         unique=False, null=False, blank=False, default=0)
     size = models.IntegerField(unique=False, null=False, blank=False)
-    comment_page = models.CharField(
+    comments = models.CharField(
         max_length=255, unique=False, null=False, blank=False)
-    # comments could potentially be done at serialization to avoid data duplication
-    # (get all comments which have this post_id within their comment_id)
-    # If we do this size may also have to be done at serialization although I think this may be easier anyways
     published = models.DateTimeField(
         unique=False, blank=False, null=False, auto_now_add=True)
     visibility = models.CharField(
@@ -304,6 +330,11 @@ class Post(models.Model):
     shared_post = models.ForeignKey("api.Post", null=True, on_delete=CASCADE)
 
     objects = PostManager()
+
+    def get_content(self):
+        if not self.text_content:
+            return self.image_content
+        return self.text_content
 
     def __str__(self):
         return f"{self.author}, {self.title}, {self.text_content}, {self.image_content}, {self.categories}"
@@ -419,8 +450,9 @@ class Inbox(models.Model):
 
 class Node(models.Model):
     url = models.URLField(max_length=255, unique=False, null=False, blank=False)
+    auth_token = models.CharField(max_length=255, unique=True, null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    
+    team = models.CharField(max_length=255, null=True, blank=True)    
     def __str__(self):
         return self.url
 

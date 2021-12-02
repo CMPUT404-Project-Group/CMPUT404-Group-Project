@@ -121,8 +121,46 @@ class SettingsAdmin(admin.ModelAdmin):
     filter_horizontal = ()
 
 
+
+class NodeChangeForm(forms.ModelForm):
+    """
+    A form for creating nodes.
+    """
+    class Meta:
+        model = Node
+        fields = ('url', 'team', 'auth_token',)
+
+
+class NodeCreationForm(forms.ModelForm):
+    """
+    A form for updating nodes.
+    """
+    class Meta:
+        model = Node
+        fields = ('url', 'team', 'auth_token',)
+
+class NodeAdmin(admin.ModelAdmin):
+    form = NodeChangeForm
+    add_form = NodeCreationForm
+    actions = [make_active, make_inactive]
+    fieldsets = (
+        (None, {'fields': ('team', 'url', 'auth_token', 'is_active')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('team', 'url', 'auth_token', 'is_active' ),
+        }),
+    )
+
+    list_display = ('team', 'url', 'auth_token', 'is_active' )
+    list_filter = ()
+    ordering = ('team',)
+    filter_horizontal = ()
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Post)
 admin.site.register(SiteSetting, SettingsAdmin)
-admin.site.register(Node)
+admin.site.register(Node, NodeAdmin)
 admin.site.unregister(Group)

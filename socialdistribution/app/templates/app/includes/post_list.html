@@ -1,0 +1,47 @@
+{% block content %}
+{% if post_list %}
+
+  <ul>
+    {% for post in post_list %}
+    <li style="list-style: none">
+      <div class="container py-2 h-100 mt-3">
+        <div class="row d-felx justify-content-center align-items-center h-100">
+          <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 100%">
+            <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
+              <div class="card-body">
+                {% include "app/includes/post_title.html" %}
+                <span class="text-muted">
+                  {{ post.author.displayName }} <br />
+                  <span style="font-style: italic">{{ post.published }}</span>
+                </span>
+                {% include "app/includes/post_content.html" %}
+                <div class="category">
+                  {% for c in post.categories %}
+                  <span class="badge bg-dark">{{ c }}</span>
+                  {% endfor %}
+                </div>
+                {% if post.local %}
+                  <a href="{{post.source}}" class="btn btn-primary shadow mt-5">View Post</a>
+                {% else %}
+                  <form action="{% url 'app:foreign_posts' %}" method='POST'>
+                    {% csrf_token %}
+                    <input type="hidden" name="post" value={{post.id}}>
+                    <button class="btn btn-primary shadow mt-5" type="submit">View Post</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+
+{% else %}
+
+  <p>There are no posts on this server.</p>
+
+{% endif %} 
+
+{% endblock %}
