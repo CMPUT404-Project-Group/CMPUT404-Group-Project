@@ -8,19 +8,18 @@
 {% block javascript %}
 <script>
     const sendComment = async () => {
-
         const comment = {
             type : "comment",
             comment : document.getElementById("id_text_content").value,
             author : "user",
             contentType : "text/plain",
             published : Date.now(),
-            id : "{{post.author.url}}/posts/{{post.id}}/comments/"
+            id : "{{post.id}}/comments/"
         }
-
         const url = `{{post.author.url}}/inbox/`;
-        const headers = { 'Content-Type': 'application/json', 'Authorization': `Token {{token}}` }
+        const headers = { 'Content-Type': 'application/json', 'Authorization': `Token {{token}}`}
         var req = new Request(url, { method: 'POST', body: JSON.stringify(comment), headers })
+        console.log(req)
 
         const res = await fetch(req)
         if (res.status === 204) {

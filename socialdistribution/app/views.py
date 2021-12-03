@@ -235,6 +235,7 @@ def foreign_post(request):
         node = Node.objects.get(url=url)
         node_interface = Node_Interface_Factory.get_interface(node)
         post = node_interface.get_post(node, data['post'])
+        request.session['foreign_post'] = post
         
     context = {
         'post': post,
@@ -435,13 +436,22 @@ def create_comment(request, post_id):
     return render(request, 'comments/create_comment.html', {'form': form})
 
 @login_required
-def create_foreign_comment(request, post_id):
-    post = Node_Interface.get_post(data['post'])
-    token = Node.objects.get(url=post.author.url).auth_token
+def create_foreign_comment(request):
+    if request.method == 'POST':
+        return redirect('app:index')
+    else: 
+        post = request.session['foreign_post']
+        logging.error(post)
+        url = post['author']['host']
+        logging.error(url)
+        node = Node.objects.get(url__contains=url)
+        node_interface = Node_Interface_Factory.get_interface(node)
+
     context = {
         'post': post,
         'is_author': False,
-        'user' : request.user
+        'user' : request.user,
+        'token' : node.auth_token
     }
 
     return render(request, 'comments/create_foreign_comment.html', context)
