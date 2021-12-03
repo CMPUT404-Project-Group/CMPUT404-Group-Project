@@ -235,7 +235,6 @@ def foreign_post(request):
         node = Node.objects.get(url=url)
         node_interface = Node_Interface_Factory.get_interface(node)
         post = node_interface.get_post(node, data['post'])
-        print(post)
         
     context = {
         'post': post,
