@@ -179,7 +179,7 @@ def delete_post(request, post_id):
         return HttpResponseForbidden()
     else:
         post.delete()
-        return render(request, 'app/index.html')
+        return redirect('app:index')
 
 @login_required
 def post(request, post_id):
@@ -302,7 +302,6 @@ def view_followers(request):
     url = HOST_API_URL + 'author/%s/followers/' % user.id
     res = requests.get(url, headers=headers)
     data = json.loads(res.content.decode('utf-8'))
-    print(data)
     return render(request, 'profile/view_followers.html', {'data': data.get('data')})
 
 @login_required

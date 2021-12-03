@@ -1,3 +1,4 @@
+from requests.models import InvalidURL, MissingSchema
 from src.url_decorator import URLDecorator
 import json
 import requests

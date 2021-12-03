@@ -22,9 +22,8 @@
             <a href="{% url 'app:view-other-user' other_user.id|getID %}"><button type="submit"
                 class="btn btn-primary shadow mt-5 w-100">Send friend request</button></a>
           </form>
-          <a href="{% url 'app:index' %}"><button type="button"
+          <a href="{% url 'app:explore-authors' %}"><button type="button"
               class="btn btn-primary shadow mt-5 w-100">Back</button></a>
-
         </div>
       </div>
       {% if messages%}

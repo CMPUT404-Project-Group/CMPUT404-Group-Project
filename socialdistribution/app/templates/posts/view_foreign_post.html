@@ -11,9 +11,9 @@
     const sendLike = async () => {
         const like = {
             summary : '{{user.displayName}} likes your post',
-            author : post.author,
+            author: '{{user.id}}',
             type : "Like",
-            object : '{{post.author.url}}/posts/{{post.id}}'
+            object : '{{post.url}}'
         }
 
         // send like to users inbox
@@ -22,7 +22,6 @@
         const headers = { 'Content-Type': 'application/json', 'Authorization': `Token {{token}}` }
         var req = new Request(url, { method: 'POST', body: JSON.stringify(like), headers })
         const res = await fetch(req)
-        console.log(res)
         if (res.status === 204) {
             $('#modalMessage').html(`Like successfully sent to ${author.displayName}`)
             $('#modal').modal('toggle');
