@@ -310,6 +310,7 @@ def explore_authors(request):
     """
     Allows the user to view all of the authors (local and foreign) that are available for them to follow and view.
     """
+    data = dict()
     # get local authors
     headers = {'Authorization': 'Token %s' % API_TOKEN}
     res = requests.get(HOST_URL+reverse('api:authors'), headers=headers)
@@ -318,13 +319,15 @@ def explore_authors(request):
     for author in local_authors:
         if author.get('displayName') == request.user.displayName: # remove current user from list
             local_authors.remove(author)
-    
+    data['local_authors'] = local_authors
+
     # get remote authors
     nodes = Node.objects.get_queryset().filter(is_active=True)
-    remote_authors = []
+    remote_authors = dict()
     for node in nodes:
         node_interface = Node_Interface_Factory.get_interface(node)
-        remote_authors.extend(node_interface.get_authors(node))
+        node_authors = node_interface.get_authors(node)
+        remote_authors[node.team] = node_authors
         
     return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': remote_authors })
 

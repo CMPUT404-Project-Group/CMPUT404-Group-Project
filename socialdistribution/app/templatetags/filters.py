@@ -7,6 +7,10 @@ import urllib
 register = template.Library()
 
 @register.filter
+def strip_space(value):
+    return value.replace(' ', '')
+
+@register.filter
 @stringfilter
 def commonmark(value):
     return markdown.Markdown().convert(value)
