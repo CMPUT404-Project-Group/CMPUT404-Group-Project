@@ -11,7 +11,7 @@
         const comment = {
             type : "comment",
             comment : document.getElementById("id_text_content").value,
-            author : "user",
+            author: '{{user.id}}',
             contentType : "text/plain",
             published : Date.now(),
             id : "{{post.id}}/comments/"
