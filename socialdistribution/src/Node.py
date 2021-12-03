@@ -10,6 +10,8 @@ class Node_Interface_Factory():
         team = Node.team
         if team == 'TEAM 2':
             return Team_2_Interface
+        elif team == 'TEAM 18':
+            return Team_18_Interface
         else:
             return Node_Interface
 
@@ -103,3 +105,23 @@ class Team_2_Interface(Abstract_Node_Interface):
     def __format_author__(node, author):
         author['id'] = f"{node.url}/author/{author.pop('author_id')}"
         return author
+
+class Team_18_Interface(Abstract_Node_Interface):
+
+    def get_authors(node):
+        return Node_Interface.get_authors(node)
+
+    def get_author(node, author_id):
+         uri = f"{URLDecorator.author_id_url(node, author_id)}"
+         return Node_Interface.__get_response__(node, uri)
+
+    def get_author_posts(node, author_id):
+        uri = f"{node.url}/author/{URLDecorator.author_posts_url(author_id)}/"
+        return Node_Interface.__get_response__(node, uri)['data']
+
+    def get_post(node, uri):
+        uri = f"{uri}/"
+        return Node_Interface.__get_response__(node, uri)['data']
+
+    def get_followers(node, author_id):
+        return Node_Interface.get_followers(author_id)
