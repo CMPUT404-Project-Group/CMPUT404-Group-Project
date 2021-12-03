@@ -4,6 +4,7 @@
 
 {% block content%}
 {% include "app/includes/navbar.html" %}
+{% load filters %}
     {% if comments %}
     <ul class="pt-5">
         {% for comment in comments%}
@@ -50,7 +51,7 @@
                     Add Comment
                   </button>
                 </a>
-                <a href="{% url 'app:index' %}"><button type="button" class="btn btn-outline-secondary shadow">
+                <a href="{{request|get_post_id}}"><button type="button" class="btn btn-outline-secondary shadow">
                     Back
                   </button></a>
               </div>

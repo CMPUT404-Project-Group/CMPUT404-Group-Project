@@ -4,6 +4,7 @@
 
 {% block content%}
 {% include "app/includes/navbar.html" %}
+{% load filters %}
 <div class="container py-5 mt-5">
     <div class="row d-felx justify-content-center align-items-center h-100">
         <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 45%">
@@ -19,7 +20,7 @@
                         <div class="form-outline mb-2">
                             <button class="btn btn-primary shadow mt-5 w-100" type="submit">Create Comment</button>
                         </div>
-                          <a href="{% url 'app:index' %}"
+                          <a href="{{request|get_post_id}}"
                             ><button type="button" class="btn btn-primary shadow mt-3 w-100">
                                     Back
                             </button></a>
