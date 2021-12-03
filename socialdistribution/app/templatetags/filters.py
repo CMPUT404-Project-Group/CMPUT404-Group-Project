@@ -30,5 +30,4 @@ def get_post_id(url):
     """
     gets the post id from the comment page url
     """
-    print(url.get_full_path())
     return urllib.parse.urlparse(url.get_full_path()).path.rsplit('/', 1)[0]
