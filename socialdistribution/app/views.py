@@ -511,7 +511,7 @@ def inbox(request, author_id):
     """
     url = HOST_URL+reverse('api:inbox', kwargs={'author_id': author_id})
     token, _ = Token.objects.get_or_create(user=request.user) # create token
-    headers = {'Authorization': 'Basic %s' % token}
+    headers = {'Authorization': 'Token %s' % token}
     if request.method == 'GET':
         try:
             page = request.GET.get('page')
@@ -525,7 +525,7 @@ def inbox(request, author_id):
         if size:
             url += '&size=%s' % size
 
-        req = requests.get(url, headers=headers, params={'user': 'a'})
+        req = requests.get(url, headers=headers)
         Token.objects.get(user=request.user).delete() # clean token
         res = json.loads(req.content.decode('utf-8'))
         res['author'] = request.path.split('/')[3]
