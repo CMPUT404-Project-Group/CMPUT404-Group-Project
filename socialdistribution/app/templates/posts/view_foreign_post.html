@@ -8,32 +8,32 @@
 
 {% block javascript %}
 <script>
-    const sendLike = async () => {
-        const like = {
-            summary : '{{user.displayName}} likes your post',
-            author: '{{user.id}}',
-            type : "Like",
-            object : '{{post.url}}'
-        }
-
-        // send like to users inbox
-
-        const url = `{{post.author.url}}/inbox/`;
-        const headers = { 'Content-Type': 'application/json', 'Authorization': `Token {{token}}` }
-        var req = new Request(url, { method: 'POST', body: JSON.stringify(like), headers })
-        const res = await fetch(req)
-        if (res.status === 204) {
-            $('#modalMessage').html(`Like successfully sent to ${author.displayName}`)
-            $('#modal').modal('toggle');
-        } else {
-            $('#modalMessage').html('Something went wrong. Try sending this like again later.')
-            $('#modal').modal('toggle');
-        }
+  const sendLike = async () => {
+    const like = {
+      summary: '{{user.displayName}} likes your post',
+      author: '{{user.id}}',
+      type: "Like",
+      object: '{{post.url}}'
     }
 
-    const closeModal = () => {
-        window.location.reload()
+    // send like to users inbox
+
+    const url = `{{post.author.url}}/inbox/`;
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Basic {{token}}` }
+    var req = new Request(url, { method: 'POST', body: JSON.stringify(like), headers })
+    const res = await fetch(req)
+    if (res.status === 204) {
+      $('#modalMessage').html(`Like successfully sent to ${author.displayName}`)
+      $('#modal').modal('toggle');
+    } else {
+      $('#modalMessage').html('Something went wrong. Try sending this like again later.')
+      $('#modal').modal('toggle');
     }
+  }
+
+  const closeModal = () => {
+    window.location.reload()
+  }
 
 </script>
 {% endblock %}
@@ -71,7 +71,7 @@
             <div>
               <form action="#" method="get">
                 <button class="btn btn-sm btn-outline-primary float-start mt-4 me-3" type='button' id="like-button"
-                  name='like-button'  onclick="sendLike()" value="pressed">Like</button>
+                  name='like-button' onclick="sendLike()" value="pressed">Like</button>
               </form>
             </div>
           </div>
