@@ -236,6 +236,10 @@ def foreign_post(request):
         node_interface = Node_Interface_Factory.get_interface(node)
         post = node_interface.get_post(node, data['post'])
         request.session['foreign_post'] = post
+    elif ('foreign_post' in request.session.keys()):
+        post = request.session['foreign_post']
+        node = Node.objects.get(url__contains=post['author']['host'])
+        node_interface = Node_Interface_Factory.get_interface(node)
         
     context = {
         'post': post,
@@ -438,12 +442,10 @@ def create_comment(request, post_id):
 @login_required
 def create_foreign_comment(request):
     if request.method == 'POST':
-        return redirect('app:index')
+        return redirect('app:foreign_posts')
     else: 
         post = request.session['foreign_post']
-        logging.error(post)
         url = post['author']['host']
-        logging.error(url)
         node = Node.objects.get(url__contains=url)
         node_interface = Node_Interface_Factory.get_interface(node)
 
