@@ -8,18 +8,16 @@
 {% block javascript %}
 <script>
     const sendComment = async () => {
-
         const comment = {
             type : "comment",
             comment : document.getElementById("id_text_content").value,
-            author : "user",
+            author: '{{user.id}}',
             contentType : "text/plain",
             published : Date.now(),
-            id : "{{post.author.url}}/posts/{{post.id}}/comments/"
+            id : "{{post.id}}/comments/"
         }
-
         const url = `{{post.author.url}}/inbox/`;
-        const headers = { 'Content-Type': 'application/json', 'Authorization': `Token {{token}}` }
+        const headers = { 'Content-Type': 'application/json', 'Authorization': `Token {{token}}`}
         var req = new Request(url, { method: 'POST', body: JSON.stringify(comment), headers })
 
         const res = await fetch(req)
@@ -51,7 +49,11 @@
                             <textarea id="id_text_content" class="form-control" cols="40" rows="10" name="comment"></textarea>
                         </div>
                         <div class="form-outline mb-2">
-                            <button class="btn btn-primary shadow mt-5 w-100" onclick="sendComment()" type="submit">Create Comment</button>
+                            <form action="{% url 'app:foreign_posts' %}" method='POST'>
+                                {% csrf_token %}
+                                <input type="hidden" name="post" value={{post.id}}>
+                                <button class="btn btn-primary shadow mt-5" onClick="sendComment()" type="submit">View Post</button>
+                              </form>                        
                         </div>
                           <a href="{% url 'app:index' %}"
                             ><button type="button" class="btn btn-primary shadow mt-3 w-100">

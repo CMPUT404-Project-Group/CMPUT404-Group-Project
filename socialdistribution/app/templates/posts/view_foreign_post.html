@@ -69,6 +69,9 @@
             </div>
             <hr>
             <div>
+              <a href="{% url 'app:create-foreign-comment' %}"><button
+                class="btn btn-sm btn-outline-primary float-start mt-4 me-3">Create
+                Comment</button></a>
               <form action="#" method="get">
                 <button class="btn btn-sm btn-outline-primary float-start mt-4 me-3" type='button' id="like-button"
                   name='like-button'  onclick="sendLike()" value="pressed">Like</button>
