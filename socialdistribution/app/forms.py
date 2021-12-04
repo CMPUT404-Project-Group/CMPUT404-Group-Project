@@ -92,10 +92,11 @@ class ManageProfileForm(UserChangeForm):
     github = forms.CharField(max_length=30, required=False)
     email = forms.EmailField(max_length=255, required=True)
     displayName = forms.CharField(max_length=30, required=True)
+    profileImage = forms.URLField(max_length=255, required=False)
     password = None
     class Meta:
         model = User
-        fields = ('displayName', 'email', 'github')
+        fields = ('displayName', 'email', 'github', 'profileImage')
 
 
 class CommentCreationForm(forms.ModelForm):

@@ -276,7 +276,6 @@ def view_other_user(request, other_user_id):
             if len(author) > 0:
                 return render(request, 'profile/view_other_user.html', {'other_user': author})
         return render(HttpResponse('User not found'))
-
         
 
     if other_user==request.user: 

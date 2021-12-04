@@ -93,6 +93,7 @@ class User(AbstractBaseUser):
                            blank=False, null=False, default=HOST_API_URL)
     github = models.CharField(
         max_length=50, unique=True, blank=True, null=True)
+    profileImage = models.URLField(max_length=255, unique=False, null=True)
 
     # user metadata
     email = models.EmailField(
