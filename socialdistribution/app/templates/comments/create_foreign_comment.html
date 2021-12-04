@@ -8,16 +8,14 @@
 {% block javascript %}
 <script>
     const sendComment = async () => {
-
         const comment = {
             type: "comment",
             comment: document.getElementById("id_text_content").value,
-            author: "user",
+            author: '{{user.id}}',
             contentType: "text/plain",
             published: Date.now(),
-            id: "{{post.author.url}}/posts/{{post.id}}/comments/"
+            id: "{{post.id}}/comments/"
         }
-
         const url = `{{post.author.url}}/inbox/`;
         const headers = { 'Content-Type': 'application/json', 'Authorization': `Basic {{token}}` }
         var req = new Request(url, { method: 'POST', body: JSON.stringify(comment), headers })
@@ -52,8 +50,16 @@
                                 name="comment"></textarea>
                         </div>
                         <div class="form-outline mb-2">
-                            <button class="btn btn-primary shadow mt-5 w-100" onclick="sendComment()"
+                            <<<<<<< HEAD <button class="btn btn-primary shadow mt-5 w-100" onclick="sendComment()"
                                 type="submit">Create Comment</button>
+                                =======
+                                <form action="{% url 'app:foreign_posts' %}" method='POST'>
+                                    {% csrf_token %}
+                                    <input type="hidden" name="post" value={{post.id}}>
+                                    <button class="btn btn-primary shadow mt-5" onClick="sendComment()"
+                                        type="submit">View Post</button>
+                                </form>
+                                >>>>>>> 501cccb852e40ebe189bdbe91cf298c42cae7f2e
                         </div>
                         <a href="{% url 'app:index' %}"><button type="button" class="btn btn-primary shadow mt-3 w-100">
                                 Back
