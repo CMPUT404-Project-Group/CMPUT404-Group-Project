@@ -9,7 +9,7 @@
 <script>
     const createPost = async () => {
         const url = `{{user.url}}/posts/`
-        const headers = { 'Content-Type': 'application/json', 'Authorization': 'Token {{token}}' }
+        const headers = { 'Content-Type': 'application/json', 'Authorization': 'Basic {{token}}' }
         values = $("form").serializeArray()
         const body = {
             author: '{{user.id}}',

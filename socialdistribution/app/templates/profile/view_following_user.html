@@ -8,47 +8,47 @@
   <div class="row d-felx justify-content-center align-items-center h-100">
     <div class="col-8 col-md-8 col-lg-6 col-xl-5">
       <div class="card-header shadow p-3">Profile</div>
-        <div
-          class="card shadow p-3"
-          style="
+      <div class="card shadow p-3" style="
             border-bottom-left-radius: 0.5rem;
             border-bottom-right-radius: 0.5rem;
             border-top-left-radius: 0rem;
             border-top-right-radius: 0rem;
             border: 0;
-          "
-        >
-          <div class="card-body text-center">
-            <div style="font-size: 12pt">
-              <h2>{{ other_user.displayName }}</h2>
-              <br />
-              <p>Email: {{ other_user.email }}</p>
-              <p>Github: {{ other_user.github }}</p>
-            </div>
-            <form action="{% url 'app:action-unfollow' other_user.id %}" method='POST'>
-              {% csrf_token %}
-              <a href="{% url 'app:view-other-user' other_user.id %}"><button type="submit" class="btn btn-primary shadow mt-5 w-100">Unfollow</button></a>
-            </form>
-            
-            
-            <a href="{% url 'app:explore-authors' %}"
-              ><button type="button" class="btn btn-outline-primary shadow mt-5 w-100">
-                Back
-              </button></a
-            >
+          ">
+        <div class="card-body text-center">
+          <div style="font-size: 12pt">
+            <h2>{{ other_user.displayName }}</h2>
+            <img
+              src="{% if other_user.profileImage %} {{other_user.profileImage}} {% else %} ../../media/profile-img.svg {% endif %}"
+              alt="Profile Image" style="width: 50%;">
+            <br />
+            <p>Email: {{ other_user.email }}</p>
+            <p>Github: {{ other_user.github }}</p>
           </div>
-        </div>
-          {% if messages%}
-          {%for message in messages%}
-          <div class="alert alert-{{message.tags}}" style="margin-top:1em">
-            {{message}}
-          </div>
-          {%endfor%}
-          {%endif%}
+          <form action="{% url 'app:action-unfollow' other_user.id %}" method='POST'>
+            {% csrf_token %}
+            <a href="{% url 'app:view-other-user' other_user.id %}"><button type="submit"
+                class="btn btn-primary shadow mt-5 w-100">Unfollow</button></a>
+          </form>
+
+
+          <a href="{% url 'app:explore-authors' %}"><button type="button"
+              class="btn btn-outline-primary shadow mt-5 w-100">
+              Back
+            </button></a>
         </div>
       </div>
+      {% if messages%}
+      {%for message in messages%}
+      <div class="alert alert-{{message.tags}}" style="margin-top:1em">
+        {{message}}
+      </div>
+      {%endfor%}
+      {%endif%}
     </div>
   </div>
+</div>
+</div>
 </div>
 
 

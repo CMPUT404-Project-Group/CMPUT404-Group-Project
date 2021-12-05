@@ -1,59 +1,54 @@
 {% extends "base.html" %}
-{% block title %}View Profile {% endblock %} 
+{% block title %}View Profile {% endblock %}
 {% block content %}
 {% include "app/includes/navbar.html" %}
-  <div class="container py-5 mt-5">
-    <div class="row d-felx justify-content-center align-items-center h-100">
-      <div class="col-8 col-md-8 col-lg-6 col-xl-5">
-        <div class="card-header shadow p-3">Profile</div>
-        <div
-          class="card shadow p-3"
-          style="
+<div class="container py-5 mt-5">
+  <div class="row d-felx justify-content-center align-items-center h-100">
+    <div class="col-8 col-md-8 col-lg-6 col-xl-5">
+      <div class="card-header shadow p-3">Profile</div>
+      <div class="card shadow p-3" style="
             border-bottom-left-radius: 0.5rem;
             border-bottom-right-radius: 0.5rem;
             border-top-left-radius: 0rem;
             border-top-right-radius: 0rem;
             border: 0;
-          "
-        >
-          <div class="card-body text-center">
-            <div style="font-size: 12pt">
-              <h2>{{ user.displayName }}</h2>
-              <br />
-              <p>Email: {{ user.email }}</p>
-              <p>Github: {{ user.github }}</p>
-            </div>
-            <a href="{% url 'app:manage-profile' %}"
-              ><button type="button" class="btn btn-primary shadow mt-5 w-100">
-                Manage Profile
-              </button></a
-            >
-            <form action="#" method="get">
-                <button class="btn btn-outline-secondary shadow mt-3 w-100" type="submit" id="like-button"
-                  name='github-sync-button' value="pressed">Sync Github Activity</button>
-            </form>
-            <a href="{% url 'app:view-followers' %}"
-              ><button type="button" class="btn btn-outline-secondary shadow mt-3 w-100">
-                View Followers
-              </button></a
-            >
-            
-            <a href="{% url 'app:index' %}"
-              ><button type="button" class="btn btn-outline-primary shadow mt-5 w-100">
-                Back
-              </button></a
-            >
-            
+          ">
+        <div class="card-body text-center">
+          <div style="font-size: 12pt">
+            <h2>{{ user.displayName }}</h2>
+            <img
+              src="{% if user.profileImage %} {{user.profileImage}} {% else %} ../../media/profile-img.svg {% endif %}"
+              alt="Profile Image" style="width: 50%;">
+            <br />
+            <p>Email: {{ user.email }}</p>
+            <p>Github: {{ user.github }}</p>
           </div>
+          <a href="{% url 'app:manage-profile' %}"><button type="button" class="btn btn-primary shadow mt-5 w-100">
+              Manage Profile
+            </button></a>
+          <form action="#" method="get">
+            <button class="btn btn-outline-secondary shadow mt-3 w-100" type="submit" id="like-button"
+              name='github-sync-button' value="pressed">Sync Github Activity</button>
+          </form>
+          <a href="{% url 'app:view-followers' %}"><button type="button"
+              class="btn btn-outline-secondary shadow mt-3 w-100">
+              View Followers
+            </button></a>
+
+          <a href="{% url 'app:index' %}"><button type="button" class="btn btn-outline-primary shadow mt-5 w-100">
+              Back
+            </button></a>
+
         </div>
-        {% if messages%} {%for message in messages%}
-        <div class="alert alert-{{message.tags}}" style="margin-top: 1em">
-          {{message}}
-        </div>
-        {%endfor%} {%endif%}
       </div>
+      {% if messages%} {%for message in messages%}
+      <div class="alert alert-{{message.tags}}" style="margin-top: 1em">
+        {{message}}
+      </div>
+      {%endfor%} {%endif%}
     </div>
   </div>
+</div>
 
 
 {% endblock %}

@@ -28,7 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['type', 'id', 'host', 'displayName', 'url', 'github']
+        fields = ['type', 'id', 'host', 'displayName', 'url', 'github', 'profileImage']
 
 
 # TODO: images, author, comments, comments,
