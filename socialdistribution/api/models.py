@@ -310,7 +310,7 @@ class Post(models.Model):
     content_type = models.CharField(
         max_length=255, choices=ContentType.choices)
     text_content = models.TextField(unique=False, blank=True)
-    image_content = models.ImageField(unique=False, blank=True, upload_to="images/")
+    image_content = models.ImageField(max_length=60000, unique=False, blank=True, upload_to="images/")
     image_link = models.TextField(unique=False, blank=True, null=True)
     author = models.ForeignKey(
         "User",
