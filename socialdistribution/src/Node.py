@@ -79,7 +79,7 @@ class Node_Interface(Abstract_Node_Interface):
         return Node_Interface.__get_response__(node, uri)['data']
 
     def get_comments(node, post_url):
-        uri = f'{post_url}/comments/'
+        uri = f'{post_url}/comments'
         return Node_Interface.__get_response__(node, uri)['data']
 
 class Team_2_Interface(Abstract_Node_Interface):
@@ -135,4 +135,5 @@ class Team_18_Interface(Abstract_Node_Interface):
         return Node_Interface.get_followers(author_id)
 
     def get_comments(node, post_url):
-        return Node_Interface.get_comments(node, post_url)
+        uri = f'{post_url}/comments/'
+        return Node_Interface.__get_response__(node, uri)['data']

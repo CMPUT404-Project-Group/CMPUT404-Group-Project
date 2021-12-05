@@ -491,6 +491,7 @@ def view_foreign_comment(request):
         url = post['author']['host']
         node = Node.objects.get(url__contains=url)
         node_interface = Node_Interface_Factory.get_interface(node)
+        print(node)
         comments = node_interface.get_comments(node, post_url=post['id'])
 
     context = {
@@ -502,6 +503,13 @@ def view_foreign_comment(request):
     }
 
     return render(request, 'comments/foreign_comments.html', context)
+
+@login_required
+def share_foreign_post(request):
+    post = request.session['foreign_post']
+
+    context = { 'post': post }
+    return render(request, 'posts/share_post.html', context)
 
 
 def comments(request, post_id):
