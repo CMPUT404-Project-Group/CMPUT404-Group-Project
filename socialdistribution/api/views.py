@@ -604,10 +604,12 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         try:
             item = request.data
             type = item['type'].lower()
+
             if type == 'follow':
                 # create this follow object
                 author = User.objects.get(id=author_id) 
                 foreign_author = item['actor']
+
                 if not User.objects.filter(displayName=foreign_author['displayName']).exists():
                     user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=foreign_author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
                     User.objects.filter(id=user.id).update(id=foreign_author['id'].split('/')[-1], url=foreign_author['id'])
@@ -619,8 +621,16 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
                     friend_request = FriendshipRequest.objects.get(from_user=author, to_user=user)
                     friend_request.accept()
                 else:
-                    # send a friend request
+                    # send a friend request to local user
                     Friend.objects.add_friend(user, author)
+            elif type == 'unfollow':
+                # delete this follow object
+                author = User.objects.get(id=author_id) 
+                foreign_author = item['actor']
+                user = User.objects.get(id=foreign_author['id'].split('/')[-1])
+                Follow.objects.remove_follower(user, author)
+                if Friend.objects.are_friends(user, author):
+                    Friend.objects.remove_friend(user, author )
             elif type == 'like':
                 # create this like on the given post
                 post_id = item['post']
