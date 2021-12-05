@@ -4,57 +4,69 @@
 {% include "app/includes/navbar.html" %}
 {% load filters %}
 
-<nav id="navbar-example2" class="navbar navbar-light bg-light px-3">
-  <ul class="nav nav-pills">
-    <li class="nav-item">
-      <a class="nav-link" href="#localAuthors">Local Authors</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="#remoteAuthors">Remote Authors</a>
-    </li>
-  </ul>
+<nav class="sticky-top">
+  <div class="nav nav-tabs navbar-light bg-light " id="nav-tab" role="tablist">
+    <button class="nav-link active" id="nav-Local-tab" data-bs-toggle="tab" data-bs-target="#nav-Local" type="button"
+      role="tab" aria-controls="nav-Local" aria-selected="true">Local Authors</button>
+    {% for team in remote_authors %}
+    <button class="nav-link" id="nav-{{team|strip_space}}-tab" data-bs-toggle="tab"
+      data-bs-target="#nav-{{team|strip_space}}" type="button" role="tab" aria-controls="nav-{{team|strip_space}}"
+      aria-selected="false">{{team}} Authors</button>
+    {%endfor%}
+  </div>
 </nav>
-<div data-bs-spy="scroll" data-bs-target="#navbar-example2" data-bs-offset="0" class="scrollspy-example" tabindex="0">
-  <div class="container py-2 h-100">
-    <div class="row d-felx justify-content-center h-100">
-      <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 75%">
-        <h4 id="localAuthors">Local Authors</h4>
-        <div class="d-flex justify-content-center">
-          <ul class='ps-0'>
-            {% for author in local_authors %}
-            <li class="py-2" style="list-style: none">
-              <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0; width: 25rem;">
-                <div class="card-header d-inline-flex justify-content-between"
-                  style="border-radius: 0.5rem; border: 0;">
-                  <h5>{{author.displayName}}</h5>
-                  <a href="{% url 'app:view-other-user' author.id|getID %}"
-                    class="btn btn-sm btn-primary float-end">View
-                    Profile</a>
-                </div>
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
-        <h4 id="remoteAuthors">Remote Authors</h4>
-        <div class="d-flex justify-content-center">
-          <ul class='ps-0'>
-            {% for author in remote_authors %}
-            <li class="py-2" style="list-style: none">
-              <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0; width: 25rem;">
-                <div class="card-header d-inline-flex justify-content-between"
-                  style="border-radius: 0.5rem; border: 0;">
-                  <h5>{{author.displayName}}</h5>
-                  <a href="{% url 'app:view-other-user' author.id|getID %}"
-                    class="btn btn-sm btn-primary float-end">View
-                    Profile</a>
-                </div>
-            </li>
-            {% endfor %}
-          </ul>
+<div class="tab-content" id="nav-tabContent">
+  <div class="tab-pane fade show active" id="nav-Local" role="tabpanel" aria-labelledby="nav-Local-tab">
+    <div class="container py-2 h-100">
+      <div class="row d-felx justify-content-center h-100">
+        <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 75%">
+          <div class="d-flex justify-content-center">
+            <ul class='ps-0'>
+              {% for author in local_authors %}
+              <li class="py-2" style="list-style: none">
+                <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0; width: 25rem;">
+                  <div class="card-header d-inline-flex justify-content-between"
+                    style="border-radius: 0.5rem; border: 0;">
+                    <h5>{{author.displayName}}</h5>
+                    <a href="{% url 'app:view-other-user' author.id|getID %}"
+                      class="btn btn-sm btn-primary float-end">View
+                      Profile</a>
+                  </div>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
         </div>
       </div>
     </div>
   </div>
+  {% for team, value in remote_authors.items %}
+  <div class="tab-pane fade " id="nav-{{team|strip_space}}" role="tabpanel"
+    aria-labelledby="nav-{{team|strip_space}}-tab">
+    <div class="container py-2 h-100">
+      <div class="row d-felx justify-content-center h-100">
+        <div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 75%">
+          <div class="d-flex justify-content-center">
+            <ul class='ps-0'>
+              {% for author in value %}
+              <li class="py-2" style="list-style: none">
+                <div class="card shadow p-3" style="border-radius: 0.5rem; border: 0; width: 25rem;">
+                  <div class="card-header d-inline-flex justify-content-between"
+                    style="border-radius: 0.5rem; border: 0;">
+                    <h5>{{author.displayName}}</h5>
+                    <a href="{% url 'app:view-other-user' author.id|getID %}"
+                      class="btn btn-sm btn-primary float-end">View
+                      Profile</a>
+                  </div>
+              </li>
+              {%endfor%}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {%endfor%}
 </div>
-</div>
+
 {% endblock %}

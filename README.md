@@ -12,7 +12,7 @@ Api (backend service) URL: https://social-distribution-t10.herokuapp.com/api/
 
 Api documentation: https://social-distribution-t10.herokuapp.com/api/swagger/
 
-Frontend documentation: [here](FrontendDocumentation)
+Frontend documentation: [here](FrontendDocumentation.md)
 
 ## Development
 

@@ -33,8 +33,6 @@ TEAM_18_TOKEN = os.environ.get("TEAM_18_TOKEN")
 TEAM_02_TOKEN = os.environ.get("TEAM_02_TOKEN")
 ALLOWED_HOSTS = ['*']
 
-TEST_TOKEN = os.environ.get("TEST_TOKEN")
-
 
 # Application definition
 

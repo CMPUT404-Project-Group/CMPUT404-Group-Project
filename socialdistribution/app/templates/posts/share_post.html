@@ -11,10 +11,10 @@
                 <h3 class="mb-3">You are sharing this post: </h3>
                 <div>
 
-                    <h1>{{ post.title }}</h1>
+                    <h4>{{ post.title }}</h4>
             
                     {% if post.text_content %}
-                        <p> {{ post.text_content | urlize}} </p>
+                        <pre> {{ post.text_content | urlize}} </pre>
                     {% endif %}
             
                     {% if post.image_content %}
@@ -51,6 +51,8 @@
                         </div>
                         <div class="form-outline mb-2">
                             <button class="btn btn-primary shadow mt-5 w-100" type="submit">Share Post</button>
+                            <a href="{% url 'app:index' %}"><button type="button"
+                                class="btn btn-outline-primary shadow mt-3 w-100">Discard</button></a>
                         </div>
                     </form>
                 </div>

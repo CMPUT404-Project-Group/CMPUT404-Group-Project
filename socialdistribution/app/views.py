@@ -12,7 +12,7 @@ import requests
 import time
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
 from api.models import User, Post, Comment, Like, GithubAccessData
-from api.serializers import PostSerializer, FriendRequestSerializer
+from api.serializers import PostSerializer, FriendRequestSerializer, ForeignFriendRequestSerializer
 from requests.models import Response
 from rest_framework import serializers
 from django.contrib import messages
@@ -34,8 +34,6 @@ API_TOKEN = settings.API_TOKEN
 TEAM_12_TOKEN = settings.TEAM_12_TOKEN
 TEAM_18_TOKEN = settings.TEAM_18_TOKEN
 TEAM_02_TOKEN = settings.TEAM_02_TOKEN
-
-TEST_TOKEN = settings.TEST_TOKEN
 
 
 def register(request):
@@ -179,7 +177,7 @@ def delete_post(request, post_id):
         return HttpResponseForbidden()
     else:
         post.delete()
-        return render(request, 'app/index.html')
+        return redirect('app:index')
 
 @login_required
 def post(request, post_id):
@@ -235,6 +233,11 @@ def foreign_post(request):
         node = Node.objects.get(url=url)
         node_interface = Node_Interface_Factory.get_interface(node)
         post = node_interface.get_post(node, data['post'])
+        request.session['foreign_post'] = post
+    elif ('foreign_post' in request.session.keys()):
+        post = request.session['foreign_post']
+        node = Node.objects.get(url__contains=post['author']['host'])
+        node_interface = Node_Interface_Factory.get_interface(node)
         
     context = {
         'post': post,
@@ -276,7 +279,6 @@ def view_other_user(request, other_user_id):
             if len(author) > 0:
                 return render(request, 'profile/view_other_user.html', {'other_user': author})
         return render(HttpResponse('User not found'))
-
         
 
     if other_user==request.user: 
@@ -297,12 +299,11 @@ def view_followers(request):
     """
     Allows the user to view all of the other users that are following them, and will receive their posts.
     """
-    headers = {'Authorization': 'Token %s' % API_TOKEN}
+    headers = {'Authorization': 'Basic %s' % API_TOKEN}
     user = request.user
     url = HOST_API_URL + 'author/%s/followers/' % user.id
     res = requests.get(url, headers=headers)
     data = json.loads(res.content.decode('utf-8'))
-    print(data)
     return render(request, 'profile/view_followers.html', {'data': data.get('data')})
 
 @login_required
@@ -310,21 +311,24 @@ def explore_authors(request):
     """
     Allows the user to view all of the authors (local and foreign) that are available for them to follow and view.
     """
+    data = dict()
     # get local authors
-    headers = {'Authorization': 'Token %s' % API_TOKEN}
+    headers = {'Authorization': 'Basic %s' % API_TOKEN}
     res = requests.get(HOST_URL+reverse('api:authors'), headers=headers)
     data = json.loads(res.content.decode('utf-8'))
     local_authors = data.get('data')
     for author in local_authors:
         if author.get('displayName') == request.user.displayName: # remove current user from list
             local_authors.remove(author)
-    
+    data['local_authors'] = local_authors
+
     # get remote authors
     nodes = Node.objects.get_queryset().filter(is_active=True)
-    remote_authors = []
+    remote_authors = dict()
     for node in nodes:
         node_interface = Node_Interface_Factory.get_interface(node)
-        remote_authors.extend(node_interface.get_authors(node))
+        node_authors = node_interface.get_authors(node)
+        remote_authors[node.team] = node_authors
         
     return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': remote_authors })
 
@@ -358,7 +362,7 @@ def follow(request, other_user_id):
     """
     if request.method == 'POST':
         other_user = User.objects.get(id=other_user_id)
-        headers = {'Authorization': 'Token %s' % API_TOKEN}
+        headers = {'Authorization': 'Basic %s' % API_TOKEN}
 
         if other_user.type == 'foreign-author': 
             host = other_user.url.split('/')[2]
@@ -369,7 +373,7 @@ def follow(request, other_user_id):
             elif host == 'ourbackend.herokuapp.com':
                 token = TEAM_02_TOKEN
             
-            headers = {'Authorization': 'Token %s' % token}
+            headers = {'Authorization': 'Basic %s' % token}
 
         try: 
             # send a friend request
@@ -392,6 +396,14 @@ def follow(request, other_user_id):
                 friend_request = FriendshipRequest.objects.get(from_user=other_user, to_user=request.user)
                 friend_request.accept()
                 Follow.objects.add_follower(request.user, other_user)  # follow
+
+                # if other_user is foreign_user, send request to inbox
+                if other_user.type == 'foreign-author':
+                    instance = {'from_user':request.user.id, 'to_user':other_user_id}      
+                    serializer = ForeignFriendRequestSerializer(instance).follow()
+                    inboxURL = other_user.url + '/inbox/'
+                    requests.post(inboxURL, json=serializer, headers=headers)
+
                 messages.success(request,f'You and %s are friends now!' % other_user.displayName)
             elif (FriendshipRequest.objects.filter(from_user=request.user, to_user=other_user).exists()):
                 Follow.objects.add_follower(request.user, other_user)  # follow
@@ -412,6 +424,23 @@ def unfollow(request, other_user_id):
         # remove friend if user & other_user are friends
         if Friend.objects.are_friends(request.user, other_user):
             Friend.objects.remove_friend(request.user, other_user )
+
+        # send unfollow to foreign-author's inbox
+        if other_user.type == 'foreign-author': 
+            host = other_user.url.split('/')[2]
+            if host == 'glowing-palm-tree1.herokuapp.com':
+                token = TEAM_12_TOKEN
+            elif host == 'cmput404-socialdistributio-t18.herokuapp.com':
+                token = TEAM_18_TOKEN
+            elif host == 'ourbackend.herokuapp.com':
+                token = TEAM_02_TOKEN
+            
+            headers = {'Authorization': 'Token %s' % token}
+
+            instance = {'from_user':request.user.id, 'to_user':other_user_id}
+            serializer = ForeignFriendRequestSerializer(instance).unfollow()
+            inboxURL = other_user.url + '/inbox/'
+            requests.post(inboxURL, json=serializer, headers=headers)
 
         return redirect('app:view-other-user', other_user_id=other_user_id)
 
@@ -435,13 +464,20 @@ def create_comment(request, post_id):
     return render(request, 'comments/create_comment.html', {'form': form})
 
 @login_required
-def create_foreign_comment(request, post_id):
-    post = Node_Interface.get_post(data['post'])
-    token = Node.objects.get(url=post.author.url).auth_token
+def create_foreign_comment(request):
+    if request.method == 'POST':
+        return redirect('app:foreign_posts')
+    else: 
+        post = request.session['foreign_post']
+        url = post['author']['host']
+        node = Node.objects.get(url__contains=url)
+        node_interface = Node_Interface_Factory.get_interface(node)
+
     context = {
         'post': post,
         'is_author': False,
-        'user' : request.user
+        'user' : request.user,
+        'token' : node.auth_token
     }
 
     return render(request, 'comments/create_foreign_comment.html', context)
@@ -524,7 +560,7 @@ def inbox(request, author_id):
         if size:
             url += '&size=%s' % size
 
-        req = requests.get(url, headers=headers, params={'user': 'a'})
+        req = requests.get(url, headers=headers)
         Token.objects.get(user=request.user).delete() # clean token
         res = json.loads(req.content.decode('utf-8'))
         res['author'] = request.path.split('/')[3]

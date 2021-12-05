@@ -8,18 +8,16 @@
 {% block javascript %}
 <script>
     const sendComment = async () => {
-
         const comment = {
-            type : "comment",
-            comment : document.getElementById("id_text_content").value,
-            author : "user",
-            contentType : "text/plain",
-            published : Date.now(),
-            id : "{{post.author.url}}/posts/{{post.id}}/comments/"
+            type: "comment",
+            comment: document.getElementById("id_text_content").value,
+            author: '{{user.id}}',
+            contentType: "text/plain",
+            published: Date.now(),
+            id: "{{post.id}}/comments/"
         }
-
         const url = `{{post.author.url}}/inbox/`;
-        const headers = { 'Content-Type': 'application/json', 'Authorization': `Token {{token}}` }
+        const headers = { 'Content-Type': 'application/json', 'Authorization': `Basic {{token}}` }
         var req = new Request(url, { method: 'POST', body: JSON.stringify(comment), headers })
 
         const res = await fetch(req)
@@ -48,14 +46,21 @@
                         <h3 class="mb-3">Create a Comment</h3>
                         <div class="form-outline mb-2 text-start">
                             <label for="id_text_content" class="form-label h6">Comment</label>
-                            <textarea id="id_text_content" class="form-control" cols="40" rows="10" name="comment"></textarea>
+                            <textarea id="id_text_content" class="form-control" cols="40" rows="10"
+                                name="comment"></textarea>
                         </div>
                         <div class="form-outline mb-2">
-                            <button class="btn btn-primary shadow mt-5 w-100" onclick="sendComment()" type="submit">Create Comment</button>
+                            <button class="btn btn-primary shadow mt-5 w-100" onclick="sendComment()"
+                                type="submit">Create Comment</button>
+                            <form action="{% url 'app:foreign_posts' %}" method='POST'>
+                                {% csrf_token %}
+                                <input type="hidden" name="post" value={{post.id}}>
+                                <button class="btn btn-primary shadow mt-5" onClick="sendComment()" type="submit">View
+                                    Post</button>
+                            </form>
                         </div>
-                          <a href="{% url 'app:index' %}"
-                            ><button type="button" class="btn btn-primary shadow mt-3 w-100">
-                                    Back
+                        <a href="{% url 'app:index' %}"><button type="button" class="btn btn-primary shadow mt-3 w-100">
+                                Back
                             </button></a>
                     </form>
                 </div>

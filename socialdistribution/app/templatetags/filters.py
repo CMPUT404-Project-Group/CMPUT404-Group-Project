@@ -7,6 +7,10 @@ import urllib
 register = template.Library()
 
 @register.filter
+def strip_space(value):
+    return value.replace(' ', '')
+
+@register.filter
 @stringfilter
 def commonmark(value):
     return markdown.Markdown().convert(value)
@@ -24,3 +28,10 @@ def get_nav(value):
 @register.filter(name="encode_url")
 def encode_url(value):
     return urllib.parse.quote(value)
+
+@register.filter
+def get_post_id(url):
+    """
+    gets the post id from the comment page url
+    """
+    return urllib.parse.urlparse(url.get_full_path()).path.rsplit('/', 1)[0]
