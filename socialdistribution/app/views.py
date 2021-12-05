@@ -519,7 +519,6 @@ def share_foreign_post(request):
             User.objects.filter(id=foreign_author.id).update(id=post["author"]['id'].split('/')[-1], url=post["author"]['id'])
             foreign_author = User.objects.get(id=post["author"]['id'].split('/')[-1])
         else:
-            print(post["author"]['id'].split('/')[-1])
             foreign_author = User.objects.get(id=post["author"]['id'].split('/')[-1])
         foreign_post = Post(
             type="foreign_post",
@@ -527,16 +526,16 @@ def share_foreign_post(request):
             id=post["id"].split('/')[-1],
             source=post["source"],
             origin=post["origin"],
-            description=post["description"],
+            description=post["description"] if post["description"] is not None else 'not provided',
             content_type=post["contentType"],
             text_content=post["content"],
             image_content=post["content"],
             image_link=None,
             author=foreign_author,
             categories=','.join(post["categories"]),
-            count=post["count"],
+            count=post.get("count", 0),
             size=0,
-            comments=post["comments"],
+            comments=post["comments"] if post["comments"] is not None else f'{post["origin"]}/comments/',
             visibility=post["visibility"],
             unlisted=True,
             shared_post = None,
