@@ -665,7 +665,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
             author = User.objects.get(id=author_id)
             InboxItem.objects.create(author_id=author.id, item=item)
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except as e:
+        except BaseException as e:
             logging.error(e)
             return Response(status=status.HTTP_400_BAD_REQUEST, data=e)
 
