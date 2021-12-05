@@ -482,6 +482,28 @@ def create_foreign_comment(request):
 
     return render(request, 'comments/create_foreign_comment.html', context)
 
+@login_required
+def view_foreign_comment(request):
+    if request.method == 'POST':
+        return redirect('app:foreign_posts')
+    else: 
+        post = request.session['foreign_post']
+        url = post['author']['host']
+        node = Node.objects.get(url__contains=url)
+        node_interface = Node_Interface_Factory.get_interface(node)
+        comments = node_interface.get_comments(node, post_url=post['id'])
+
+    context = {
+        'post': post,
+        'comments': comments,
+        'is_author': False,
+        'user' : request.user,
+        'token' : node.auth_token
+    }
+
+    return render(request, 'comments/foreign_comments.html', context)
+
+
 def comments(request, post_id):
     """
     Displays all of the comments for the post given by post_id.
