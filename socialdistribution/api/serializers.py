@@ -191,3 +191,25 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         object_obj = User.objects.get(id=request.get('to_user'))
         object = UserSerializer(object_obj).data
         return {'type': 'Follow', 'summary': actor.get('displayName') + ' wants to follow ' + object.get('displayName'), 'actor': actor, 'object': object}
+
+class ForeignFriendRequestSerializer:
+
+    def __init__(self, instance):
+        actor_obj = User.objects.get(id=instance['from_user'])
+        self.actor = UserSerializer(actor_obj).data
+        object_obj = User.objects.get(id=instance['to_user'])
+        self.object = UserSerializer(object_obj).data
+
+    def follow(self):
+        data = {'type': 'Follow', 'summary': self.actor.get('displayName') + ' wants to follow ' + self.object.get('displayName'), 'actor': self.actor, 'object': self.object}
+        return data
+
+    def unfollow(self):
+        data = {'type': 'unfollow', 'summary': self.actor.get('displayName') + ' unfollowed ' + self.object.get('displayName'), 'actor': self.actor, 'object': self.object}
+        return data
+
+    def get(self, arg):
+        if arg == 'actor': 
+            return self.actor
+        if arg == 'object':
+            return self.object
