@@ -32,6 +32,7 @@ from .models import Inbox as InboxItem
 from .models import Post, User, Like, Comment
 from .serializers import LikeSerializer, LikedSerializer, InboxSerializer, PostSerializer, UserSerializer, CommentSerializer
 from django.forms.models import model_to_dict
+import logging
 
 from django.conf import settings
 HOST_API_URL = settings.HOST_API_URL
@@ -665,6 +666,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
             InboxItem.objects.create(author_id=author.id, item=item)
             return Response(status=status.HTTP_204_NO_CONTENT)
         except as e:
+            logging.error(e)
             return Response(status=status.HTTP_400_BAD_REQUEST, data=e)
 
     @ swagger_auto_schema(
