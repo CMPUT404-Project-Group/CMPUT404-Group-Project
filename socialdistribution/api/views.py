@@ -649,7 +649,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
             elif type == 'comment':
                 # create this comment on the given post
                 comment = item['comment']
-                post_id = item['object'].split('/')[-1]
+                post_id = item['id'].split('/')[-3]
                 author = item['author']
                 if not User.objects.filter(displayName=author['displayName']).exists():
                     user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
