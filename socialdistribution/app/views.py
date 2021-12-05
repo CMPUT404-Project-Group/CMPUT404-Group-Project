@@ -1,5 +1,6 @@
 from uuid import uuid4
 from requests import api
+import random
 
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post, Node
@@ -506,9 +507,49 @@ def view_foreign_comment(request):
 
 @login_required
 def share_foreign_post(request):
+    """
+    From to allow a user to share a foreign user's post given by post_id.
+    """
     post = request.session['foreign_post']
+    context = {'post': post}
+    if request.method == 'POST':
+        user = request.user
+        if not User.objects.filter(displayName=post["author"]['displayName']).exists():
+            foreign_author = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=post["author"]['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
+            User.objects.filter(id=foreign_author.id).update(id=post["author"]['id'].split('/')[-1], url=post["author"]['id'])
+            foreign_author = User.objects.get(id=post["author"]['id'].split('/')[-1])
+        else:
+            print(post["author"]['id'].split('/')[-1])
+            foreign_author = User.objects.get(id=post["author"]['id'].split('/')[-1])
+        foreign_post = Post(
+            type="foreign_post",
+            title=post["title"],
+            id=post["id"].split('/')[-1],
+            source=post["source"],
+            origin=post["origin"],
+            description=post["description"],
+            content_type=post["contentType"],
+            text_content=post["content"],
+            image_content=post["content"],
+            image_link=None,
+            author=foreign_author,
+            categories=','.join(post["categories"]),
+            count=post["count"],
+            size=0,
+            comments=post["comments"],
+            visibility=post["visibility"],
+            unlisted=True,
+            shared_post = None,
+            published=post["published"]
+        )
+        foreign_post.save()
+        form = SharePostForm(data=request.POST, user=user, post=foreign_post)
+        if form.is_valid():
+            form.save()
+            return redirect('app:index')
+    else:
+        form = SharePostForm()
 
-    context = { 'post': post }
     return render(request, 'posts/share_post.html', context)
 
 
