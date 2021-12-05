@@ -1,5 +1,6 @@
 from uuid import uuid4
 from requests import api
+import random
 
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post, Node
@@ -481,6 +482,75 @@ def create_foreign_comment(request):
     }
 
     return render(request, 'comments/create_foreign_comment.html', context)
+
+@login_required
+def view_foreign_comment(request):
+    if request.method == 'POST':
+        return redirect('app:foreign_posts')
+    else: 
+        post = request.session['foreign_post']
+        url = post['author']['host']
+        node = Node.objects.get(url__contains=url)
+        node_interface = Node_Interface_Factory.get_interface(node)
+        print(node)
+        comments = node_interface.get_comments(node, post_url=post['id'])
+
+    context = {
+        'post': post,
+        'comments': comments,
+        'is_author': False,
+        'user' : request.user,
+        'token' : node.auth_token
+    }
+
+    return render(request, 'comments/foreign_comments.html', context)
+
+@login_required
+def share_foreign_post(request):
+    """
+    From to allow a user to share a foreign user's post given by post_id.
+    """
+    post = request.session['foreign_post']
+    context = {'post': post}
+    if request.method == 'POST':
+        user = request.user
+        if not User.objects.filter(displayName=post["author"]['displayName']).exists():
+            foreign_author = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=post["author"]['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
+            User.objects.filter(id=foreign_author.id).update(id=post["author"]['id'].split('/')[-1], url=post["author"]['id'])
+            foreign_author = User.objects.get(id=post["author"]['id'].split('/')[-1])
+        else:
+            foreign_author = User.objects.get(id=post["author"]['id'].split('/')[-1])
+        foreign_post = Post(
+            type="foreign_post",
+            title=post["title"],
+            id=post["id"].split('/')[-1],
+            source=post["source"],
+            origin=post["origin"],
+            description=post["description"] if post["description"] is not None else 'not provided',
+            content_type=post["contentType"],
+            text_content=post["content"],
+            image_content=post["content"],
+            image_link=None,
+            author=foreign_author,
+            categories=','.join(post["categories"]),
+            count=post.get("count", 0),
+            size=0,
+            comments=post["comments"] if post["comments"] is not None else f'{post["origin"]}/comments/',
+            visibility=post["visibility"],
+            unlisted=True,
+            shared_post = None,
+            published=post["published"]
+        )
+        foreign_post.save()
+        form = SharePostForm(data=request.POST, user=user, post=foreign_post)
+        if form.is_valid():
+            form.save()
+            return redirect('app:index')
+    else:
+        form = SharePostForm()
+
+    return render(request, 'posts/share_post.html', context)
+
 
 def comments(request, post_id):
     """

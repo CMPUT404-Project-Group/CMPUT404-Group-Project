@@ -633,7 +633,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
                     Friend.objects.remove_friend(user, author )
             elif type == 'like':
                 # create this like on the given post
-                post_id = item['post']
+                post_id = item['object'].split('/')[-1]
                 author = item['author']
                 if not User.objects.filter(displayName=author['displayName']).exists():
                     user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
@@ -649,7 +649,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
             elif type == 'comment':
                 # create this comment on the given post
                 comment = item['comment']
-                post_id = item['post']
+                post_id = item['id'].split('/')[-3]
                 author = item['author']
                 if not User.objects.filter(displayName=author['displayName']).exists():
                     user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
@@ -659,10 +659,6 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
                     user = User.objects.get(id=author['id'].split('/')[-1])
                 post = Post.objects.get(id=post_id)
                 Comment.objects.create_comment(author=user, comment=comment, post=post)
-            # elif type == 'post':
-            #     # I don't think we need to actually create the post?
-            #     # they will just send us the post object for us to view in the inbox?
-            #     pass
 
             # then we send the notification to the inbox
             author = User.objects.get(id=author_id)
