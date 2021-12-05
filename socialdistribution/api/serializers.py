@@ -56,7 +56,8 @@ class PostSerializer(serializers.ModelSerializer):
             'comments',
             'published',
             'visibility',
-            'unlisted'
+            'unlisted',
+            'shared_post'
         ]
 
     def to_representation(self, instance):
@@ -64,6 +65,9 @@ class PostSerializer(serializers.ModelSerializer):
 
         post['id'] = f"{HOST_API_URL[:-1]}/author/{post['author']}/posts/{post['id']}"
         post['categories'] = post['categories'].split(',')
+        if post['shared_post'] is not None:
+            shared_post = Post.objects.get(id=post['shared_post'])
+            post['shared_post'] = PostSerializer(shared_post).data
 
         author_id = post['author']
         author = User.objects.get(id=author_id)
