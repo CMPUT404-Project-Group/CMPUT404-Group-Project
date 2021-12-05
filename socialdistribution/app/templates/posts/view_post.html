@@ -28,6 +28,34 @@
               <span style="font-style: italic">{{ post.published }}</span>
             </span>
             {% include "app/includes/post_content.html" %}
+
+            {% if post.shared_post %}
+            <div class="ms-5 ps-3" style="border-left: 4px solid #dadada;">
+              {% if post.shared_post.contentType == 'text/plain' %}
+                <p class="card-text mt-4">{{ post.shared_post.content }}</p>
+              {% elif post.shared_post.contentType == 'text/markdown' %}
+                {% autoescape off %}
+                <p class="card-text mt-4">{{ post.shared_post.content | commonmark}}</p>
+                {% endautoescape %}
+              {% elif post.shared_post.contentType == "image/png;base64" %}
+                <img alt="User uploaded image" src="{{post.shared_post.content}}" style="width:20%"></img>
+              {% elif post.shared_post.contentType == "image/jpeg;base64" %}
+                <img alt="User uploaded image" src="{{post.shared_post.content}}" style="width:20%"></img>
+              {% else %}
+                <p>{{ post.shared_post.contentType }} failed to display</p>
+              {% endif %}
+              <div class="category">
+                {% for c in post.shared_post.categories %}
+                <span class="badge bg-dark">{{ c }}</span>
+                {% endfor %}
+              </div>
+              <hr>
+              <span class="text-muted">Originally posted by {{post.shared_post.author.displayName}}. <br>
+                <span style="font-style: italic">{{ post.published }}</span>
+              </span>
+            </div>
+            {% endif %}
+
             <div class="category">
               {% for c in post.categories %}
               <span class="badge bg-dark">{{ c }}</span>
