@@ -234,15 +234,31 @@ def view_followers(request):
 
 @login_required
 def explore_authors(request):
+<<<<<<< Updated upstream
+=======
+    """
+    Allows the user to view all of the authors (local and foreign) that are available for them to follow and view.
+    """
+>>>>>>> Stashed changes
     # get local authors
     headers = {'Authorization': 'Token %s' % API_TOKEN}
     res = requests.get(HOST_URL+reverse('api:authors'), headers=headers)
     data = json.loads(res.content.decode('utf-8'))
     local_authors = data.get('data')
+<<<<<<< Updated upstream
     for author in local_authors:
         if author.get('displayName') == request.user.displayName: # remove current user from list
             local_authors.remove(author)
     
+=======
+    if local_authors:
+        for author in local_authors:
+            if author.get('displayName') == request.user.displayName: # remove current user from list
+                local_authors.remove(author)
+    else:
+        local_authors = dict()
+
+>>>>>>> Stashed changes
     # get remote authors
     nodes = Node.objects.get_queryset().filter(is_active=True)
     remote_authors = []
