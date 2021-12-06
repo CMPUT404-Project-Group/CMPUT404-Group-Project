@@ -85,7 +85,7 @@ class PostSerializer(serializers.ModelSerializer):
             'comments': comments_list_paginated.get('data', [])
         }
 
-        post['size'] = comments_list_paginated['size']
+        post['size'] = comments_list_paginated.get('size', 0)
 
         post['author'] = author_serializer.data
         
