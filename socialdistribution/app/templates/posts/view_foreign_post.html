@@ -9,11 +9,21 @@
 {% block javascript %}
 <script>
   const sendLike = async () => {
+    const author = {
+            type : "author",
+            url : "{{user.url}}",
+            id : "{{user.url}}",
+            displayName : "{{user.displayName}}",
+            host : "{{user.url}}".split('api')[0],
+            github : "{{user.github}}",
+            profileImage : "{{user.profileImage}}"
+      }
+
     const like = {
       summary: '{{user.displayName}} likes your post',
-      author: '{{user.id}}',
+      author: author,
       type: "Like",
-      object: '{{post.url}}'
+      object: "{{post.id}}"
     }
 
     // send like to users inbox
