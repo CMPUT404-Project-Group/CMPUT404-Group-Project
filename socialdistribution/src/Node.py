@@ -140,7 +140,8 @@ class Team_2_Interface(Abstract_Node_Interface):
         return authors
     
     def __format_author__(node, author):
-        author['id'] = f"{node.url}/author/{author.pop('author_id')}"
+        if not 'id' in author:
+            author['id'] = f"{node.url}/author/{author.pop('author_id')}"
         return author
 
     def __format_post__(post):
