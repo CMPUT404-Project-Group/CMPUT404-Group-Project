@@ -19,6 +19,7 @@
             profileImage : "{{user.profileImage}}"
         }
     const like = {
+      "@context": '{{user.url}}/inbox',
       summary: '{{user.displayName}} likes your post',
       author: author,
       type: "Like",
