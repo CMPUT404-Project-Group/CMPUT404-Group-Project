@@ -473,12 +473,14 @@ def create_foreign_comment(request):
         url = post['author']['host']
         node = Node.objects.get(url__contains=url)
         node_interface = Node_Interface_Factory.get_interface(node)
-
+    
+    uuid = uuid4()
     context = {
         'post': post,
         'is_author': False,
         'user' : request.user,
-        'token' : node.auth_token
+        'token' : node.auth_token,
+        'uuid' : uuid
     }
 
     return render(request, 'comments/create_foreign_comment.html', context)
