@@ -618,7 +618,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
             # create this follow object
             author = User.objects.get(id=author_id) 
             foreign_author = item['actor']
-            if not User.objects.filter(displayName=foreign_author['displayName']).exists():
+            if not User.objects.filter(id=foreign_author['id'].split('/')[-1]).exists():
                 user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=foreign_author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
                 User.objects.filter(id=user.id).update(id=foreign_author['id'].split('/')[-1], url=foreign_author['id'])
                 user = User.objects.get(id=foreign_author['id'].split('/')[-1])
