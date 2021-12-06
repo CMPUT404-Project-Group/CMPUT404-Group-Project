@@ -9,3 +9,4 @@ class AppConfig(AppConfig):
         from app import updater
         updater.update_cached_posts()
         updater.update_cached_authors()
+        updater.start()
