@@ -271,7 +271,7 @@ def view_other_user(request, other_user_id):
     Depending on what the relationship is between the user and other_user_id, different
     templates will be rendered.
     """
-    if User.objects.filter(id=other_user_id).exists():
+    if User.objects.filter(id=other_user_id, type='author').exists():
         other_user = User.objects.get(id=other_user_id)
     else:
         for node in Node.objects.get_queryset().filter(is_active=True):
@@ -387,7 +387,6 @@ def follow(request, other_user_id):
             inboxURL = serializer.get('object', {}).get('url') + '/inbox/'
             requests.post(inboxURL, json=serializer, headers=headers)
 
-            Follow.objects.add_follower(request.user, other_user)  # follow
             messages.success(request,f'Your friend request has been sent!')
 
         except:
@@ -396,15 +395,14 @@ def follow(request, other_user_id):
                 # accept friend request from other_user
                 friend_request = FriendshipRequest.objects.get(from_user=other_user, to_user=request.user)
                 friend_request.accept()
-                Follow.objects.add_follower(request.user, other_user)  # follow
+                # Follow.objects.add_follower(request.user, other_user)  # follow
 
                 # if other_user is foreign_user, send request to inbox
-                if other_user.type == 'foreign-author':
-                    instance = {'from_user':request.user.id, 'to_user':other_user_id}      
-                    serializer = ForeignFriendRequestSerializer(instance).follow()
-                    inboxURL = other_user.url + '/inbox/'
-                    requests.post(inboxURL, json=serializer, headers=headers)
-
+                instance = {'from_user':request.user.id, 'to_user':other_user_id}      
+                serializer = ForeignFriendRequestSerializer(instance).follow()
+                inboxURL = other_user.url + '/inbox/'
+                requests.post(inboxURL, json=serializer, headers=headers)
+                
                 messages.success(request,f'You and %s are friends now!' % other_user.displayName)
             elif (FriendshipRequest.objects.filter(from_user=request.user, to_user=other_user).exists()):
                 Follow.objects.add_follower(request.user, other_user)  # follow
