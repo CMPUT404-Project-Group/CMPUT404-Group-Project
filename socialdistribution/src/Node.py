@@ -142,7 +142,8 @@ class Team_2_Interface(Abstract_Node_Interface):
     def __format_author__(node, author):
         if not 'id' in author and 'author_id' in author:
             author['id'] = f"{node.url}/author/{author.pop('author_id')}"
-        return author
+            return author
+        return {}
 
     def __format_post__(post):
         if "published" not in post:
