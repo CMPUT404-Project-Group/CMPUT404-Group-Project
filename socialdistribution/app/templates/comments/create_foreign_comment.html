@@ -9,16 +9,26 @@
 
 <script>
     const sendComment = async () => {
+        const author = {
+            type : "author",
+            url : "{{user.url}}",
+            id : "{{user.url}}",
+            displayName : "{{user.displayName}}",
+            host : "{{user.url}}".split('api')[0],
+            github : "{{user.github}}",
+            profileImage : "{{user.profileImage}}"
+        }
+        const date = new Date()
         const comment = {
             type: "comment",
             comment: document.getElementById("id_text_content").value,
-            author: '{{user.id}}',
+            author: author,
             contentType: "text/plain",
-            published: Date.now(),
-            id: "{{post.id}}/comments/"
+            published: date.toISOString(),
+            id: "{{post.id}}/comments"
         }
         const url = comment.id;
-        console.log(url)
+        console.log(comment)
         const headers = { 'Content-Type': 'application/json', 'Authorization': `Basic {{token}}` }
         var req = new Request(url, { method: 'POST', body: JSON.stringify(comment), headers })
 
