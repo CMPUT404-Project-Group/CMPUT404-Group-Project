@@ -21,6 +21,7 @@ def update_cached_posts():
                     posts.extend(author_posts)
     except OperationalError:
         pass
+    
     cache.set('posts', posts, 100)
 
 def update_cached_authors():
@@ -34,4 +35,5 @@ def update_cached_authors():
             remote_authors[node.team] = node_authors
     except OperationalError:
         pass
+
     cache.set('authors', remote_authors, 100)
