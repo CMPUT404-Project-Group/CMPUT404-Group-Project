@@ -46,16 +46,6 @@
           <div class="card-body">
             <div class="d-flex justify-content-between">
               {% include "app/includes/post_title.html" %}
-              {% if is_author %}
-              <div>
-                <a href="{% url 'app:delete-post' post.id %}">
-                  <button class="btn btn-sm btn-outline-danger float-end me-3">Delete</button>
-                </a>
-                <a href="{% url 'app:edit-post' post.id %}">
-                  <button class="btn btn-sm btn-outline-secondary float-end me-3">Edit</button>
-                </a>
-              </div>
-              {% endif %}
             </div>
             <span class="text-muted">
               {{ post.author.displayName }} <br />
