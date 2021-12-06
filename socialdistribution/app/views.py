@@ -314,10 +314,10 @@ def explore_authors(request):
     """
     data = dict()
     # get local authors
-    headers = {'Authorization': 'Basic %s' % API_TOKEN}
-    res = requests.get(HOST_URL+reverse('api:authors'), headers=headers)
-    data = json.loads(res.content.decode('utf-8'))
-    local_authors = data.get('data')
+    local_node = Node.objects.get(team="LOCAL")
+    node_interface = Node_Interface_Factory.get_interface(local_node)
+    local_authors = node_interface.get_authors(local_node)
+
     for author in local_authors:
         if author.get('displayName') == request.user.displayName: # remove current user from list
             local_authors.remove(author)
