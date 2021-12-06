@@ -3,6 +3,8 @@
 {% block title %}View Follower Profile{% endblock %}
 
 {% block content %}
+{% load filters %}
+
 {% include "app/includes/navbar.html" %}
 <div class="container py-5 mt-5">
   <div class="row d-felx justify-content-center align-items-center h-100">
@@ -25,9 +27,9 @@
             <p>Email: {{ other_user.email }}</p>
             <p>Github: {{ other_user.github }}</p>
           </div>
-          <form action="{% url 'app:action-unfollow' other_user.id %}" method='POST'>
+          <form action="{% url 'app:action-unfollow' other_user.id|getID %}" method='POST'>
             {% csrf_token %}
-            <a href="{% url 'app:view-other-user' other_user.id %}"><button type="submit"
+            <a href="{% url 'app:view-other-user' other_user.id|getID %}"><button type="submit"
                 class="btn btn-primary shadow mt-5 w-100">Unfollow</button></a>
           </form>
 

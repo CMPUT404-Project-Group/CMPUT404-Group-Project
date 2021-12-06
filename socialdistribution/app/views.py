@@ -278,7 +278,15 @@ def view_other_user(request, other_user_id):
             node_interface = Node_Interface_Factory.get_interface(node)
             author = node_interface.get_author(node, other_user_id)
             if len(author) > 0:
-                return render(request, 'profile/view_other_user.html', {'other_user': author})
+                other_user = User.objects.get(id=author["id"].split('/')[-1])
+                if Friend.objects.are_friends(request.user, other_user):  
+                    # friends (follow each other)
+                    return render(request, 'profile/view_friend.html', {'other_user': author})
+                elif Follow.objects.follows(request.user, other_user):   
+                    # following
+                    return render(request, 'profile/view_following_user.html', {'other_user': author})
+                else:  # not following
+                    return render(request, 'profile/view_other_user.html', {'other_user': author})
         return render(HttpResponse('User not found'))
         
 
