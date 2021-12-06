@@ -105,7 +105,7 @@ class Node_Interface(Abstract_Node_Interface):
 
     def get_comments(node, post_url):
         uri = f'{post_url}/comments'
-        return Node_Interface.__get_response__(node, uri)['data']
+        return Node_Interface.__get_response__(node, uri).get('data')
 
 class Team_2_Interface(Abstract_Node_Interface):
 
