@@ -498,7 +498,7 @@ class Comment_API(generics.ListCreateAPIView):
         if not serializer.is_valid():
             return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        if not str(request.user.id) == request.data['author']:
+        if not str(request.user.id) == request.data['author']['id'].split('/')[-1]:
             return Response("Authenticated user id does not match author id of comment being POSTed", status.HTTP_401_UNAUTHORIZED)
 
         serializer.save()
