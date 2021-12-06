@@ -15,6 +15,8 @@ class Node_Interface_Factory():
             return Team_2_Interface
         elif team == 'TEAM 18':
             return Team_18_Interface
+        elif team == "LOCAL":
+            return Local_Interface
         else:
             return Node_Interface
 
@@ -192,3 +194,16 @@ class Team_18_Interface(Abstract_Node_Interface):
     def get_comments(node, post_url):
         uri = f'{post_url}/comments/'
         return Node_Interface.__get_response__(node, uri)['data']
+
+class Local_Interface(Node_Interface):
+    def get_authors(node):
+        uri = URLDecorator.authors_url(str(node)[:-1])
+        print(uri)
+        response = Node_Interface.__get_response__(node, uri)
+        if 'data' in response:
+            for author in response['data']:
+                if not User.objects.filter(id=author['id'].split('/')[-1]).exists():
+                    user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=f"{author['displayName']}:{author['url']}", github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
+                    User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1], url=author['url'])
+            return response['data']
+        return response
