@@ -1,14 +1,6 @@
-from datetime import datetime
 from django.core.cache import cache
-from apscheduler.schedulers.background import BackgroundScheduler
 from src.Node import Node_Interface_Factory
 from api.models import Node
-
-def start():
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(update_cached_posts, 'interval', seconds=120)
-    scheduler.add_job(update_cached_authors, 'interval', seconds=120)
-    scheduler.start()
 
 def update_cached_posts():
     posts = []

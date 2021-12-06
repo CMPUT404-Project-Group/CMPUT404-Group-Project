@@ -7,7 +7,6 @@ class ApiConfig(AppConfig):
 
     def ready(self):
         from app import updater
-        updater.start()
         updater.update_cached_posts()
         updater.update_cached_authors()
 

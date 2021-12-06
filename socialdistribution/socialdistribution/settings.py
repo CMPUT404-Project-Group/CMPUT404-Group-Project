@@ -51,7 +51,14 @@ INSTALLED_APPS = [
     'crispy_forms',
     'drf_yasg',
     'corsheaders',
+    'django_crontab',
 ]
+
+CRONJOBS = [
+    ('*/1 * * * *', 'app.updater.update_cached_posts'),
+    ('*/1 * * * *', 'app.updater.update_cached_authors'),
+]
+
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 MIDDLEWARE = [
@@ -68,7 +75,7 @@ MIDDLEWARE = [
     'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
-CACHE_MIDDLEWARE_SECONDS = 60
+CACHE_MIDDLEWARE_SECONDS = 120
 
 ROOT_URLCONF = 'socialdistribution.urls'
 
