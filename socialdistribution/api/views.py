@@ -493,13 +493,20 @@ class Comment_API(generics.ListCreateAPIView):
 
         request.data['post'] = post_id
 
+        author_id = request.data['author']['id'].split('/')[-1]
+
+        if not User.objects.filter(id=author_id).exists():
+            user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=request.data['author']['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author")
+            User.objects.filter(id=user.id).update(id=author_id, url=request.data['author']['id'])
+            user = User.objects.get(id=author_id)
+        else:
+            user = User.objects.get(id=author_id)
+
+        request.data['author'] = author_id
         serializer = CommentSerializer(data=request.data)
 
         if not serializer.is_valid():
             return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        if not str(request.user.id) == request.data['author']['id'].split('/')[-1]:
-            return Response("Authenticated user id does not match author id of comment being POSTed", status.HTTP_401_UNAUTHORIZED)
 
         serializer.save()
         post = get_object_or_404(Post, pk=post_id)
