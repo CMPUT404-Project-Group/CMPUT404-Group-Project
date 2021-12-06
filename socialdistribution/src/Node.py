@@ -64,7 +64,7 @@ class Node_Interface(Abstract_Node_Interface):
         if 'data' in response:
             for author in response['data']:
                 if not User.objects.filter(id=author['id'].split('/')[-1]).exists():
-                    user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
+                    user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=f"{author['displayName']}:{author['url']}", github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
                     User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1], url=author['url'])
             return response['data']
         return response
