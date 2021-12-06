@@ -628,7 +628,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
             if (FriendshipRequest.objects.filter(from_user=author, to_user=user).exists()):
                 friend_request = FriendshipRequest.objects.get(from_user=author, to_user=user)
                 friend_request.accept()
-            elif user.type == "foreign_author":
+            elif user.type == "foreign-author":
                 # send a friend request to local user
                 Friend.objects.add_friend(user, author)
         elif type == 'unfollow':

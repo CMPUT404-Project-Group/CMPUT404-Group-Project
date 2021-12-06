@@ -3,87 +3,98 @@
 {% block content %}
 {% include "app/includes/navbar.html" %}
 {% load filters %}
-<section >
+<section>
 	<ul>
-        {% for post in stream_posts %}
-			{% if post.shared_post %}
-				<li style="list-style: none">
-					<div class="container py-2 h-100 mt-3">
-						<div class="row d-felx justify-content-center align-items-center h-100">
-							<div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 100%">
-								<div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
-									<div class="card-body">
-										{% include "app/includes/post_title.html" %}
-										<span class="text-muted">
-											{{ post.author.displayName }} <br />
-											<span style="font-style: italic">{{ post.published }}</span>
-										</span>
-										{% include "app/includes/post_content.html" %}
+		{% for post in stream_posts %}
+		{% if post.shared_post %}
+		<li style="list-style: none">
+			<div class="container py-2 h-100 mt-3">
+				<div class="row d-felx justify-content-center align-items-center h-100">
+					<div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 100%">
+						<div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
+							<div class="card-body">
+								{% include "app/includes/post_title.html" %}
+								<span class="text-muted">
+									{{ post.author.displayName }} <br />
+									<span style="font-style: italic">{{ post.published }}</span>
+								</span>
+								{% include "app/includes/post_content.html" %}
 
-										<div class="ms-5 ps-3" style="border-left: 4px solid #dadada;">
-											{% if post.shared_post.contentType == 'text/plain' %}
-												<p class="card-text mt-4">{{ post.shared_post.content }}</p>
-											{% elif post.shared_post.contentType == 'text/markdown' %}
-												{% autoescape off %}
-												<p class="card-text mt-4">{{ post.shared_post.content | commonmark}}</p>
-												{% endautoescape %}
-											{% elif post.shared_post.contentType == "image/png;base64" %}
-												<img alt="User uploaded image" src="{{post.shared_post.content}}" style="width:20%"></img>
-											{% elif post.shared_post.contentType == "image/jpeg;base64" %}
-												<img alt="User uploaded image" src="{{post.shared_post.content}}" style="width:20%"></img>
-											{% else %}
-												<p>{{ post.shared_post.contentType }} failed to display</p>
-											{% endif %}
-											<div class="category">
-												{% for c in post.shared_post.categories %}
-												<span class="badge bg-dark">{{ c }}</span>
-												{% endfor %}
-											</div>
-											<hr>
-											<span class="text-muted">Originally posted by {{post.shared_post.author.displayName}}. <br>
-												<span style="font-style: italic">{{ post.published }}</span>
-											</span>
-										</div>
-										<div class="category">
-											{% for c in post.categories %}
-											<span class="badge bg-dark">{{ c }}</span>
-											{% endfor %}
-										</div>
-										<a href="{{ post.origin }}" class="btn btn-primary shadow mt-5">View Post</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</li>
-			{% else %}
-			<li style="list-style: none">
-				<div class="container py-2 h-100 mt-3">
-					<div class="row d-felx justify-content-center align-items-center h-100">
-						<div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 100%">
-							<div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
-								<div class="card-body">
-									{% include "app/includes/post_title.html" %}
-									<span class="text-muted">
-										{{ post.author.displayName }} <br />
-										<span style="font-style: italic">{{ post.published}}</span>
-									</span>
-									{% include "app/includes/post_content.html" %}
+								<div class="ms-5 ps-3" style="border-left: 4px solid #dadada;">
+									{% if post.shared_post.contentType == 'text/plain' %}
+									<p class="card-text mt-4">{{ post.shared_post.content }}</p>
+									{% elif post.shared_post.contentType == 'text/markdown' %}
+									{% autoescape off %}
+									<p class="card-text mt-4">{{ post.shared_post.content | commonmark}}</p>
+									{% endautoescape %}
+									{% elif post.shared_post.contentType == "image/png;base64" %}
+									<img alt="User uploaded image" src="{{post.shared_post.content}}"
+										style="width:20%"></img>
+									{% elif post.shared_post.contentType == "image/jpeg;base64" %}
+									<img alt="User uploaded image" src="{{post.shared_post.content}}"
+										style="width:20%"></img>
+									{% else %}
+									<p>{{ post.shared_post.contentType }} failed to display</p>
+									{% endif %}
 									<div class="category">
-										{% for c in post.categories %}
+										{% for c in post.shared_post.categories %}
 										<span class="badge bg-dark">{{ c }}</span>
 										{% endfor %}
 									</div>
-									<a href="{{ post.origin }}" class="btn btn-primary shadow mt-5">View Post</a>
+									<hr>
+									<span class="text-muted">Originally posted by
+										{{post.shared_post.author.displayName}}. <br>
+										<span style="font-style: italic">{{ post.published }}</span>
+									</span>
 								</div>
+								<div class="category">
+									{% for c in post.categories %}
+									<span class="badge bg-dark">{{ c }}</span>
+									{% endfor %}
+								</div>
+								<a href="{{ post.origin }}" class="btn btn-primary shadow mt-5">View Post</a>
 							</div>
 						</div>
 					</div>
 				</div>
-			</li>
-			{% endif %}
-            <br><br/>
-        {% endfor %}
-    </ul>
+			</div>
+		</li>
+		{% else %}
+		<li style="list-style: none">
+			<div class="container py-2 h-100 mt-3">
+				<div class="row d-felx justify-content-center align-items-center h-100">
+					<div class="col-8 col-md-8 col-lg-6 col-xl-5" style="width: 100%">
+						<div class="card shadow p-3" style="border-radius: 0.5rem; border: 0">
+							<div class="card-body">
+								{% include "app/includes/post_title.html" %}
+								<span class="text-muted">
+									{{ post.author.displayName }} <br />
+									<span style="font-style: italic">{{ post.published}}</span>
+								</span>
+								{% include "app/includes/post_content.html" %}
+								<div class="category">
+									{% for c in post.categories %}
+									<span class="badge bg-dark">{{ c }}</span>
+									{% endfor %}
+								</div>
+								{% if post.local %}
+								<a href="{{post.source}}" class="btn btn-primary shadow mt-5">View Post</a>
+								{% else %}
+								<form action="{% url 'app:foreign_posts' %}" method='POST'>
+									{% csrf_token %}
+									<input type="hidden" name="post" value={{post.source}}>
+									<button class="btn btn-primary shadow mt-5" type="submit">View Post</button>
+								</form>
+								{% endif %}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</li>
+		{% endif %}
+		<br><br />
+		{% endfor %}
+	</ul>
 </section>
 {% endblock %}

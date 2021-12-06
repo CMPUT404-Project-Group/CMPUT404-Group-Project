@@ -67,7 +67,7 @@ class Node_Interface(Abstract_Node_Interface):
             for author in response['data']:
                 if not User.objects.filter(id=author['id'].split('/')[-1]).exists():
                     user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=f"{author['displayName']}:{author['url']}", github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
-                    User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1], url=author['url'])
+                    User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1], url=author['url'], host=author['host'])
             return response['data']
         return response
     
@@ -198,7 +198,6 @@ class Team_18_Interface(Abstract_Node_Interface):
 class Local_Interface(Node_Interface):
     def get_authors(node):
         uri = URLDecorator.authors_url(str(node)[:-1])
-        print(uri)
         response = Node_Interface.__get_response__(node, uri)
         if 'data' in response:
             for author in response['data']:
