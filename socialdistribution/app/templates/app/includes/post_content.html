@@ -10,5 +10,8 @@
 {% elif post.contentType == "image/jpeg;base64" %}
   <img alt="User uploaded image" src="{{post.content}}" style="width:20%"></img>
 {% else %}
-  <p>{{ post.contentType }} failed to display</p>
+  <p>
+    failed to display post properly: <br>
+    {{ post }}
+  </p>
 {% endif %}

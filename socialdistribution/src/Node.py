@@ -81,8 +81,8 @@ class Node_Interface(Abstract_Node_Interface):
 
     def get_post(node, uri):
         response = Node_Interface.__get_response__(node, uri)
-        if 'data' in response:
-            return response['data']
+        if 'data' in response and len(response['data']) > 0:
+            return response['data'][0]
         else:
             return response
 
