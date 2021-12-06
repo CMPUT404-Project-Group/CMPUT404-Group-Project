@@ -16,6 +16,7 @@ from api.models import User, Post, Comment, Like, GithubAccessData
 from api.serializers import PostSerializer, FriendRequestSerializer, ForeignFriendRequestSerializer
 from requests.models import Response
 from rest_framework import serializers
+from django.core.cache import cache
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -324,12 +325,7 @@ def explore_authors(request):
     data['local_authors'] = local_authors
 
     # get remote authors
-    nodes = Node.objects.get_queryset().filter(is_active=True)
-    remote_authors = dict()
-    for node in nodes:
-        node_interface = Node_Interface_Factory.get_interface(node)
-        node_authors = node_interface.get_authors(node)
-        remote_authors[node.team] = node_authors
+    remote_authors = cache.get('authors')
         
     return render(request, 'app/explore-authors.html', {'local_authors': local_authors, 'remote_authors': remote_authors })
 
@@ -654,14 +650,7 @@ class PostListView(generic.ListView):
         queryset = Post.objects.filter(visibility="public", unlisted=False)[:20]
         serializer = PostSerializer(queryset, many=True)
 
-        posts = []
-
-        for node in Node.objects.get_queryset().filter(is_active=True):
-            node_interface = Node_Interface_Factory.get_interface(node)
-            authors = node_interface.get_authors(node)
-            for author in authors:
-                author_posts = node_interface.get_author_posts(node, author['id'])
-                posts.extend(author_posts)
+        posts = cache.get('posts')
 
         for post in serializer.data:
             post_id = post['id'].split('/')[-1]
