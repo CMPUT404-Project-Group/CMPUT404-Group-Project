@@ -44,7 +44,6 @@ class Author(APIView):
     """
     Endpoint for getting and updating author's on the server.
     """
-    @method_decorator(cache_page(60*10))
     def get_author(self, author_id):
         return get_object_or_404(User, pk=author_id)
 
@@ -62,7 +61,6 @@ class Author(APIView):
             400: openapi.Response(description="Method Not Allowed.", examples={"application/json": {'detail': "Method \"PUT\" not allowed."}})
         }
     )
-    @method_decorator(cache_page(60*10))
     def get(self, request, author_id):
         """
         GETs and returns an Author object with id {author_id}, if one exists.
@@ -145,7 +143,6 @@ class Author(APIView):
             'size', openapi.IN_QUERY, description='The size of the page to be returned', type=openapi.TYPE_INTEGER)
     ])
 @ api_view(["GET"])
-@method_decorator(cache_page(60*10))
 def authors(request):
     """
     GETs and returns a paginated list of all Authors on the server. 
@@ -179,7 +176,6 @@ class PostsAPI(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     @swagger_auto_schema(tags=['posts'])
-    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a paginated list of comments which correspond to the post which matches the given post id
@@ -239,7 +235,6 @@ class PostAPI(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     @swagger_auto_schema(tags=['post'])
-    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a serialized post object which matches with the post_id provided
@@ -343,7 +338,6 @@ class PageNumberPaginationWithCount(PageNumberPagination):
 
 class Like_Post_API(APIView):
     @swagger_auto_schema(tags=['likes'])
-    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a list of likes on a post within the server which matches the given post id
@@ -361,7 +355,6 @@ class Like_Post_API(APIView):
 
 class Like_Comment_API(APIView):
     @swagger_auto_schema(tags=['likes'])
-    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a list of likes on a comment within the server which matches the given comment id
@@ -379,7 +372,6 @@ class Like_Comment_API(APIView):
 
 class Liked_API(APIView):
     @swagger_auto_schema(tags=['likes'])
-    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a list of every like object corresponding to a user on the server who matches the given author id
@@ -457,7 +449,6 @@ class Comment_API(generics.ListCreateAPIView):
                                   )
         }
     )
-    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a paginated list of comments which correspond to the post which matches the given post id
@@ -576,7 +567,6 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
                 'size', openapi.IN_QUERY, description='The size of the page to be returned', type=openapi.TYPE_INTEGER)
         ]
     )
-    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         Retrieve a paginated list of {authord_id}'s inbox.
@@ -762,7 +752,6 @@ class Followers(APIView):
         400: openapi.Response(description="Bad Request")
     }
     )
-    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         Check if {foreign_author_id} is following {author_id}
