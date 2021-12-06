@@ -33,8 +33,6 @@ TEAM_18_TOKEN = os.environ.get("TEAM_18_TOKEN")
 TEAM_02_TOKEN = os.environ.get("TEAM_02_TOKEN")
 ALLOWED_HOSTS = ['*']
 
-TEST_TOKEN = os.environ.get("TEST_TOKEN")
-
 
 # Application definition
 
@@ -149,7 +147,15 @@ AUTH_USER_MODEL = 'api.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day', #1/second
+        'user': '1000/day', #1/second
+    }
 }
 
 CORS_ORIGIN_ALLOW_ALL = True

@@ -55,13 +55,11 @@
                             <form action="{% url 'app:foreign_posts' %}" method='POST'>
                                 {% csrf_token %}
                                 <input type="hidden" name="post" value={{post.id}}>
-                                <button class="btn btn-primary shadow mt-5" onClick="sendComment()" type="submit">View
-                                    Post</button>
+                                <button class="btn btn-primary shadow mt-5 w-100" onClick="sendComment()"
+                                    type="submit">Back</button>
                             </form>
                         </div>
-                        <a href="{% url 'app:index' %}"><button type="button" class="btn btn-primary shadow mt-3 w-100">
-                                Back
-                            </button></a>
+
                     </form>
                 </div>
             </div>

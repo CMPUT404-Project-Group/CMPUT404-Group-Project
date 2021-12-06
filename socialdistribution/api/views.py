@@ -32,6 +32,8 @@ from .models import Inbox as InboxItem
 from .models import Post, User, Like, Comment
 from .serializers import LikeSerializer, LikedSerializer, InboxSerializer, PostSerializer, UserSerializer, CommentSerializer
 from django.forms.models import model_to_dict
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 from django.conf import settings
 HOST_API_URL = settings.HOST_API_URL
@@ -41,7 +43,7 @@ class Author(APIView):
     """
     Endpoint for getting and updating author's on the server.
     """
-
+    @method_decorator(cache_page(60*10))
     def get_author(self, author_id):
         return get_object_or_404(User, pk=author_id)
 
@@ -59,6 +61,7 @@ class Author(APIView):
             400: openapi.Response(description="Method Not Allowed.", examples={"application/json": {'detail': "Method \"PUT\" not allowed."}})
         }
     )
+    @method_decorator(cache_page(60*10))
     def get(self, request, author_id):
         """
         GETs and returns an Author object with id {author_id}, if one exists.
@@ -141,6 +144,7 @@ class Author(APIView):
             'size', openapi.IN_QUERY, description='The size of the page to be returned', type=openapi.TYPE_INTEGER)
     ])
 @ api_view(["GET"])
+@method_decorator(cache_page(60*10))
 def authors(request):
     """
     GETs and returns a paginated list of all Authors on the server. 
@@ -174,6 +178,7 @@ class PostsAPI(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     @swagger_auto_schema(tags=['posts'])
+    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a paginated list of comments which correspond to the post which matches the given post id
@@ -233,6 +238,7 @@ class PostAPI(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     @swagger_auto_schema(tags=['post'])
+    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a serialized post object which matches with the post_id provided
@@ -336,6 +342,7 @@ class PageNumberPaginationWithCount(PageNumberPagination):
 
 class Like_Post_API(APIView):
     @swagger_auto_schema(tags=['likes'])
+    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a list of likes on a post within the server which matches the given post id
@@ -353,6 +360,7 @@ class Like_Post_API(APIView):
 
 class Like_Comment_API(APIView):
     @swagger_auto_schema(tags=['likes'])
+    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a list of likes on a comment within the server which matches the given comment id
@@ -370,6 +378,7 @@ class Like_Comment_API(APIView):
 
 class Liked_API(APIView):
     @swagger_auto_schema(tags=['likes'])
+    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a list of every like object corresponding to a user on the server who matches the given author id
@@ -447,6 +456,7 @@ class Comment_API(generics.ListCreateAPIView):
                                   )
         }
     )
+    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         GETs and returns a paginated list of comments which correspond to the post which matches the given post id
@@ -493,13 +503,20 @@ class Comment_API(generics.ListCreateAPIView):
 
         request.data['post'] = post_id
 
+        author_id = request.data['author']['id'].split('/')[-1]
+
+        if not User.objects.filter(id=author_id).exists():
+            user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=request.data['author']['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author")
+            User.objects.filter(id=user.id).update(id=author_id, url=request.data['author']['id'])
+            user = User.objects.get(id=author_id)
+        else:
+            user = User.objects.get(id=author_id)
+
+        request.data['author'] = author_id
         serializer = CommentSerializer(data=request.data)
 
         if not serializer.is_valid():
             return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        if not str(request.user.id) == request.data['author']:
-            return Response("Authenticated user id does not match author id of comment being POSTed", status.HTTP_401_UNAUTHORIZED)
 
         serializer.save()
         post = get_object_or_404(Post, pk=post_id)
@@ -558,6 +575,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
                 'size', openapi.IN_QUERY, description='The size of the page to be returned', type=openapi.TYPE_INTEGER)
         ]
     )
+    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         Retrieve a paginated list of {authord_id}'s inbox.
@@ -604,10 +622,12 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
         try:
             item = request.data
             type = item['type'].lower()
+
             if type == 'follow':
                 # create this follow object
                 author = User.objects.get(id=author_id) 
                 foreign_author = item['actor']
+
                 if not User.objects.filter(displayName=foreign_author['displayName']).exists():
                     user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=foreign_author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
                     User.objects.filter(id=user.id).update(id=foreign_author['id'].split('/')[-1], url=foreign_author['id'])
@@ -619,11 +639,19 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
                     friend_request = FriendshipRequest.objects.get(from_user=author, to_user=user)
                     friend_request.accept()
                 else:
-                    # send a friend request
+                    # send a friend request to local user
                     Friend.objects.add_friend(user, author)
+            elif type == 'unfollow':
+                # delete this follow object
+                author = User.objects.get(id=author_id) 
+                foreign_author = item['actor']
+                user = User.objects.get(id=foreign_author['id'].split('/')[-1])
+                Follow.objects.remove_follower(user, author)
+                if Friend.objects.are_friends(user, author):
+                    Friend.objects.remove_friend(user, author )
             elif type == 'like':
                 # create this like on the given post
-                post_id = item['post']
+                post_id = item['object'].split('/')[-1]
                 author = item['author']
                 if not User.objects.filter(displayName=author['displayName']).exists():
                     user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
@@ -639,7 +667,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
             elif type == 'comment':
                 # create this comment on the given post
                 comment = item['comment']
-                post_id = item['post']
+                post_id = item['id'].split('/')[-3]
                 author = item['author']
                 if not User.objects.filter(displayName=author['displayName']).exists():
                     user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
@@ -649,10 +677,6 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
                     user = User.objects.get(id=author['id'].split('/')[-1])
                 post = Post.objects.get(id=post_id)
                 Comment.objects.create_comment(author=user, comment=comment, post=post)
-            # elif type == 'post':
-            #     # I don't think we need to actually create the post?
-            #     # they will just send us the post object for us to view in the inbox?
-            #     pass
 
             # then we send the notification to the inbox
             author = User.objects.get(id=author_id)
@@ -736,6 +760,7 @@ class Followers(APIView):
         400: openapi.Response(description="Bad Request")
     }
     )
+    @method_decorator(cache_page(60*10))
     def get(self, request, *args, **kwargs):
         """
         Check if {foreign_author_id} is following {author_id}

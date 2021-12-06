@@ -27,11 +27,11 @@
         const post = await createPost();
         // send post to users inbox
         const select = document.getElementById('private_to_author');
-        const value = select.options[select.selectedIndex].value;
+        let value = select.options[select.selectedIndex].value;
+        value = value.replace(/None/g, '"None"')
         const author = JSON.parse(value.replace(/'/g, '"'));
-
         const url = `${author.url}/inbox/`;
-        const headers = { 'Content-Type': 'application/json', 'Authorization': `Token ${author.token}` }
+        const headers = { 'Content-Type': 'application/json', 'Authorization': `Basic ${author.token}` }
         var req = new Request(url, { method: 'POST', body: JSON.stringify(post), headers })
 
         const res = await fetch(req)

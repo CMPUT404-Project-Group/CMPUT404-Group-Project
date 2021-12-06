@@ -310,7 +310,7 @@ class Post(models.Model):
     content_type = models.CharField(
         max_length=255, choices=ContentType.choices)
     text_content = models.TextField(unique=False, blank=True)
-    image_content = models.ImageField(unique=False, blank=True, upload_to="images/")
+    image_content = models.ImageField(max_length=60000, unique=False, blank=True, upload_to="images/")
     image_link = models.TextField(unique=False, blank=True, null=True)
     author = models.ForeignKey(
         "User",
@@ -451,7 +451,7 @@ class Inbox(models.Model):
 
 class Node(models.Model):
     url = models.URLField(max_length=255, unique=False, null=False, blank=False)
-    auth_token = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    auth_token = models.CharField(max_length=255, unique=False, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     team = models.CharField(max_length=255, null=True, blank=True)    
     def __str__(self):

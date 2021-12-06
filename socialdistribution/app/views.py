@@ -1,5 +1,6 @@
 from uuid import uuid4
 from requests import api
+import random
 
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm, SharePostForm
 from api.models import User, Post, Node
@@ -12,7 +13,7 @@ import requests
 import time
 from .forms import RegisterForm, PostCreationForm, CommentCreationForm, ManageProfileForm
 from api.models import User, Post, Comment, Like, GithubAccessData
-from api.serializers import PostSerializer, FriendRequestSerializer
+from api.serializers import PostSerializer, FriendRequestSerializer, ForeignFriendRequestSerializer
 from requests.models import Response
 from rest_framework import serializers
 from django.contrib import messages
@@ -34,8 +35,6 @@ API_TOKEN = settings.API_TOKEN
 TEAM_12_TOKEN = settings.TEAM_12_TOKEN
 TEAM_18_TOKEN = settings.TEAM_18_TOKEN
 TEAM_02_TOKEN = settings.TEAM_02_TOKEN
-
-TEST_TOKEN = settings.TEST_TOKEN
 
 
 def register(request):
@@ -398,6 +397,14 @@ def follow(request, other_user_id):
                 friend_request = FriendshipRequest.objects.get(from_user=other_user, to_user=request.user)
                 friend_request.accept()
                 Follow.objects.add_follower(request.user, other_user)  # follow
+
+                # if other_user is foreign_user, send request to inbox
+                if other_user.type == 'foreign-author':
+                    instance = {'from_user':request.user.id, 'to_user':other_user_id}      
+                    serializer = ForeignFriendRequestSerializer(instance).follow()
+                    inboxURL = other_user.url + '/inbox/'
+                    requests.post(inboxURL, json=serializer, headers=headers)
+
                 messages.success(request,f'You and %s are friends now!' % other_user.displayName)
             elif (FriendshipRequest.objects.filter(from_user=request.user, to_user=other_user).exists()):
                 Follow.objects.add_follower(request.user, other_user)  # follow
@@ -418,6 +425,23 @@ def unfollow(request, other_user_id):
         # remove friend if user & other_user are friends
         if Friend.objects.are_friends(request.user, other_user):
             Friend.objects.remove_friend(request.user, other_user )
+
+        # send unfollow to foreign-author's inbox
+        if other_user.type == 'foreign-author': 
+            host = other_user.url.split('/')[2]
+            if host == 'glowing-palm-tree1.herokuapp.com':
+                token = TEAM_12_TOKEN
+            elif host == 'cmput404-socialdistributio-t18.herokuapp.com':
+                token = TEAM_18_TOKEN
+            elif host == 'ourbackend.herokuapp.com':
+                token = TEAM_02_TOKEN
+            
+            headers = {'Authorization': 'Token %s' % token}
+
+            instance = {'from_user':request.user.id, 'to_user':other_user_id}
+            serializer = ForeignFriendRequestSerializer(instance).unfollow()
+            inboxURL = other_user.url + '/inbox/'
+            requests.post(inboxURL, json=serializer, headers=headers)
 
         return redirect('app:view-other-user', other_user_id=other_user_id)
 
@@ -458,6 +482,75 @@ def create_foreign_comment(request):
     }
 
     return render(request, 'comments/create_foreign_comment.html', context)
+
+@login_required
+def view_foreign_comment(request):
+    if request.method == 'POST':
+        return redirect('app:foreign_posts')
+    else: 
+        post = request.session['foreign_post']
+        url = post['author']['host']
+        node = Node.objects.get(url__contains=url)
+        node_interface = Node_Interface_Factory.get_interface(node)
+        print(node)
+        comments = node_interface.get_comments(node, post_url=post['id'])
+
+    context = {
+        'post': post,
+        'comments': comments,
+        'is_author': False,
+        'user' : request.user,
+        'token' : node.auth_token
+    }
+
+    return render(request, 'comments/foreign_comments.html', context)
+
+@login_required
+def share_foreign_post(request):
+    """
+    From to allow a user to share a foreign user's post given by post_id.
+    """
+    post = request.session['foreign_post']
+    context = {'post': post}
+    if request.method == 'POST':
+        user = request.user
+        if not User.objects.filter(displayName=post["author"]['displayName']).exists():
+            foreign_author = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=post["author"]['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
+            User.objects.filter(id=foreign_author.id).update(id=post["author"]['id'].split('/')[-1], url=post["author"]['id'])
+            foreign_author = User.objects.get(id=post["author"]['id'].split('/')[-1])
+        else:
+            foreign_author = User.objects.get(id=post["author"]['id'].split('/')[-1])
+        foreign_post = Post(
+            type="foreign_post",
+            title=post["title"],
+            id=post["id"].split('/')[-1],
+            source=post["source"],
+            origin=post["origin"],
+            description=post["description"] if post["description"] is not None else 'not provided',
+            content_type=post["contentType"],
+            text_content=post["content"],
+            image_content=post["content"],
+            image_link=None,
+            author=foreign_author,
+            categories=','.join(post["categories"]),
+            count=post.get("count", 0),
+            size=0,
+            comments=post["comments"] if post["comments"] is not None else f'{post["origin"]}/comments/',
+            visibility=post["visibility"],
+            unlisted=True,
+            shared_post = None,
+            published=post["published"]
+        )
+        foreign_post.save()
+        form = SharePostForm(data=request.POST, user=user, post=foreign_post)
+        if form.is_valid():
+            form.save()
+            return redirect('app:index')
+    else:
+        form = SharePostForm()
+
+    return render(request, 'posts/share_post.html', context)
+
 
 def comments(request, post_id):
     """

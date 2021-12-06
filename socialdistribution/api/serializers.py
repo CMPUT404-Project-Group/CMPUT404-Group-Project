@@ -56,7 +56,8 @@ class PostSerializer(serializers.ModelSerializer):
             'comments',
             'published',
             'visibility',
-            'unlisted'
+            'unlisted',
+            'shared_post'
         ]
 
     def to_representation(self, instance):
@@ -64,6 +65,9 @@ class PostSerializer(serializers.ModelSerializer):
 
         post['id'] = f"{HOST_API_URL[:-1]}/author/{post['author']}/posts/{post['id']}"
         post['categories'] = post['categories'].split(',')
+        if post['shared_post'] is not None:
+            shared_post = Post.objects.get(id=post['shared_post'])
+            post['shared_post'] = PostSerializer(shared_post).data
 
         author_id = post['author']
         author = User.objects.get(id=author_id)
@@ -191,3 +195,25 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         object_obj = User.objects.get(id=request.get('to_user'))
         object = UserSerializer(object_obj).data
         return {'type': 'Follow', 'summary': actor.get('displayName') + ' wants to follow ' + object.get('displayName'), 'actor': actor, 'object': object}
+
+class ForeignFriendRequestSerializer:
+
+    def __init__(self, instance):
+        actor_obj = User.objects.get(id=instance['from_user'])
+        self.actor = UserSerializer(actor_obj).data
+        object_obj = User.objects.get(id=instance['to_user'])
+        self.object = UserSerializer(object_obj).data
+
+    def follow(self):
+        data = {'type': 'Follow', 'summary': self.actor.get('displayName') + ' wants to follow ' + self.object.get('displayName'), 'actor': self.actor, 'object': self.object}
+        return data
+
+    def unfollow(self):
+        data = {'type': 'unfollow', 'summary': self.actor.get('displayName') + ' unfollowed ' + self.object.get('displayName'), 'actor': self.actor, 'object': self.object}
+        return data
+
+    def get(self, arg):
+        if arg == 'actor': 
+            return self.actor
+        if arg == 'object':
+            return self.object
