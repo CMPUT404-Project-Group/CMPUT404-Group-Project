@@ -70,10 +70,20 @@ def index(request):
     #Get all posts from yourself (besides unlisted ones)
     user_posts = Post.objects.all().order_by('-published').filter(author=request.user, unlisted=False)
 
-    #Get public posts of followers
+    #Get public posts of localfollowers 
     followed_qs = Follow.objects.filter(follower_id=request.user.id)
     followed_ids = [item.followee_id for item in followed_qs]
     follower_posts = Post.objects.all().filter(author__in=followed_ids, visibility="public", unlisted=False)
+
+    # get foreign follower posts
+    foreign_follow_posts = []
+    for id in followed_ids:
+        user = User.objects.get(id=id)
+        if user.type == "foreign-author":
+            node = Node.objects.get(url__contains=user.host)
+            node_interface = Node_Interface_Factory.get_interface(node)
+            foreign_follow_posts.extend(node_interface.get_author_posts(node, f'{node}/author/{user.id}'))
+    
 
     #Get public and friends only posts from friends
     friends_qs = Friend.objects.friends(request.user)
@@ -91,6 +101,9 @@ def index(request):
             url = f'{HOST_URL}/app/posts/{post_id}'
             post['source'] = url
             post['origin'] = url
+            post['local'] = True
+
+    stream_posts.extend(foreign_follow_posts)
 
     context = {
         "stream_posts" : stream_posts
@@ -386,6 +399,7 @@ def follow(request, other_user_id):
             request.user,                              # The sender
             other_user)                                # The recipient
 
+            Follow.objects.add_follower(request.user, other_user)  # follow
             # send request to object user's inbox
             serializer = FriendRequestSerializer(friend_request).data
             inboxURL = serializer.get('object', {}).get('url') + '/inbox/'
@@ -399,7 +413,7 @@ def follow(request, other_user_id):
                 # accept friend request from other_user
                 friend_request = FriendshipRequest.objects.get(from_user=other_user, to_user=request.user)
                 friend_request.accept()
-                # Follow.objects.add_follower(request.user, other_user)  # follow
+                Follow.objects.add_follower(request.user, other_user)  # follow
 
                 # if other_user is foreign_user, send request to inbox
                 instance = {'from_user':request.user.id, 'to_user':other_user_id}      
@@ -496,7 +510,6 @@ def view_foreign_comment(request):
         url = post['author']['host']
         node = Node.objects.get(url__contains=url)
         node_interface = Node_Interface_Factory.get_interface(node)
-        print(node)
         comments = node_interface.get_comments(node, post_url=post['id'])
 
     context = {
