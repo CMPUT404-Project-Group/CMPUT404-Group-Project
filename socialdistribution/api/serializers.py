@@ -82,7 +82,7 @@ class PostSerializer(serializers.ModelSerializer):
 
         post['comments'] = {
             'comment_page': post['comments'], 
-            'comments': comments_list_paginated['data']
+            'comments': comments_list_paginated.get('data', [])
         }
 
         post['size'] = comments_list_paginated['size']
