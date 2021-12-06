@@ -8,11 +8,20 @@
 {% block javascript %}
 <script>
     const createPost = async () => {
+        const author = {
+            type : "author",
+            url : "{{user.url}}",
+            id : "{{user.url}}",
+            displayName : "{{user.displayName}}",
+            host : "{{user.url}}".split('api')[0],
+            github : "{{user.github}}",
+            profileImage : "{{user.profileImage}}"
+        }
         const url = `{{user.url}}/posts/`
         const headers = { 'Content-Type': 'application/json', 'Authorization': 'Basic {{token}}' }
         values = $("form").serializeArray()
         const body = {
-            author: '{{user.id}}',
+            author: author,
             categories: values[4].value,
             content: values[2].value,
             title: values[1].value,
