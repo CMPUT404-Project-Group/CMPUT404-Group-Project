@@ -112,8 +112,15 @@ class Team_2_Interface(Abstract_Node_Interface):
     def get_authors(node):
         uri = URLDecorator.authors_url(str(node))
         response = Node_Interface.__get_response__(node, uri)
-        return Team_2_Interface.__format_authors__(
+        authors = Team_2_Interface.__format_authors__(
             node, response.get('authors', []))
+
+        for author in authors:
+            if not User.objects.filter(id=author['id'].split('/')[-1]).exists():
+                user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=f"{author['displayName']}:{author['url']}", github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
+                User.objects.filter(id=user.id).update(id=author['id'].split('/')[-1], url=author['url'])
+
+        return authors
     
     def get_author(node, author_id):
         uri = f"{URLDecorator.author_id_url(node, author_id)}/"

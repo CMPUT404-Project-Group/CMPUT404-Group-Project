@@ -69,7 +69,7 @@ MIDDLEWARE = [
     'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
-CACHE_MIDDLEWARE_SECONDS = 30
+CACHE_MIDDLEWARE_SECONDS = 1
 
 ROOT_URLCONF = 'socialdistribution.urls'
 
