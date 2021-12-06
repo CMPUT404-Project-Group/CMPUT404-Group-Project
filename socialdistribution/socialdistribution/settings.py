@@ -153,8 +153,8 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/day', #1/second
-        'user': '1000/day', #1/second
+        'anon': '1/second', #1/second
+        'user': '1/second', #1/second
     }
 }
 
