@@ -467,7 +467,6 @@ def create_comment(request, post_id):
 @login_required
 def create_foreign_comment(request):
     if request.method == 'POST':
-        time.sleep(10)
         return redirect('app:foreign_posts')
     else: 
         post = request.session['foreign_post']
