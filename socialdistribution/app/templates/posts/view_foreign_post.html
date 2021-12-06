@@ -22,8 +22,10 @@
       summary: '{{user.displayName}} likes your post',
       author: author,
       type: "Like",
-      object: '{{post.url}}'
+      object: '{{post.id}}'
     }
+
+    console.log(like)
 
     // send like to users inbox
 
