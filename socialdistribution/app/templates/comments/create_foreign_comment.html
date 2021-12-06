@@ -28,7 +28,6 @@
             id: "{{post.id}}/comments/{{uuid}}"
         }
         const url = "{{post.id}}/comments";
-        console.log(comment)
         const headers = { 'Content-Type': 'application/json', 'Authorization': `Basic {{token}}` }
         var req = new Request(url, { method: 'POST', body: JSON.stringify(comment), headers })
 
