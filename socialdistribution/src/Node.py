@@ -2,6 +2,7 @@ from requests.models import InvalidURL, MissingSchema
 from src.url_decorator import URLDecorator
 import json
 import requests
+import datetime
 from abc import ABC, abstractmethod
 
 class Node_Interface_Factory():
@@ -113,8 +114,8 @@ class Team_2_Interface(Abstract_Node_Interface):
     def get_author_posts(node, author_id):
         uri = f"{URLDecorator.author_posts_url(author_id)}/"
         response = Node_Interface.__get_response__(node, uri)
-        if 'post' in response:
-            return response['post']
+        if 'posts' in response:
+            return Team_2_Interface.__format_posts__(response['posts'])
         else:
             return response
     
@@ -141,6 +142,16 @@ class Team_2_Interface(Abstract_Node_Interface):
     def __format_author__(node, author):
         author['id'] = f"{node.url}/author/{author.pop('author_id')}"
         return author
+
+    def __format_post__(post):
+        if "published" not in post:
+            post["published"] = datetime.datetime.now()
+        return post
+
+    def __format_posts__(posts):
+        for post in posts:
+            post = Team_2_Interface.__format_post__(post)
+        return posts
 
 class Team_18_Interface(Abstract_Node_Interface):
 

@@ -673,7 +673,6 @@ class PostListView(generic.ListView):
             content = post['content'].strip(' ')
             post['content'] = content
             posts.append(post)
-
         return render(request, self.template_name, {'post_list': sorted(posts, key=lambda i: i['published'], reverse=True)})
       
 @login_required
