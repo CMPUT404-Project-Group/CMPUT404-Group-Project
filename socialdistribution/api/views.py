@@ -617,7 +617,7 @@ class Inbox(generics.ListCreateAPIView, generics.DestroyAPIView):
             if type == 'follow':
                 # create this follow object
                 author = User.objects.get(id=author_id) 
-                foreign_author = item['actor']
+                foreign_author = item['author']
 
                 if not User.objects.filter(displayName=foreign_author['displayName']).exists():
                     user = User.objects.create(email=str(random.randint(0,99999))+'@mail.ca', displayName=foreign_author['displayName'], github=None, password=str(random.randint(0,99999)), type="foreign-author") # hack it in
