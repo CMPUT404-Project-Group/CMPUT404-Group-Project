@@ -20,7 +20,7 @@ class Abstract_Node_Interface(ABC):
     def __get_response__(node, uri):
         headers = {'Authorization': f'Basic {node.auth_token}'}
         response = requests.get(uri, headers=headers)
-        content = []
+        content = {}
         
         if response.ok:
             try:
@@ -57,26 +57,42 @@ class Node_Interface(Abstract_Node_Interface):
 
     def get_authors(node):
         uri = URLDecorator.authors_url(str(node))
-        return Node_Interface.__get_response__(node, uri)['data']
+        response = Node_Interface.__get_response__(node, uri)
+        if 'data' in response:
+            return response['data']
+        return response
     
     def get_author(node, author_id):
         uri = URLDecorator.author_id_url(node, author_id)
         response = Node_Interface.__get_response__(node, uri)
-        if response == []:
-            return []
-        else:
+        if 'data' in response:
             return response['data'][0]
+        else:
+            return response
     
     def get_author_posts(node, author_id):
         uri = URLDecorator.author_posts_url(author_id)
-        return Node_Interface.__get_response__(node, uri)['data']
-    
+        response = Node_Interface.__get_response__(node, uri)
+        if 'data' in response:
+            return response['data']
+        else:
+            return response
+
     def get_post(node, uri):
-        return Node_Interface.__get_response__(node, uri)['data'][0]
-    
+        response = Node_Interface.__get_response__(node, uri)
+        if 'data' in response:
+            return response['data']
+        else:
+            return response
+
     def get_followers(node, author_id):
         uri = URLDecorator.author_followers_url(author_id)
-        return Node_Interface.__get_response__(node, uri)['data']
+        response = Node_Interface.__get_response__(node, uri)
+        if 'data' in response:
+            return response['data']
+        else:
+            return response
+        
 
     def get_comments(node, post_url):
         uri = f'{post_url}/comments'
@@ -96,14 +112,26 @@ class Team_2_Interface(Abstract_Node_Interface):
     
     def get_author_posts(node, author_id):
         uri = f"{URLDecorator.author_posts_url(author_id)}/"
-        return Node_Interface.__get_response__(node, uri)['posts']
+        response = Node_Interface.__get_response__(node, uri)
+        if 'post' in response:
+            return response['post']
+        else:
+            return response
     
     def get_post(node, uri):
-        return Node_Interface.__get_response__(node, uri)['data'][0]
+        response = Node_Interface.__get_response__(node, uri)
+        if 'post' in response:
+            return response['post']
+        else:
+            return response['data'][0]
     
     def get_followers(node, author_id):
         uri = URLDecorator.author_followers_url(author_id)
-        return Node_Interface.__get_response__(node, uri)['data']
+        response = Node_Interface.__get_response__(node, uri)
+        if 'data' in response:
+            return response['data']
+        else:
+            return response
 
     def __format_authors__(node, authors):
         for author in authors:
@@ -125,11 +153,18 @@ class Team_18_Interface(Abstract_Node_Interface):
 
     def get_author_posts(node, author_id):
         uri = f"{node.url}/author/{URLDecorator.author_posts_url(author_id)}/"
-        return Node_Interface.__get_response__(node, uri)['data']
+        response = Node_Interface.__get_response__(node, uri)['data']
+        if 'data' in response:
+            return response['data']
+        return response
 
     def get_post(node, uri):
         uri = f"{uri}/"
-        return Node_Interface.__get_response__(node, uri)['data']
+        response =  Node_Interface.__get_response__(node, uri)
+        if 'data' in response:
+            return response['data']
+        else:
+            return response
 
     def get_followers(node, author_id):
         return Node_Interface.get_followers(author_id)
