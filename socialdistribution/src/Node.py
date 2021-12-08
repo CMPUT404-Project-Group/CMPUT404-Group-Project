@@ -156,10 +156,13 @@ class Team_2_Interface(Abstract_Node_Interface):
         return authors
     
     def __format_author__(node, author):
-        if (not 'id' in author and 'author_id' in author) or 'http' not in author['id']:
-            author['id'] = f"{node.url}/author/{author.pop('author_id')}"
-            return author
-        return {}
+        try:
+            if (not 'id' in author and 'author_id' in author) or 'http' not in author['id']:
+                author['id'] = f"{node.url}/author/{author.pop('author_id')}"
+                return author
+            return {}
+        except KeyError:
+            return {}
 
     def __format_post__(post):
         if "published" not in post:
