@@ -13,10 +13,10 @@
         values = $("form").serializeArray()
         const body = {
             author: '{{user.id}}',
-            categories: values[4].value,
+            categories: values[3].value,
             content: values[2].value,
             title: values[1].value,
-            visibility: values[5].value,
+            visibility: values[4].value,
         }
         var req = new Request(url, { method: 'POST', body: JSON.stringify(body), headers })
         const res = await fetch(req)
